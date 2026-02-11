@@ -8,7 +8,7 @@ import {
   type Card as FSRSCard,
   type Grade,
 } from "ts-fsrs";
-import db from "./db.js";
+import type { DbProvider, Card, CardUpdate } from "./db-provider.js";
 
 const f = fsrs();
 
@@ -35,28 +35,10 @@ const stringToState: Record<string, State> = {
   relearning: State.Relearning,
 };
 
-/** Convert a database row into an FSRS Card object for ts-fsrs operations. */
-function dbRowToFSRSCard(row: Record<string, unknown>): FSRSCard {
+/** Convert a Card into an FSRS Card object for ts-fsrs operations. */
+function cardToFSRS(card: Card): FSRSCard {
   return {
-    due: new Date(row.due as string),
-    stability: row.stability as number,
-    difficulty: row.difficulty as number,
-    elapsed_days: row.elapsed_days as number,
-    scheduled_days: row.scheduled_days as number,
-    learning_steps: row.learning_steps as number,
-    reps: row.reps as number,
-    lapses: row.lapses as number,
-    state: stringToState[row.state as string] ?? State.New,
-    last_review: row.last_review
-      ? new Date(row.last_review as string)
-      : undefined,
-  };
-}
-
-/** Convert FSRS card fields back to DB-friendly values. */
-function fsrsCardToDbFields(card: FSRSCard) {
-  return {
-    due: card.due.toISOString(),
+    due: new Date(card.due),
     stability: card.stability,
     difficulty: card.difficulty,
     elapsed_days: card.elapsed_days,
@@ -64,44 +46,30 @@ function fsrsCardToDbFields(card: FSRSCard) {
     learning_steps: card.learning_steps,
     reps: card.reps,
     lapses: card.lapses,
-    state: stateToString[card.state] ?? "new",
-    last_review: card.last_review ? card.last_review.toISOString() : null,
+    state: stringToState[card.state] ?? State.New,
+    last_review: card.last_review ? new Date(card.last_review) : undefined,
   };
 }
 
-// -- Prepared statements --
+/** Convert FSRS card fields back to CardUpdate values. */
+function fsrsToCardUpdate(fsrsCard: FSRSCard): CardUpdate {
+  return {
+    due: fsrsCard.due.toISOString(),
+    stability: fsrsCard.stability,
+    difficulty: fsrsCard.difficulty,
+    elapsed_days: fsrsCard.elapsed_days,
+    scheduled_days: fsrsCard.scheduled_days,
+    learning_steps: fsrsCard.learning_steps,
+    reps: fsrsCard.reps,
+    lapses: fsrsCard.lapses,
+    state: stateToString[fsrsCard.state] ?? "new",
+    last_review: fsrsCard.last_review
+      ? fsrsCard.last_review.toISOString()
+      : null,
+  };
+}
 
-const insertCard = db.prepare(`
-  INSERT INTO cards (id, front, context, source_conversation, tags, created_at,
-    due, stability, difficulty, elapsed_days, scheduled_days, learning_steps,
-    reps, lapses, state, last_review, status)
-  VALUES (@id, @front, @context, @source_conversation, @tags, @created_at,
-    @due, @stability, @difficulty, @elapsed_days, @scheduled_days, @learning_steps,
-    @reps, @lapses, @state, @last_review, @status)
-`);
-
-const getCardById = db.prepare(`SELECT * FROM cards WHERE id = ?`);
-
-const deleteReviewLogsByCardId = db.prepare(
-  `DELETE FROM review_logs WHERE card_id = ?`
-);
-
-const deleteCardById = db.prepare(`DELETE FROM cards WHERE id = ?`);
-
-const insertReviewLog = db.prepare(`
-  INSERT INTO review_logs (id, card_id, rating, answer, llm_score, llm_feedback, reviewed_at)
-  VALUES (@id, @card_id, @rating, @answer, @llm_score, @llm_feedback, @reviewed_at)
-`);
-
-const insertCardsBatch = db.transaction(
-  (cards: Record<string, unknown>[]) => {
-    for (const card of cards) {
-      insertCard.run(card);
-    }
-  }
-);
-
-export function mountRoutes(app: Express): void {
+export function mountRoutes(app: Express, db: DbProvider): void {
   // -------------------------------------------------------
   // POST /api/cards -- Create one or more cards
   // -------------------------------------------------------
@@ -129,7 +97,7 @@ export function mountRoutes(app: Express): void {
       }
 
       const now = new Date();
-      const createdCards: Record<string, unknown>[] = [];
+      const cards: Card[] = [];
 
       for (const input of inputCards) {
         if (!input.front) {
@@ -138,35 +106,35 @@ export function mountRoutes(app: Express): void {
         }
 
         const emptyCard = createEmptyCard(now);
-        const fsrsFields = fsrsCardToDbFields(emptyCard);
+        const fsrsFields = fsrsToCardUpdate(emptyCard);
 
-        const card = {
+        cards.push({
           id: crypto.randomUUID(),
           front: input.front,
           context: input.context ?? null,
           source_conversation: input.source_conversation ?? null,
-          tags: input.tags ? JSON.stringify(input.tags) : null,
+          tags: input.tags ?? null,
           created_at: now.toISOString(),
-          ...fsrsFields,
+          due: fsrsFields.due!,
+          stability: fsrsFields.stability!,
+          difficulty: fsrsFields.difficulty!,
+          elapsed_days: fsrsFields.elapsed_days!,
+          scheduled_days: fsrsFields.scheduled_days!,
+          learning_steps: fsrsFields.learning_steps!,
+          reps: fsrsFields.reps!,
+          lapses: fsrsFields.lapses!,
           state: "new",
+          last_review: fsrsFields.last_review ?? null,
           status: "triaging",
-        };
-
-        createdCards.push(card);
+        });
       }
 
-      insertCardsBatch(createdCards);
+      const created = db.createCards(cards);
 
-      // Parse tags back to arrays for the response
-      const responseCards = createdCards.map((c) => ({
-        ...c,
-        tags: c.tags ? JSON.parse(c.tags as string) : null,
-      }));
-
-      if (responseCards.length === 1) {
-        res.status(201).json(responseCards[0]);
+      if (created.length === 1) {
+        res.status(201).json(created[0]);
       } else {
-        res.status(201).json({ cards: responseCards });
+        res.status(201).json({ cards: created });
       }
     } catch (err) {
       console.error("POST /api/cards error:", err);
@@ -180,16 +148,8 @@ export function mountRoutes(app: Express): void {
   app.get("/api/cards/counts", (_req: Request, res: Response) => {
     try {
       const now = new Date().toISOString();
-      const newCount = (
-        db.prepare(`SELECT COUNT(*) as count FROM cards WHERE status = 'triaging'`).get() as { count: number }
-      ).count;
-      const dueCount = (
-        db.prepare(
-          `SELECT COUNT(*) as count FROM cards
-           WHERE status = 'active' AND due <= ?`
-        ).get(now) as { count: number }
-      ).count;
-      res.json({ new: newCount, due: dueCount });
+      const counts = db.getCounts(now);
+      res.json(counts);
     } catch (err) {
       console.error("GET /api/cards/counts error:", err);
       res.status(500).json({ error: "Internal server error" });
@@ -204,30 +164,17 @@ export function mountRoutes(app: Express): void {
       const stateParam = req.query.state as string | undefined;
       const statusParam = req.query.status as string | undefined;
 
-      const conditions: string[] = [];
-      const params: string[] = [];
-
+      const filters: { state?: string[]; status?: string[] } = {};
       if (stateParam) {
-        const states = stateParam.split(",").map((s) => s.trim());
-        conditions.push(`state IN (${states.map(() => "?").join(", ")})`);
-        params.push(...states);
+        filters.state = stateParam.split(",").map((s) => s.trim());
       }
       if (statusParam) {
-        const statuses = statusParam.split(",").map((s) => s.trim());
-        conditions.push(`status IN (${statuses.map(() => "?").join(", ")})`);
-        params.push(...statuses);
+        filters.status = statusParam.split(",").map((s) => s.trim());
       }
 
-      const where = conditions.length > 0 ? ` WHERE ${conditions.join(" AND ")}` : "";
-      const rows = db
-        .prepare(`SELECT * FROM cards${where} ORDER BY created_at DESC`)
-        .all(...params);
-
-      const cards = (rows as Record<string, unknown>[]).map((row) => ({
-        ...row,
-        tags: row.tags ? JSON.parse(row.tags as string) : null,
-      }));
-
+      const cards = db.listCards(
+        Object.keys(filters).length > 0 ? filters : undefined
+      );
       res.json(cards);
     } catch (err) {
       console.error("GET /api/cards error:", err);
@@ -241,32 +188,8 @@ export function mountRoutes(app: Express): void {
   app.get("/api/cards/due", (_req: Request, res: Response) => {
     try {
       const now = new Date().toISOString();
-      const dueRows = db
-        .prepare(
-          `SELECT * FROM cards
-           WHERE status = 'active' AND due <= ?
-           ORDER BY due ASC`
-        )
-        .all(now);
-
-      const cards = (dueRows as Record<string, unknown>[]).map((row) => ({
-        ...row,
-        tags: row.tags ? JSON.parse(row.tags as string) : null,
-      }));
-
-      // Also include upcoming (not yet due) count + next due time
-      const upcoming = db
-        .prepare(
-          `SELECT COUNT(*) as count, MIN(due) as next_due FROM cards
-           WHERE status = 'active' AND due > ?`
-        )
-        .get(now) as { count: number; next_due: string | null };
-
-      res.json({
-        cards,
-        upcoming_count: upcoming.count,
-        next_due: upcoming.next_due,
-      });
+      const result = db.getDueCards(now);
+      res.json(result);
     } catch (err) {
       console.error("GET /api/cards/due error:", err);
       res.status(500).json({ error: "Internal server error" });
@@ -276,26 +199,12 @@ export function mountRoutes(app: Express): void {
   // -------------------------------------------------------
   // PATCH /api/cards/:id -- Update a card
   // -------------------------------------------------------
-  app.patch("/api/cards/:id", (req: Request, res: Response) => {
+  app.patch("/api/cards/:id", (req: Request<{ id: string }>, res: Response) => {
     try {
       const { id } = req.params;
-      const existing = getCardById.get(id) as
-        | Record<string, unknown>
-        | undefined;
-
-      if (!existing) {
-        res.status(404).json({ error: "Card not found" });
-        return;
-      }
-
       const updates = req.body as Record<string, unknown>;
 
-      // Serialise tags if provided as an array
-      if (Array.isArray(updates.tags)) {
-        updates.tags = JSON.stringify(updates.tags);
-      }
-
-      // Build dynamic UPDATE statement
+      // Whitelist allowed fields
       const allowedFields = [
         "front",
         "context",
@@ -314,31 +223,25 @@ export function mountRoutes(app: Express): void {
         "status",
       ];
 
-      const setClauses: string[] = [];
-      const values: unknown[] = [];
-
+      const cardUpdate: CardUpdate = {};
       for (const field of allowedFields) {
         if (field in updates) {
-          setClauses.push(`${field} = ?`);
-          values.push(updates[field]);
+          (cardUpdate as Record<string, unknown>)[field] = updates[field];
         }
       }
 
-      if (setClauses.length === 0) {
+      if (Object.keys(cardUpdate).length === 0) {
         res.status(400).json({ error: "No valid fields to update" });
         return;
       }
 
-      values.push(id);
-      db.prepare(
-        `UPDATE cards SET ${setClauses.join(", ")} WHERE id = ?`
-      ).run(...values);
+      const updated = db.updateCard(id, cardUpdate);
+      if (!updated) {
+        res.status(404).json({ error: "Card not found" });
+        return;
+      }
 
-      const updated = getCardById.get(id) as Record<string, unknown>;
-      res.json({
-        ...updated,
-        tags: updated.tags ? JSON.parse(updated.tags as string) : null,
-      });
+      res.json(updated);
     } catch (err) {
       console.error("PATCH /api/cards/:id error:", err);
       res.status(500).json({ error: "Internal server error" });
@@ -348,15 +251,12 @@ export function mountRoutes(app: Express): void {
   // -------------------------------------------------------
   // DELETE /api/cards/:id -- Delete a card
   // -------------------------------------------------------
-  app.delete("/api/cards/:id", (req: Request, res: Response) => {
+  app.delete("/api/cards/:id", (req: Request<{ id: string }>, res: Response) => {
     try {
       const { id } = req.params;
+      const deleted = db.deleteCard(id);
 
-      // Delete associated review logs first, then the card
-      deleteReviewLogsByCardId.run(id);
-      const result = deleteCardById.run(id);
-
-      if (result.changes === 0) {
+      if (!deleted) {
         res.status(404).json({ error: "Card not found" });
         return;
       }
@@ -371,7 +271,7 @@ export function mountRoutes(app: Express): void {
   // -------------------------------------------------------
   // POST /api/cards/:id/review -- Submit a review
   // -------------------------------------------------------
-  app.post("/api/cards/:id/review", (req: Request, res: Response) => {
+  app.post("/api/cards/:id/review", (req: Request<{ id: string }>, res: Response) => {
     try {
       const { id } = req.params;
       const {
@@ -396,35 +296,21 @@ export function mountRoutes(app: Express): void {
       }
 
       // Fetch current card
-      const row = getCardById.get(id) as Record<string, unknown> | undefined;
-      if (!row) {
+      const card = db.getCardById(id);
+      if (!card) {
         res.status(404).json({ error: "Card not found" });
         return;
       }
 
       const now = new Date();
-
-      const fsrsCard = dbRowToFSRSCard(row);
+      const fsrsCard = cardToFSRS(card);
 
       // Run FSRS scheduling
       const result = f.next(fsrsCard, now, grade);
-      const updatedFields = fsrsCardToDbFields(result.card);
+      const updatedFields = fsrsToCardUpdate(result.card);
 
-      // Update the card in the database
-      db.prepare(
-        `UPDATE cards SET
-          due = @due,
-          stability = @stability,
-          difficulty = @difficulty,
-          elapsed_days = @elapsed_days,
-          scheduled_days = @scheduled_days,
-          learning_steps = @learning_steps,
-          reps = @reps,
-          lapses = @lapses,
-          state = @state,
-          last_review = @last_review
-        WHERE id = @id`
-      ).run({ ...updatedFields, id });
+      // Update the card
+      const updatedCard = db.updateCard(id, updatedFields);
 
       // Create review log entry
       const reviewLog = {
@@ -437,17 +323,10 @@ export function mountRoutes(app: Express): void {
         reviewed_at: now.toISOString(),
       };
 
-      insertReviewLog.run(reviewLog);
+      db.createReviewLog(reviewLog);
 
-      // Return the updated card
-      const updatedRow = getCardById.get(id) as Record<string, unknown>;
       res.json({
-        card: {
-          ...updatedRow,
-          tags: updatedRow.tags
-            ? JSON.parse(updatedRow.tags as string)
-            : null,
-        },
+        card: updatedCard,
         review_log: reviewLog,
       });
     } catch (err) {
