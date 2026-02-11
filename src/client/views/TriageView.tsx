@@ -29,7 +29,7 @@ export default function TriageView() {
     try {
       setLoading(true);
       setError(null);
-      const newCards = await fetchCards("new");
+      const newCards = await fetchCards({ status: "triaging" });
       setCards(newCards);
       setCurrentIndex(0);
     } catch (err) {

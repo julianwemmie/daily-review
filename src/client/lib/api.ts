@@ -6,8 +6,12 @@ export async function fetchCounts(): Promise<{ new: number; due: number }> {
   return res.json();
 }
 
-export async function fetchCards(state?: string): Promise<Card[]> {
-  const url = state ? `/api/cards?state=${encodeURIComponent(state)}` : "/api/cards";
+export async function fetchCards(options?: { state?: string; status?: string }): Promise<Card[]> {
+  const params = new URLSearchParams();
+  if (options?.state) params.set("state", options.state);
+  if (options?.status) params.set("status", options.status);
+  const qs = params.toString();
+  const url = qs ? `/api/cards?${qs}` : "/api/cards";
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to fetch cards: ${res.statusText}`);
   return res.json();
@@ -48,7 +52,7 @@ export async function acceptCard(id: string): Promise<Card> {
   const res = await fetch(`/api/cards/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ state: "learning" }),
+    body: JSON.stringify({ status: "active" }),
   });
   if (!res.ok) throw new Error(`Failed to accept card: ${res.statusText}`);
   return res.json();

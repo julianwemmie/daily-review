@@ -19,14 +19,18 @@ scheduled_days: number
 learning_steps: number
 reps: number
 lapses: number
-state: "new" | "learning" | "review" | "relearning"
+state: "new" | "learning" | "review" | "relearning"   // FSRS-owned, do not set manually
 last_review?: Date
+
+// App lifecycle (decoupled from FSRS state)
+status: "triaging" | "active" | "suspended"
 ```
 
 Key decisions:
 - **No `back` field.** An LLM judges the user's free-form answer instead of showing a rigid correct answer.
 - **`context` is hidden from the user** but passed to the LLM judge as reference material for conversation-specific knowledge.
-- **FSRS fields are stored on the card** but managed by the ts-fsrs library.
+- **FSRS fields are stored on the card** but managed by the ts-fsrs library. `state` is FSRS-owned and should never be set by app logic.
+- **`status` is the app lifecycle field**: `triaging` → `active` (on accept) → optionally `suspended`. This is separate from FSRS `state`.
 - Dashboard stats, due cards, retention rates, topic breakdowns - all derived from Card fields.
 
 ## ReviewLog (for stats/history)

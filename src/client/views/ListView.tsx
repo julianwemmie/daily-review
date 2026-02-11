@@ -11,20 +11,23 @@ import {
 import { fetchCards, deleteCard } from "@/lib/api.js";
 import type { Card as CardType } from "@/lib/types.js";
 
-const stateLabels: Record<CardType["state"], string> = {
+const statusLabels: Record<CardType["status"], string> = {
+  triaging: "Triaging",
+  active: "Active",
+  suspended: "Suspended",
+};
+
+const statusVariants: Record<CardType["status"], "default" | "secondary" | "outline"> = {
+  triaging: "outline",
+  active: "default",
+  suspended: "secondary",
+};
+
+const fsrsStateLabels: Record<CardType["state"], string> = {
   new: "New",
-  accepted: "Accepted",
   learning: "Learning",
   review: "Review",
   relearning: "Relearning",
-};
-
-const stateVariants: Record<CardType["state"], "default" | "secondary" | "outline"> = {
-  new: "outline",
-  accepted: "secondary",
-  learning: "default",
-  review: "default",
-  relearning: "secondary",
 };
 
 export default function ListView() {
@@ -94,9 +97,14 @@ export default function ListView() {
         <Card key={card.id} className="w-full">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="flex items-center gap-2">
-              <Badge variant={stateVariants[card.state]}>
-                {stateLabels[card.state]}
+              <Badge variant={statusVariants[card.status]}>
+                {statusLabels[card.status]}
               </Badge>
+              {card.status === "active" && card.state !== "new" && (
+                <Badge variant="outline">
+                  {fsrsStateLabels[card.state]}
+                </Badge>
+              )}
               {card.tags?.map((tag) => (
                 <Badge key={tag} variant="outline">
                   {tag}

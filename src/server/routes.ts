@@ -30,7 +30,6 @@ const stateToString: Record<number, string> = {
 
 const stringToState: Record<string, State> = {
   new: State.New,
-  accepted: State.New, // accepted cards are treated as New for FSRS
   learning: State.Learning,
   review: State.Review,
   relearning: State.Relearning,
@@ -75,10 +74,10 @@ function fsrsCardToDbFields(card: FSRSCard) {
 const insertCard = db.prepare(`
   INSERT INTO cards (id, front, context, source_conversation, tags, created_at,
     due, stability, difficulty, elapsed_days, scheduled_days, learning_steps,
-    reps, lapses, state, last_review)
+    reps, lapses, state, last_review, status)
   VALUES (@id, @front, @context, @source_conversation, @tags, @created_at,
     @due, @stability, @difficulty, @elapsed_days, @scheduled_days, @learning_steps,
-    @reps, @lapses, @state, @last_review)
+    @reps, @lapses, @state, @last_review, @status)
 `);
 
 const getCardById = db.prepare(`SELECT * FROM cards WHERE id = ?`);
@@ -138,6 +137,9 @@ export function mountRoutes(app: Express): void {
           return;
         }
 
+        const emptyCard = createEmptyCard(now);
+        const fsrsFields = fsrsCardToDbFields(emptyCard);
+
         const card = {
           id: crypto.randomUUID(),
           front: input.front,
@@ -145,16 +147,9 @@ export function mountRoutes(app: Express): void {
           source_conversation: input.source_conversation ?? null,
           tags: input.tags ? JSON.stringify(input.tags) : null,
           created_at: now.toISOString(),
-          due: now.toISOString(),
-          stability: 0,
-          difficulty: 0,
-          elapsed_days: 0,
-          scheduled_days: 0,
-          learning_steps: 0,
-          reps: 0,
-          lapses: 0,
+          ...fsrsFields,
           state: "new",
-          last_review: null,
+          status: "triaging",
         };
 
         createdCards.push(card);
@@ -186,12 +181,12 @@ export function mountRoutes(app: Express): void {
     try {
       const now = new Date().toISOString();
       const newCount = (
-        db.prepare(`SELECT COUNT(*) as count FROM cards WHERE state = 'new'`).get() as { count: number }
+        db.prepare(`SELECT COUNT(*) as count FROM cards WHERE status = 'triaging'`).get() as { count: number }
       ).count;
       const dueCount = (
         db.prepare(
           `SELECT COUNT(*) as count FROM cards
-           WHERE state = 'accepted' OR (state NOT IN ('new', 'accepted') AND due <= ?)`
+           WHERE status = 'active' AND due <= ?`
         ).get(now) as { count: number }
       ).count;
       res.json({ new: newCount, due: dueCount });
@@ -207,20 +202,26 @@ export function mountRoutes(app: Express): void {
   app.get("/api/cards", (req: Request, res: Response) => {
     try {
       const stateParam = req.query.state as string | undefined;
+      const statusParam = req.query.status as string | undefined;
 
-      let rows: unknown[];
+      const conditions: string[] = [];
+      const params: string[] = [];
+
       if (stateParam) {
         const states = stateParam.split(",").map((s) => s.trim());
-        const placeholders = states.map(() => "?").join(", ");
-        const stmt = db.prepare(
-          `SELECT * FROM cards WHERE state IN (${placeholders}) ORDER BY created_at DESC`
-        );
-        rows = stmt.all(...states);
-      } else {
-        rows = db
-          .prepare(`SELECT * FROM cards ORDER BY created_at DESC`)
-          .all();
+        conditions.push(`state IN (${states.map(() => "?").join(", ")})`);
+        params.push(...states);
       }
+      if (statusParam) {
+        const statuses = statusParam.split(",").map((s) => s.trim());
+        conditions.push(`status IN (${statuses.map(() => "?").join(", ")})`);
+        params.push(...statuses);
+      }
+
+      const where = conditions.length > 0 ? ` WHERE ${conditions.join(" AND ")}` : "";
+      const rows = db
+        .prepare(`SELECT * FROM cards${where} ORDER BY created_at DESC`)
+        .all(...params);
 
       const cards = (rows as Record<string, unknown>[]).map((row) => ({
         ...row,
@@ -240,11 +241,10 @@ export function mountRoutes(app: Express): void {
   app.get("/api/cards/due", (_req: Request, res: Response) => {
     try {
       const now = new Date().toISOString();
-      // "accepted" cards are always due (first review). Other non-new cards use due date.
       const dueRows = db
         .prepare(
           `SELECT * FROM cards
-           WHERE state = 'accepted' OR (state NOT IN ('new', 'accepted') AND due <= ?)
+           WHERE status = 'active' AND due <= ?
            ORDER BY due ASC`
         )
         .all(now);
@@ -258,7 +258,7 @@ export function mountRoutes(app: Express): void {
       const upcoming = db
         .prepare(
           `SELECT COUNT(*) as count, MIN(due) as next_due FROM cards
-           WHERE state NOT IN ('new', 'accepted') AND due > ?`
+           WHERE status = 'active' AND due > ?`
         )
         .get(now) as { count: number; next_due: string | null };
 
@@ -290,13 +290,6 @@ export function mountRoutes(app: Express): void {
 
       const updates = req.body as Record<string, unknown>;
 
-      // Triage accept: mark as "accepted" with due=now so it shows in the review queue.
-      // FSRS treats it as a New card when the user actually reviews it.
-      if (existing.state === "new" && updates.state === "learning") {
-        updates.state = "accepted";
-        updates.due = new Date().toISOString();
-      }
-
       // Serialise tags if provided as an array
       if (Array.isArray(updates.tags)) {
         updates.tags = JSON.stringify(updates.tags);
@@ -318,6 +311,7 @@ export function mountRoutes(app: Express): void {
         "lapses",
         "state",
         "last_review",
+        "status",
       ];
 
       const setClauses: string[] = [];
@@ -410,12 +404,7 @@ export function mountRoutes(app: Express): void {
 
       const now = new Date();
 
-      // For accepted cards (first review), use a fresh FSRS empty card
-      // so FSRS gets properly initialized values instead of zeroed-out fields.
-      const fsrsCard =
-        row.state === "accepted"
-          ? createEmptyCard(now)
-          : dbRowToFSRSCard(row);
+      const fsrsCard = dbRowToFSRSCard(row);
 
       // Run FSRS scheduling
       const result = f.next(fsrsCard, now, grade);

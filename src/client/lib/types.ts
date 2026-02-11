@@ -13,8 +13,9 @@ export interface Card {
   learning_steps: number;
   reps: number;
   lapses: number;
-  state: "new" | "accepted" | "learning" | "review" | "relearning";
+  state: "new" | "learning" | "review" | "relearning";
   last_review?: string;
+  status: "triaging" | "active" | "suspended";
 }
 
 export type Rating = "Again" | "Hard" | "Good" | "Easy";

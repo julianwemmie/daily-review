@@ -40,7 +40,8 @@ db.exec(`
     reps INTEGER NOT NULL DEFAULT 0,
     lapses INTEGER NOT NULL DEFAULT 0,
     state TEXT NOT NULL DEFAULT 'new',
-    last_review TEXT
+    last_review TEXT,
+    status TEXT NOT NULL DEFAULT 'triaging'
   );
 
   CREATE TABLE IF NOT EXISTS review_logs (
@@ -53,5 +54,12 @@ db.exec(`
     reviewed_at TEXT NOT NULL
   );
 `);
+
+// Idempotent migration: add status column for existing databases
+const columns = db.pragma("table_info(cards)") as { name: string }[];
+if (!columns.some((col) => col.name === "status")) {
+  db.exec(`ALTER TABLE cards ADD COLUMN status TEXT NOT NULL DEFAULT 'triaging'`);
+  db.exec(`UPDATE cards SET status = 'active' WHERE state != 'new'`);
+}
 
 export default db;
