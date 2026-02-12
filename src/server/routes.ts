@@ -9,13 +9,12 @@ import {
   type Card as FSRSCard,
   type Grade,
 } from "ts-fsrs";
-import { CardStatus, CardState, type DbProvider, type Card, type CardUpdate, type CardListFilters } from "./db-provider.js";
-import { scoreToRating, type LlmJudge } from "./llm-judge.js";
+import { CardStatus, CardState, Rating as AppRating, type DbProvider, type Card, type CardUpdate, type CardListFilters } from "./db-provider.js";
+import { type LlmJudge } from "./llm-judge.js";
 
 const f = fsrs();
 
-// -- Mapping helpers --
-
+// ts-fsrs uses numeric enums; our app uses string literals. These maps bridge between the two.
 const ratingMap: Record<string, Grade> = {
   Again: Rating.Again,
   Hard: Rating.Hard,
@@ -37,8 +36,6 @@ const stringToState: Record<CardState, State> = {
   [CardState.Relearning]: State.Relearning,
 };
 
-// -- Request body schemas --
-
 const CreateCardBody = z.object({
   front: z.string().min(1),
   context: z.string().optional(),
@@ -49,7 +46,7 @@ const UpdateCardBody = z.object({
   front: z.string().min(1).optional(),
   context: z.string().nullable().optional(),
   tags: z.array(z.string()).nullable().optional(),
-  status: z.enum(["triaging", "active", "suspended"]).optional(),
+  status: z.enum([CardStatus.Triaging, CardStatus.Active, CardStatus.Suspended]).optional(),
 });
 
 const EvaluateBody = z.object({
@@ -57,13 +54,12 @@ const EvaluateBody = z.object({
 });
 
 const ReviewBody = z.object({
-  rating: z.enum(["Again", "Hard", "Good", "Easy"]),
+  rating: z.enum([AppRating.Again, AppRating.Hard, AppRating.Good, AppRating.Easy]),
   answer: z.string().optional(),
   llm_score: z.number().min(0).max(1).optional(),
   llm_feedback: z.string().optional(),
 });
 
-/** Convert a Card into an FSRS Card object for ts-fsrs operations. */
 function cardToFSRS(card: Card): FSRSCard {
   return {
     due: new Date(card.due),
@@ -79,7 +75,6 @@ function cardToFSRS(card: Card): FSRSCard {
   };
 }
 
-/** Convert FSRS card fields back to CardUpdate values. */
 function fsrsToCardUpdate(fsrsCard: FSRSCard): CardUpdate {
   return {
     due: fsrsCard.due.toISOString(),
@@ -269,7 +264,6 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
       res.json({
         score: result.score,
         feedback: result.feedback,
-        rating: scoreToRating(result.score),
       });
     } catch (err) {
       console.error("POST /api/cards/:id/evaluate error:", err);

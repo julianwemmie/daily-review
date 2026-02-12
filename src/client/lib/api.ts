@@ -1,4 +1,4 @@
-import { CardStatus, type Card } from "./types.js";
+import { CardStatus, type Card, type Rating } from "./types.js";
 
 export async function fetchCounts(): Promise<{ new: number; due: number }> {
   const res = await fetch("/api/cards/counts");
@@ -70,7 +70,6 @@ export async function acceptCard(id: string): Promise<Card> {
 export interface EvaluateResponse {
   score: number;
   feedback: string;
-  rating: string;
 }
 
 export async function evaluateCard(
@@ -88,7 +87,7 @@ export async function evaluateCard(
 
 export async function reviewCard(
   id: string,
-  rating: string,
+  rating: Rating,
   answer?: string,
   llmScore?: number,
   llmFeedback?: string
