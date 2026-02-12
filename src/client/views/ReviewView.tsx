@@ -11,7 +11,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { fetchDueCards, evaluateCard, reviewCard } from "@/lib/api.js";
 import type { Card as CardType } from "@/lib/types.js";
-import { useRefreshCounts } from "@/App.js";
+import { useCounts } from "@/contexts/CountsContext.js";
 
 function formatTimeUntil(isoDate: string): string {
   const diff = new Date(isoDate).getTime() - Date.now();
@@ -40,7 +40,7 @@ export default function ReviewView() {
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
-  const refreshCounts = useRefreshCounts();
+  const { refreshCounts } = useCounts();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

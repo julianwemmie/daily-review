@@ -1,5 +1,6 @@
 import { type Express, type Request, type Response } from "express";
 import crypto from "crypto";
+import { z } from "zod";
 import {
   fsrs,
   createEmptyCard,
@@ -8,7 +9,7 @@ import {
   type Card as FSRSCard,
   type Grade,
 } from "ts-fsrs";
-import type { DbProvider, Card, CardUpdate } from "./db-provider.js";
+import { CardStatus, CardState, type DbProvider, type Card, type CardUpdate, type CardListFilters } from "./db-provider.js";
 import { scoreToRating, type LlmJudge } from "./llm-judge.js";
 
 const f = fsrs();
@@ -22,19 +23,45 @@ const ratingMap: Record<string, Grade> = {
   Easy: Rating.Easy,
 };
 
-const stateToString: Record<number, string> = {
-  [State.New]: "new",
-  [State.Learning]: "learning",
-  [State.Review]: "review",
-  [State.Relearning]: "relearning",
+const stateToString: Record<number, CardState> = {
+  [State.New]: CardState.New,
+  [State.Learning]: CardState.Learning,
+  [State.Review]: CardState.Review,
+  [State.Relearning]: CardState.Relearning,
 };
 
-const stringToState: Record<string, State> = {
-  new: State.New,
-  learning: State.Learning,
-  review: State.Review,
-  relearning: State.Relearning,
+const stringToState: Record<CardState, State> = {
+  [CardState.New]: State.New,
+  [CardState.Learning]: State.Learning,
+  [CardState.Review]: State.Review,
+  [CardState.Relearning]: State.Relearning,
 };
+
+// -- Request body schemas --
+
+const CreateCardBody = z.object({
+  front: z.string().min(1),
+  context: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+const UpdateCardBody = z.object({
+  front: z.string().min(1).optional(),
+  context: z.string().nullable().optional(),
+  tags: z.array(z.string()).nullable().optional(),
+  status: z.enum(["triaging", "active", "suspended"]).optional(),
+});
+
+const EvaluateBody = z.object({
+  answer: z.string().trim().min(1),
+});
+
+const ReviewBody = z.object({
+  rating: z.enum(["Again", "Hard", "Good", "Easy"]),
+  answer: z.string().optional(),
+  llm_score: z.number().min(0).max(1).optional(),
+  llm_feedback: z.string().optional(),
+});
 
 /** Convert a Card into an FSRS Card object for ts-fsrs operations. */
 function cardToFSRS(card: Card): FSRSCard {
@@ -63,7 +90,7 @@ function fsrsToCardUpdate(fsrsCard: FSRSCard): CardUpdate {
     learning_steps: fsrsCard.learning_steps,
     reps: fsrsCard.reps,
     lapses: fsrsCard.lapses,
-    state: stateToString[fsrsCard.state] ?? "new",
+    state: stateToString[fsrsCard.state] ?? CardState.New,
     last_review: fsrsCard.last_review
       ? fsrsCard.last_review.toISOString()
       : null,
@@ -76,13 +103,13 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
   // -------------------------------------------------------
   app.post("/api/cards", (req: Request, res: Response) => {
     try {
-      const { front, context, tags } = req.body;
-
-      if (!front) {
-        res.status(400).json({ error: "Body must include a 'front' field" });
+      const parsed = CreateCardBody.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ error: parsed.error.flatten() });
         return;
       }
 
+      const { front, context, tags } = parsed.data;
       const now = new Date();
       const emptyCard = createEmptyCard(now);
       const fsrsFields = fsrsToCardUpdate(emptyCard);
@@ -102,9 +129,9 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
         learning_steps: fsrsFields.learning_steps!,
         reps: fsrsFields.reps!,
         lapses: fsrsFields.lapses!,
-        state: "new",
+        state: CardState.New,
         last_review: fsrsFields.last_review ?? null,
-        status: "triaging",
+        status: CardStatus.Triaging,
       };
 
       const created = db.createCards([card]);
@@ -135,9 +162,10 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
   app.get("/api/cards", (req: Request, res: Response) => {
     try {
       const statusParam = req.query.status as string | undefined;
+      const validStatuses = new Set<string>(Object.values(CardStatus));
 
-      const filters: { status?: string[] } | undefined = statusParam
-        ? { status: statusParam.split(",").map((s) => s.trim()) }
+      const filters: CardListFilters | undefined = statusParam
+        ? { status: statusParam.split(",").map((s) => s.trim()).filter((s) => validStatuses.has(s)) as CardStatus[] }
         : undefined;
 
       const cards = db.listCards(filters);
@@ -168,23 +196,13 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
   app.patch("/api/cards/:id", (req: Request<{ id: string }>, res: Response) => {
     try {
       const { id } = req.params;
-      const updates = req.body as Record<string, unknown>;
-
-      // Whitelist allowed fields (FSRS fields are updated via /review)
-      const allowedFields = [
-        "front",
-        "context",
-        "tags",
-        "status",
-      ];
-
-      const cardUpdate: CardUpdate = {};
-      for (const field of allowedFields) {
-        if (field in updates) {
-          (cardUpdate as Record<string, unknown>)[field] = updates[field];
-        }
+      const parsed = UpdateCardBody.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ error: parsed.error.flatten() });
+        return;
       }
 
+      const cardUpdate: CardUpdate = parsed.data;
       if (Object.keys(cardUpdate).length === 0) {
         res.status(400).json({ error: "No valid fields to update" });
         return;
@@ -234,10 +252,9 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
       }
 
       const { id } = req.params;
-      const { answer } = req.body as { answer?: string };
-
-      if (!answer?.trim()) {
-        res.status(400).json({ error: "'answer' is required" });
+      const parsed = EvaluateBody.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ error: parsed.error.flatten() });
         return;
       }
 
@@ -247,7 +264,7 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
         return;
       }
 
-      const result = await judge.evaluate(card.front, card.context, answer);
+      const result = await judge.evaluate(card.front, card.context, parsed.data.answer);
 
       res.json({
         score: result.score,
@@ -266,26 +283,14 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
   app.post("/api/cards/:id/review", (req: Request<{ id: string }>, res: Response) => {
     try {
       const { id } = req.params;
-      const {
-        rating: ratingStr,
-        answer,
-        llm_score,
-        llm_feedback,
-      } = req.body as {
-        rating: string;
-        answer?: string;
-        llm_score?: number;
-        llm_feedback?: string;
-      };
-
-      // Validate rating
-      const grade = ratingMap[ratingStr];
-      if (grade === undefined) {
-        res
-          .status(400)
-          .json({ error: "rating must be one of: Again, Hard, Good, Easy" });
+      const parsed = ReviewBody.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ error: parsed.error.flatten() });
         return;
       }
+
+      const { rating, answer, llm_score, llm_feedback } = parsed.data;
+      const grade = ratingMap[rating];
 
       // Fetch current card
       const card = db.getCardById(id);
@@ -308,7 +313,7 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
       const reviewLog = {
         id: crypto.randomUUID(),
         card_id: id,
-        rating: ratingStr,
+        rating,
         answer: answer ?? null,
         llm_score: llm_score ?? null,
         llm_feedback: llm_feedback ?? null,

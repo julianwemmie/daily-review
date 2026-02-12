@@ -10,14 +10,14 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { fetchCards, acceptCard, skipCard } from "@/lib/api.js";
-import { useRefreshCounts } from "@/App.js";
-import type { Card as CardType } from "@/lib/types.js";
+import { useCounts } from "@/contexts/CountsContext.js";
+import { CardStatus, type Card as CardType } from "@/lib/types.js";
 
 export default function TriageView() {
   const [cards, setCards] = useState<CardType[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const refreshCounts = useRefreshCounts();
+  const { refreshCounts } = useCounts();
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +29,7 @@ export default function TriageView() {
     try {
       setLoading(true);
       setError(null);
-      const newCards = await fetchCards({ status: "triaging" });
+      const newCards = await fetchCards({ status: CardStatus.Triaging });
       setCards(newCards);
       setCurrentIndex(0);
     } catch (err) {
@@ -46,7 +46,7 @@ export default function TriageView() {
       setActionLoading(true);
       await acceptCard(card.id);
       refreshCounts();
-      advance();
+      advanceCardIndex();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to accept card");
     } finally {
@@ -61,7 +61,7 @@ export default function TriageView() {
       setActionLoading(true);
       await skipCard(card.id);
       refreshCounts();
-      advance();
+      advanceCardIndex();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to skip card");
     } finally {
@@ -69,7 +69,7 @@ export default function TriageView() {
     }
   }
 
-  function advance() {
+  function advanceCardIndex() {
     setCurrentIndex((prev) => prev + 1);
   }
 

@@ -1,5 +1,20 @@
 // Database provider interface — program to this, swap implementations freely.
 
+export const CardStatus = {
+  Triaging: "triaging",
+  Active: "active",
+  Suspended: "suspended",
+} as const;
+export type CardStatus = (typeof CardStatus)[keyof typeof CardStatus];
+
+export const CardState = {
+  New: "new",
+  Learning: "learning",
+  Review: "review",
+  Relearning: "relearning",
+} as const;
+export type CardState = (typeof CardState)[keyof typeof CardState];
+
 export interface Card {
   id: string;
   front: string;
@@ -15,9 +30,9 @@ export interface Card {
   learning_steps: number;
   reps: number;
   lapses: number;
-  state: string;
+  state: CardState;
   last_review: string | null;
-  status: string;
+  status: CardStatus;
 }
 
 export interface CardUpdate {
@@ -33,9 +48,9 @@ export interface CardUpdate {
   learning_steps?: number;
   reps?: number;
   lapses?: number;
-  state?: string;
+  state?: CardState;
   last_review?: string | null;
-  status?: string;
+  status?: CardStatus;
 }
 
 export interface ReviewLogInsert {
@@ -49,8 +64,8 @@ export interface ReviewLogInsert {
 }
 
 export interface CardListFilters {
-  state?: string[];
-  status?: string[];
+  state?: CardState[];
+  status?: CardStatus[];
 }
 
 export interface DueCardsResult {

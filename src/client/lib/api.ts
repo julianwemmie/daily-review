@@ -1,4 +1,4 @@
-import type { Card } from "./types.js";
+import { CardStatus, type Card } from "./types.js";
 
 export async function fetchCounts(): Promise<{ new: number; due: number }> {
   const res = await fetch("/api/cards/counts");
@@ -6,7 +6,7 @@ export async function fetchCounts(): Promise<{ new: number; due: number }> {
   return res.json();
 }
 
-export async function fetchCards(options?: { status?: string }): Promise<Card[]> {
+export async function fetchCards(options?: { status?: CardStatus }): Promise<Card[]> {
   const params = new URLSearchParams();
   if (options?.status) params.set("status", options.status);
   const qs = params.toString();
@@ -51,7 +51,7 @@ export async function skipCard(id: string): Promise<Card> {
   const res = await fetch(`/api/cards/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: "suspended" }),
+    body: JSON.stringify({ status: CardStatus.Suspended }),
   });
   if (!res.ok) throw new Error(`Failed to skip card: ${res.statusText}`);
   return res.json();
@@ -61,7 +61,7 @@ export async function acceptCard(id: string): Promise<Card> {
   const res = await fetch(`/api/cards/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: "active" }),
+    body: JSON.stringify({ status: CardStatus.Active }),
   });
   if (!res.ok) throw new Error(`Failed to accept card: ${res.statusText}`);
   return res.json();
