@@ -1,7 +1,8 @@
 import type {
   DbProvider,
   Card,
-  CardUpdate,
+  CardEdit,
+  SchedulingUpdate,
   ReviewLogInsert,
   CardListFilters,
   DueCardsResult,
@@ -73,17 +74,9 @@ export const sqliteProvider: DbProvider = {
     const conditions: string[] = [];
     const params: string[] = [];
 
-    if (filters?.state?.length) {
-      conditions.push(
-        `state IN (${filters.state.map(() => "?").join(", ")})`
-      );
-      params.push(...filters.state);
-    }
-    if (filters?.status?.length) {
-      conditions.push(
-        `status IN (${filters.status.map(() => "?").join(", ")})`
-      );
-      params.push(...filters.status);
+    if (filters?.status) {
+      conditions.push(`status = ?`);
+      params.push(filters.status);
     }
 
     const where =
@@ -139,11 +132,9 @@ export const sqliteProvider: DbProvider = {
     return { new: newCount, due: dueCount };
   },
 
-  updateCard(id: string, fields: CardUpdate): Card | undefined {
+  editCard(id: string, fields: CardEdit): Card | undefined {
     const allowedColumns = new Set([
-      "front", "context", "source_conversation", "tags",
-      "due", "stability", "difficulty", "elapsed_days", "scheduled_days",
-      "learning_steps", "reps", "lapses", "state", "last_review", "status",
+      "front", "context", "source_conversation", "tags", "status",
     ]);
 
     const existing = getCardByIdStmt.get(id) as
@@ -158,6 +149,37 @@ export const sqliteProvider: DbProvider = {
       if (!allowedColumns.has(key)) continue;
       setClauses.push(`${key} = ?`);
       values.push(key === "tags" ? serializeTags(value as string[] | null) : value);
+    }
+
+    if (setClauses.length === 0) return rowToCard(existing);
+
+    values.push(id);
+    db.prepare(
+      `UPDATE cards SET ${setClauses.join(", ")} WHERE id = ?`
+    ).run(...values);
+
+    const updated = getCardByIdStmt.get(id) as Record<string, unknown>;
+    return rowToCard(updated);
+  },
+
+  updateSchedule(id: string, fields: SchedulingUpdate): Card | undefined {
+    const allowedColumns = new Set([
+      "due", "stability", "difficulty", "elapsed_days", "scheduled_days",
+      "learning_steps", "reps", "lapses", "state", "last_review",
+    ]);
+
+    const existing = getCardByIdStmt.get(id) as
+      | Record<string, unknown>
+      | undefined;
+    if (!existing) return undefined;
+
+    const setClauses: string[] = [];
+    const values: unknown[] = [];
+
+    for (const [key, value] of Object.entries(fields)) {
+      if (!allowedColumns.has(key)) continue;
+      setClauses.push(`${key} = ?`);
+      values.push(value);
     }
 
     if (setClauses.length === 0) return rowToCard(existing);

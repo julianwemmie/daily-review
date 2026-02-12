@@ -1,40 +1,9 @@
 import { type Express, type Request, type Response } from "express";
 import crypto from "crypto";
 import { z } from "zod";
-import {
-  fsrs,
-  createEmptyCard,
-  Rating,
-  State,
-  type Card as FSRSCard,
-  type Grade,
-} from "ts-fsrs";
-import { CardStatus, CardState, Rating as AppRating, type DbProvider, type Card, type CardUpdate, type CardListFilters } from "./db-provider.js";
+import { CardStatus, CardState, Rating as AppRating, type DbProvider, type Card, type CardEdit } from "./db-provider.js";
 import { type LlmJudge } from "./llm-judge.js";
-
-const f = fsrs();
-
-// ts-fsrs uses numeric enums; our app uses string literals. These maps bridge between the two.
-const ratingMap: Record<string, Grade> = {
-  Again: Rating.Again,
-  Hard: Rating.Hard,
-  Good: Rating.Good,
-  Easy: Rating.Easy,
-};
-
-const stateToString: Record<number, CardState> = {
-  [State.New]: CardState.New,
-  [State.Learning]: CardState.Learning,
-  [State.Review]: CardState.Review,
-  [State.Relearning]: CardState.Relearning,
-};
-
-const stringToState: Record<CardState, State> = {
-  [CardState.New]: State.New,
-  [CardState.Learning]: State.Learning,
-  [CardState.Review]: State.Review,
-  [CardState.Relearning]: State.Relearning,
-};
+import { newCardSchedule, reschedule } from "./scheduling.js";
 
 const CreateCardBody = z.object({
   front: z.string().min(1),
@@ -60,38 +29,6 @@ const ReviewBody = z.object({
   llm_feedback: z.string().optional(),
 });
 
-function cardToFSRS(card: Card): FSRSCard {
-  return {
-    due: new Date(card.due),
-    stability: card.stability,
-    difficulty: card.difficulty,
-    elapsed_days: card.elapsed_days,
-    scheduled_days: card.scheduled_days,
-    learning_steps: card.learning_steps,
-    reps: card.reps,
-    lapses: card.lapses,
-    state: stringToState[card.state] ?? State.New,
-    last_review: card.last_review ? new Date(card.last_review) : undefined,
-  };
-}
-
-function fsrsToCardUpdate(fsrsCard: FSRSCard): CardUpdate {
-  return {
-    due: fsrsCard.due.toISOString(),
-    stability: fsrsCard.stability,
-    difficulty: fsrsCard.difficulty,
-    elapsed_days: fsrsCard.elapsed_days,
-    scheduled_days: fsrsCard.scheduled_days,
-    learning_steps: fsrsCard.learning_steps,
-    reps: fsrsCard.reps,
-    lapses: fsrsCard.lapses,
-    state: stateToString[fsrsCard.state] ?? CardState.New,
-    last_review: fsrsCard.last_review
-      ? fsrsCard.last_review.toISOString()
-      : null,
-  };
-}
-
 export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): void {
   // -------------------------------------------------------
   // POST /api/cards -- Create a single card
@@ -100,14 +37,13 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
     try {
       const parsed = CreateCardBody.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({ error: parsed.error.flatten() });
+        res.status(400).json({ error: z.treeifyError(parsed.error) });
         return;
       }
 
       const { front, context, tags } = parsed.data;
       const now = new Date();
-      const emptyCard = createEmptyCard(now);
-      const fsrsFields = fsrsToCardUpdate(emptyCard);
+      const fsrsFields = newCardSchedule(now);
 
       const card: Card = {
         id: crypto.randomUUID(),
@@ -116,16 +52,8 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
         source_conversation: null,
         tags: tags ?? null,
         created_at: now.toISOString(),
-        due: fsrsFields.due!,
-        stability: fsrsFields.stability!,
-        difficulty: fsrsFields.difficulty!,
-        elapsed_days: fsrsFields.elapsed_days!,
-        scheduled_days: fsrsFields.scheduled_days!,
-        learning_steps: fsrsFields.learning_steps!,
-        reps: fsrsFields.reps!,
-        lapses: fsrsFields.lapses!,
+        ...fsrsFields,
         state: CardState.New,
-        last_review: fsrsFields.last_review ?? null,
         status: CardStatus.Triaging,
       };
 
@@ -140,7 +68,7 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
   // -------------------------------------------------------
   // GET /api/cards/counts -- Lightweight tab badge counts
   // -------------------------------------------------------
-  app.get("/api/cards/counts", (_req: Request, res: Response) => {
+  app.get("/api/cards/counts", (_, res: Response) => {
     try {
       const now = new Date().toISOString();
       const counts = db.getCounts(now);
@@ -156,12 +84,8 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
   // -------------------------------------------------------
   app.get("/api/cards", (req: Request, res: Response) => {
     try {
-      const statusParam = req.query.status as string | undefined;
-      const validStatuses = new Set<string>(Object.values(CardStatus));
-
-      const filters: CardListFilters | undefined = statusParam
-        ? { status: statusParam.split(",").map((s) => s.trim()).filter((s) => validStatuses.has(s)) as CardStatus[] }
-        : undefined;
+      const status = Object.values(CardStatus).find(s => s === req.query.status);
+      const filters = status ? { status } : undefined;
 
       const cards = db.listCards(filters);
       res.json(cards);
@@ -193,17 +117,17 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
       const { id } = req.params;
       const parsed = UpdateCardBody.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({ error: parsed.error.flatten() });
+        res.status(400).json({ error: z.treeifyError(parsed.error) });
         return;
       }
 
-      const cardUpdate: CardUpdate = parsed.data;
-      if (Object.keys(cardUpdate).length === 0) {
+      const cardEdit: CardEdit = parsed.data;
+      if (Object.keys(cardEdit).length === 0) {
         res.status(400).json({ error: "No valid fields to update" });
         return;
       }
 
-      const updated = db.updateCard(id, cardUpdate);
+      const updated = db.editCard(id, cardEdit);
       if (!updated) {
         res.status(404).json({ error: "Card not found" });
         return;
@@ -249,7 +173,7 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
       const { id } = req.params;
       const parsed = EvaluateBody.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({ error: parsed.error.flatten() });
+        res.status(400).json({ error: z.treeifyError(parsed.error) });
         return;
       }
 
@@ -279,41 +203,26 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
       const { id } = req.params;
       const parsed = ReviewBody.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({ error: parsed.error.flatten() });
+        res.status(400).json({ error: z.treeifyError(parsed.error) });
         return;
       }
 
-      const { rating, answer, llm_score, llm_feedback } = parsed.data;
-      const grade = ratingMap[rating];
-
-      // Fetch current card
       const card = db.getCardById(id);
       if (!card) {
         res.status(404).json({ error: "Card not found" });
         return;
       }
 
+      const { rating, answer, llm_score, llm_feedback } = parsed.data;
       const now = new Date();
-      const fsrsCard = cardToFSRS(card);
 
-      // Run FSRS scheduling
-      const result = f.next(fsrsCard, now, grade);
-      const updatedFields = fsrsToCardUpdate(result.card);
+      const { updatedFields, reviewLog } = reschedule(card, rating, now, {
+        answer,
+        llm_score,
+        llm_feedback,
+      });
 
-      // Update the card
-      const updatedCard = db.updateCard(id, updatedFields);
-
-      // Create review log entry
-      const reviewLog = {
-        id: crypto.randomUUID(),
-        card_id: id,
-        rating,
-        answer: answer ?? null,
-        llm_score: llm_score ?? null,
-        llm_feedback: llm_feedback ?? null,
-        reviewed_at: now.toISOString(),
-      };
-
+      const updatedCard = db.updateSchedule(id, updatedFields);
       db.createReviewLog(reviewLog);
 
       res.json({
