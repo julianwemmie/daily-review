@@ -11,7 +11,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { createCard } from "@/lib/api.js";
-import { useCounts } from "@/hooks/useCounts.js";
+import { useCounts } from "@/contexts/CountsContext.js";
 
 export default function UploadView() {
   const [front, setFront] = useState("");
@@ -24,6 +24,7 @@ export default function UploadView() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return;
     if (!front.trim()) return;
 
     try {

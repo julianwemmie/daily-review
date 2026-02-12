@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { useCounts } from "@/hooks/useCounts.js";
+import { CountsProvider, useCounts } from "@/contexts/CountsContext.js";
 import TriageView from "@/views/TriageView.js";
 import ReviewView from "@/views/ReviewView.js";
 import UploadView from "@/views/UploadView.js";
@@ -68,7 +68,9 @@ function AppLayout() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppLayout />
+      <CountsProvider>
+        <AppLayout />
+      </CountsProvider>
     </BrowserRouter>
   );
 }

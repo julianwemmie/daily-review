@@ -11,7 +11,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { fetchDueCards, evaluateCard, reviewCard } from "@/lib/api.js";
 import type { Card as CardType } from "@/lib/types.js";
-import { useCounts } from "@/hooks/useCounts.js";
+import { useCounts } from "@/contexts/CountsContext.js";
 
 function formatTimeUntil(isoDate: string): string {
   const diff = new Date(isoDate).getTime() - Date.now();

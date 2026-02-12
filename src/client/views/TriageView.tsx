@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { fetchCards, acceptCard, skipCard } from "@/lib/api.js";
-import { useCounts } from "@/hooks/useCounts.js";
+import { useCounts } from "@/contexts/CountsContext.js";
 import { CardStatus, type Card as CardType } from "@/lib/types.js";
 
 export default function TriageView() {
