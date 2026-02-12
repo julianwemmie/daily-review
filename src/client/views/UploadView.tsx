@@ -11,13 +11,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { createCard } from "@/lib/api.js";
-import { useRefreshCounts } from "@/App.js";
+import { useCounts } from "@/hooks/useCounts.js";
 
 export default function UploadView() {
   const [front, setFront] = useState("");
   const [context, setContext] = useState("");
   const [tags, setTags] = useState("");
-  const refreshCounts = useRefreshCounts();
+  const { refreshCounts } = useCounts();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);

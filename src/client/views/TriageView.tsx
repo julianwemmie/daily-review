@@ -10,14 +10,14 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { fetchCards, acceptCard, skipCard } from "@/lib/api.js";
-import { useRefreshCounts } from "@/App.js";
+import { useCounts } from "@/hooks/useCounts.js";
 import type { Card as CardType } from "@/lib/types.js";
 
 export default function TriageView() {
   const [cards, setCards] = useState<CardType[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const refreshCounts = useRefreshCounts();
+  const { refreshCounts } = useCounts();
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
