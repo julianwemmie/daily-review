@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { fetchCards, acceptCard, deleteCard } from "@/lib/api.js";
+import { fetchCards, acceptCard, skipCard } from "@/lib/api.js";
 import { useRefreshCounts } from "@/App.js";
 import type { Card as CardType } from "@/lib/types.js";
 
@@ -59,7 +59,7 @@ export default function TriageView() {
     if (!card) return;
     try {
       setActionLoading(true);
-      await deleteCard(card.id);
+      await skipCard(card.id);
       refreshCounts();
       advance();
     } catch (err) {
