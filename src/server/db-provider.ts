@@ -3,22 +3,25 @@
 export { CardStatus, CardState, Rating, type Card } from "../shared/types.js";
 import type { CardStatus, CardState, Card } from "../shared/types.js";
 
-export interface CardUpdate {
+export interface CardEdit {
   front?: string;
   context?: string | null;
   source_conversation?: string | null;
   tags?: string[] | null;
-  due?: string;
-  stability?: number;
-  difficulty?: number;
-  elapsed_days?: number;
-  scheduled_days?: number;
-  learning_steps?: number;
-  reps?: number;
-  lapses?: number;
-  state?: CardState;
-  last_review?: string | null;
   status?: CardStatus;
+}
+
+export interface SchedulingUpdate {
+  due: string;
+  stability: number;
+  difficulty: number;
+  elapsed_days: number;
+  scheduled_days: number;
+  learning_steps: number;
+  reps: number;
+  lapses: number;
+  state: CardState;
+  last_review: string | null;
 }
 
 export interface ReviewLogInsert {
@@ -32,8 +35,7 @@ export interface ReviewLogInsert {
 }
 
 export interface CardListFilters {
-  state?: CardState[];
-  status?: CardStatus[];
+  status?: CardStatus;
 }
 
 export interface DueCardsResult {
@@ -53,7 +55,8 @@ export interface DbProvider {
   listCards(filters?: CardListFilters): Card[];
   getDueCards(now: string): DueCardsResult;
   getCounts(now: string): CardCounts;
-  updateCard(id: string, fields: CardUpdate): Card | undefined;
+  editCard(id: string, fields: CardEdit): Card | undefined;
+  updateSchedule(id: string, fields: SchedulingUpdate): Card | undefined;
   deleteCard(id: string): boolean;
   createReviewLog(log: ReviewLogInsert): void;
 }
