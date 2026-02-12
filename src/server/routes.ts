@@ -9,6 +9,7 @@ import {
   type Grade,
 } from "ts-fsrs";
 import type { DbProvider, Card, CardUpdate } from "./db-provider.js";
+import type { LlmJudge } from "./llm-judge.js";
 
 const f = fsrs();
 
@@ -69,7 +70,7 @@ function fsrsToCardUpdate(fsrsCard: FSRSCard): CardUpdate {
   };
 }
 
-export function mountRoutes(app: Express, db: DbProvider): void {
+export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): void {
   // -------------------------------------------------------
   // POST /api/cards -- Create one or more cards
   // -------------------------------------------------------
@@ -265,6 +266,42 @@ export function mountRoutes(app: Express, db: DbProvider): void {
     } catch (err) {
       console.error("DELETE /api/cards/:id error:", err);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // -------------------------------------------------------
+  // POST /api/cards/:id/evaluate -- LLM judge only (no scheduling)
+  // -------------------------------------------------------
+  app.post("/api/cards/:id/evaluate", async (req: Request<{ id: string }>, res: Response) => {
+    try {
+      if (!judge) {
+        res.status(501).json({ error: "LLM judge not configured" });
+        return;
+      }
+
+      const { id } = req.params;
+      const { answer } = req.body as { answer?: string };
+
+      if (!answer?.trim()) {
+        res.status(400).json({ error: "'answer' is required" });
+        return;
+      }
+
+      const card = db.getCardById(id);
+      if (!card) {
+        res.status(404).json({ error: "Card not found" });
+        return;
+      }
+
+      const result = await judge.evaluate(card.front, card.context, answer);
+
+      res.json({
+        score: result.score,
+        feedback: result.feedback,
+      });
+    } catch (err) {
+      console.error("POST /api/cards/:id/evaluate error:", err);
+      res.status(502).json({ error: "LLM evaluation failed" });
     }
   });
 

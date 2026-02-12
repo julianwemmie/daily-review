@@ -9,18 +9,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { fetchDueCards, reviewCard } from "@/lib/api.js";
-import type { Card as CardType, Rating } from "@/lib/types.js";
+import { fetchDueCards, evaluateCard, reviewCard } from "@/lib/api.js";
+import type { Card as CardType } from "@/lib/types.js";
 import { useRefreshCounts } from "@/App.js";
 
-const RATINGS: Rating[] = ["Easy", "Good", "Hard", "Again"];
-
-const ratingStyles: Record<Rating, string> = {
-  Again: "destructive",
-  Hard: "outline",
-  Good: "secondary",
-  Easy: "default",
-} as const;
+type Rating = "Again" | "Hard" | "Good" | "Easy";
+const RATINGS: Rating[] = ["Again", "Hard", "Good", "Easy"];
 
 function formatTimeUntil(isoDate: string): string {
   const diff = new Date(isoDate).getTime() - Date.now();
@@ -33,15 +27,21 @@ function formatTimeUntil(isoDate: string): string {
   return `${days}d`;
 }
 
+interface Evaluation {
+  score: number;
+  feedback: string;
+}
+
 export default function ReviewView() {
   const [cards, setCards] = useState<CardType[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [upcomingCount, setUpcomingCount] = useState(0);
   const [nextDue, setNextDue] = useState<string | null>(null);
   const [answer, setAnswer] = useState("");
-  const [showRating, setShowRating] = useState(false);
+  const [evaluating, setEvaluating] = useState(false);
+  const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
   const refreshCounts = useRefreshCounts();
   const [error, setError] = useState<string | null>(null);
 
@@ -58,8 +58,7 @@ export default function ReviewView() {
       setUpcomingCount(data.upcoming_count);
       setNextDue(data.next_due);
       setCurrentIndex(0);
-      setAnswer("");
-      setShowRating(false);
+      resetCardState();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load cards");
     } finally {
@@ -67,20 +66,52 @@ export default function ReviewView() {
     }
   }
 
+  function resetCardState() {
+    setAnswer("");
+    setEvaluation(null);
+    setError(null);
+  }
+
+  async function handleEvaluate() {
+    const card = cards[currentIndex];
+    if (!card || !answer.trim()) return;
+    try {
+      setEvaluating(true);
+      setError(null);
+      const result = await evaluateCard(card.id, answer);
+      setEvaluation({
+        score: result.score,
+        feedback: result.feedback,
+      });
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to evaluate answer"
+      );
+    } finally {
+      setEvaluating(false);
+    }
+  }
+
   async function handleRate(rating: Rating) {
     const card = cards[currentIndex];
     if (!card) return;
     try {
-      setActionLoading(true);
-      await reviewCard(card.id, rating, answer || undefined);
+      setSubmitting(true);
+      setError(null);
+      await reviewCard(
+        card.id,
+        rating,
+        answer || undefined,
+        evaluation?.score,
+        evaluation?.feedback
+      );
       refreshCounts();
       setCurrentIndex((prev) => prev + 1);
-      setAnswer("");
-      setShowRating(false);
+      resetCardState();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to submit review");
     } finally {
-      setActionLoading(false);
+      setSubmitting(false);
     }
   }
 
@@ -92,7 +123,7 @@ export default function ReviewView() {
     );
   }
 
-  if (error) {
+  if (error && !evaluation) {
     return (
       <div className="flex flex-col items-center gap-4 py-12">
         <p className="text-destructive">{error}</p>
@@ -143,34 +174,45 @@ export default function ReviewView() {
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
             rows={4}
+            disabled={evaluating || !!evaluation}
           />
+
+          {evaluation && (
+            <div className="rounded-lg border p-4 space-y-2">
+              <p className="text-sm font-medium">
+                Accuracy: {Math.round(evaluation.score * 100)}%
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {evaluation.feedback}
+              </p>
+            </div>
+          )}
         </CardContent>
         <CardFooter className="flex flex-col gap-3 items-start">
-          {!showRating ? (
+          {!evaluation ? (
             <Button
-              onClick={() => setShowRating(true)}
-              disabled={!answer.trim()}
+              onClick={handleEvaluate}
+              disabled={!answer.trim() || evaluating}
             >
-              Show Rating
+              {evaluating ? "Evaluating..." : "Submit"}
             </Button>
           ) : (
-            <div className="flex gap-2 flex-wrap">
-              {RATINGS.map((rating) => (
-                <Button
-                  key={rating}
-                  variant={
-                    ratingStyles[rating] as
-                      | "destructive"
-                      | "outline"
-                      | "secondary"
-                      | "default"
-                  }
-                  onClick={() => handleRate(rating)}
-                  disabled={actionLoading}
-                >
-                  {rating}
-                </Button>
-              ))}
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-muted-foreground">
+                How hard was this for you?
+              </p>
+              <div className="flex gap-2 flex-wrap">
+                {RATINGS.map((rating) => (
+                  <Button
+                    key={rating}
+                    variant="outline"
+                    onClick={() => handleRate(rating)}
+                    disabled={submitting}
+                  >
+                    {rating}
+                  </Button>
+                ))}
+              </div>
             </div>
           )}
         </CardFooter>

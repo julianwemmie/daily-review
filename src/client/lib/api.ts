@@ -1,4 +1,4 @@
-import type { Card, Rating } from "./types.js";
+import type { Card } from "./types.js";
 
 export async function fetchCounts(): Promise<{ new: number; due: number }> {
   const res = await fetch("/api/cards/counts");
@@ -58,15 +58,40 @@ export async function acceptCard(id: string): Promise<Card> {
   return res.json();
 }
 
+export interface EvaluateResponse {
+  score: number;
+  feedback: string;
+}
+
+export async function evaluateCard(
+  id: string,
+  answer: string
+): Promise<EvaluateResponse> {
+  const res = await fetch(`/api/cards/${id}/evaluate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ answer }),
+  });
+  if (!res.ok) throw new Error(`Failed to evaluate answer: ${res.statusText}`);
+  return res.json();
+}
+
 export async function reviewCard(
   id: string,
-  rating: Rating,
-  answer?: string
+  rating: string,
+  answer?: string,
+  llmScore?: number,
+  llmFeedback?: string
 ): Promise<Card> {
   const res = await fetch(`/api/cards/${id}/review`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ rating, answer }),
+    body: JSON.stringify({
+      rating,
+      answer,
+      llm_score: llmScore,
+      llm_feedback: llmFeedback,
+    }),
   });
   if (!res.ok) throw new Error(`Failed to review card: ${res.statusText}`);
   return res.json();
