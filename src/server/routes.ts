@@ -4,6 +4,7 @@ import { z } from "zod";
 import { CardStatus, CardState, Rating as AppRating, type DbProvider, type Card, type CardEdit } from "./db-provider.js";
 import { type LlmJudge } from "./llm-judge.js";
 import { newCardSchedule, reschedule } from "./scheduling.js";
+import { validate } from "./middleware/validate.js";
 
 const CreateCardBody = z.object({
   front: z.string().min(1),
@@ -33,15 +34,9 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
   // -------------------------------------------------------
   // POST /api/cards -- Create a single card
   // -------------------------------------------------------
-  app.post("/api/cards", (req: Request, res: Response) => {
+  app.post("/api/cards", validate(CreateCardBody), (req: Request, res: Response) => {
     try {
-      const parsed = CreateCardBody.safeParse(req.body);
-      if (!parsed.success) {
-        res.status(400).json({ error: z.treeifyError(parsed.error) });
-        return;
-      }
-
-      const { front, context, tags } = parsed.data;
+      const { front, context, tags } = req.body;
       const now = new Date();
       const fsrsFields = newCardSchedule(now);
 
@@ -112,16 +107,11 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
   // -------------------------------------------------------
   // PATCH /api/cards/:id -- Update a card
   // -------------------------------------------------------
-  app.patch("/api/cards/:id", (req: Request<{ id: string }>, res: Response) => {
+  app.patch("/api/cards/:id", validate(UpdateCardBody), (req: Request<{ id: string }>, res: Response) => {
     try {
       const { id } = req.params;
-      const parsed = UpdateCardBody.safeParse(req.body);
-      if (!parsed.success) {
-        res.status(400).json({ error: z.treeifyError(parsed.error) });
-        return;
-      }
 
-      const cardEdit: CardEdit = parsed.data;
+      const cardEdit: CardEdit = req.body;
       if (Object.keys(cardEdit).length === 0) {
         res.status(400).json({ error: "No valid fields to update" });
         return;
@@ -163,7 +153,7 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
   // -------------------------------------------------------
   // POST /api/cards/:id/evaluate -- LLM judge only (no scheduling)
   // -------------------------------------------------------
-  app.post("/api/cards/:id/evaluate", async (req: Request<{ id: string }>, res: Response) => {
+  app.post("/api/cards/:id/evaluate", validate(EvaluateBody), async (req: Request<{ id: string }>, res: Response) => {
     try {
       if (!judge) {
         res.status(501).json({ error: "LLM judge not configured" });
@@ -171,19 +161,13 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
       }
 
       const { id } = req.params;
-      const parsed = EvaluateBody.safeParse(req.body);
-      if (!parsed.success) {
-        res.status(400).json({ error: z.treeifyError(parsed.error) });
-        return;
-      }
-
       const card = db.getCardById(id);
       if (!card) {
         res.status(404).json({ error: "Card not found" });
         return;
       }
 
-      const result = await judge.evaluate(card.front, card.context, parsed.data.answer);
+      const result = await judge.evaluate(card.front, card.context, req.body.answer);
 
       res.json({
         score: result.score,
@@ -198,22 +182,16 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
   // -------------------------------------------------------
   // POST /api/cards/:id/review -- Submit a review
   // -------------------------------------------------------
-  app.post("/api/cards/:id/review", (req: Request<{ id: string }>, res: Response) => {
+  app.post("/api/cards/:id/review", validate(ReviewBody), (req: Request<{ id: string }>, res: Response) => {
     try {
       const { id } = req.params;
-      const parsed = ReviewBody.safeParse(req.body);
-      if (!parsed.success) {
-        res.status(400).json({ error: z.treeifyError(parsed.error) });
-        return;
-      }
-
       const card = db.getCardById(id);
       if (!card) {
         res.status(404).json({ error: "Card not found" });
         return;
       }
 
-      const { rating, answer, llm_score, llm_feedback } = parsed.data;
+      const { rating, answer, llm_score, llm_feedback } = req.body;
       const now = new Date();
 
       const { updatedFields, reviewLog } = reschedule(card, rating, now, {
