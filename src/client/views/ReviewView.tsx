@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchDueCards, evaluateCard, reviewCard } from "@/lib/api.js";
-import type { Card as CardType } from "@/lib/types.js";
+import { Rating, type Card as CardType } from "@/lib/types.js";
 import { useCounts } from "@/contexts/CountsContext.js";
 
 function formatTimeUntil(isoDate: string): string {
@@ -27,7 +27,6 @@ function formatTimeUntil(isoDate: string): string {
 interface Evaluation {
   score: number;
   feedback: string;
-  rating: string;
 }
 
 export default function ReviewView() {
@@ -80,7 +79,6 @@ export default function ReviewView() {
       setEvaluation({
         score: result.score,
         feedback: result.feedback,
-        rating: result.rating,
       });
     } catch (err) {
       setError(
@@ -91,7 +89,7 @@ export default function ReviewView() {
     }
   }
 
-  async function handleRate(rating: string) {
+  async function handleRate(rating: Rating) {
     const card = cards[currentIndex];
     if (!card) return;
     try {
@@ -179,7 +177,7 @@ export default function ReviewView() {
           {evaluation && (
             <div className="rounded-lg border p-4 space-y-2">
               <p className="text-sm font-medium">
-                Accuracy: {Math.round(evaluation.score * 100)}% &middot; Rating: {evaluation.rating}
+                Accuracy: {Math.round(evaluation.score * 100)}%
               </p>
               <p className="text-sm text-muted-foreground">
                 {evaluation.feedback}
@@ -196,12 +194,18 @@ export default function ReviewView() {
               {evaluating ? "Evaluating..." : "Submit"}
             </Button>
           ) : (
-            <Button
-              onClick={() => handleRate(evaluation.rating)}
-              disabled={submitting}
-            >
-              {submitting ? "Submitting..." : "Next"}
-            </Button>
+            <div className="flex gap-2">
+              {Object.values(Rating).map((rating) => (
+                <Button
+                  key={rating}
+                  variant={rating === Rating.Again ? "destructive" : "outline"}
+                  onClick={() => handleRate(rating)}
+                  disabled={submitting}
+                >
+                  {rating}
+                </Button>
+              ))}
+            </div>
           )}
         </CardFooter>
       </Card>
