@@ -1,9 +1,9 @@
 export interface Card {
   id: string;
   front: string;
-  context?: string;
-  source_conversation?: string;
-  tags?: string[];
+  context: string | null;
+  source_conversation: string | null;
+  tags: string[] | null;
   created_at: string;
   due: string;
   stability: number;
@@ -14,7 +14,7 @@ export interface Card {
   reps: number;
   lapses: number;
   state: "new" | "learning" | "review" | "relearning";
-  last_review?: string;
+  last_review: string | null;
   status: "triaging" | "active" | "suspended";
 }
 

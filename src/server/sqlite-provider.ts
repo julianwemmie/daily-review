@@ -140,6 +140,12 @@ export const sqliteProvider: DbProvider = {
   },
 
   updateCard(id: string, fields: CardUpdate): Card | undefined {
+    const allowedColumns = new Set([
+      "front", "context", "source_conversation", "tags",
+      "due", "stability", "difficulty", "elapsed_days", "scheduled_days",
+      "learning_steps", "reps", "lapses", "state", "last_review", "status",
+    ]);
+
     const existing = getCardByIdStmt.get(id) as
       | Record<string, unknown>
       | undefined;
@@ -149,6 +155,7 @@ export const sqliteProvider: DbProvider = {
     const values: unknown[] = [];
 
     for (const [key, value] of Object.entries(fields)) {
+      if (!allowedColumns.has(key)) continue;
       setClauses.push(`${key} = ?`);
       values.push(key === "tags" ? serializeTags(value as string[] | null) : value);
     }

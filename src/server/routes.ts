@@ -9,6 +9,7 @@ import {
   type Grade,
 } from "ts-fsrs";
 import type { DbProvider, Card, CardUpdate } from "./db-provider.js";
+import { scoreToRating, type LlmJudge } from "./llm-judge.js";
 
 const f = fsrs();
 
@@ -69,73 +70,45 @@ function fsrsToCardUpdate(fsrsCard: FSRSCard): CardUpdate {
   };
 }
 
-export function mountRoutes(app: Express, db: DbProvider): void {
+export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): void {
   // -------------------------------------------------------
-  // POST /api/cards -- Create one or more cards
+  // POST /api/cards -- Create a single card
   // -------------------------------------------------------
   app.post("/api/cards", (req: Request, res: Response) => {
     try {
-      const body = req.body;
+      const { front, context, tags } = req.body;
 
-      // Normalise: accept { cards: [...] } or a single card object
-      let inputCards: Array<{
-        front: string;
-        context?: string;
-        source_conversation?: string;
-        tags?: string[];
-      }>;
-
-      if (Array.isArray(body.cards)) {
-        inputCards = body.cards;
-      } else if (typeof body.front === "string") {
-        inputCards = [body];
-      } else {
-        res
-          .status(400)
-          .json({ error: "Body must include 'cards' array or a 'front' field" });
+      if (!front) {
+        res.status(400).json({ error: "Body must include a 'front' field" });
         return;
       }
 
       const now = new Date();
-      const cards: Card[] = [];
+      const emptyCard = createEmptyCard(now);
+      const fsrsFields = fsrsToCardUpdate(emptyCard);
 
-      for (const input of inputCards) {
-        if (!input.front) {
-          res.status(400).json({ error: "Each card must have a 'front' field" });
-          return;
-        }
+      const card: Card = {
+        id: crypto.randomUUID(),
+        front,
+        context: context ?? null,
+        source_conversation: null,
+        tags: tags ?? null,
+        created_at: now.toISOString(),
+        due: fsrsFields.due!,
+        stability: fsrsFields.stability!,
+        difficulty: fsrsFields.difficulty!,
+        elapsed_days: fsrsFields.elapsed_days!,
+        scheduled_days: fsrsFields.scheduled_days!,
+        learning_steps: fsrsFields.learning_steps!,
+        reps: fsrsFields.reps!,
+        lapses: fsrsFields.lapses!,
+        state: "new",
+        last_review: fsrsFields.last_review ?? null,
+        status: "triaging",
+      };
 
-        const emptyCard = createEmptyCard(now);
-        const fsrsFields = fsrsToCardUpdate(emptyCard);
-
-        cards.push({
-          id: crypto.randomUUID(),
-          front: input.front,
-          context: input.context ?? null,
-          source_conversation: input.source_conversation ?? null,
-          tags: input.tags ?? null,
-          created_at: now.toISOString(),
-          due: fsrsFields.due!,
-          stability: fsrsFields.stability!,
-          difficulty: fsrsFields.difficulty!,
-          elapsed_days: fsrsFields.elapsed_days!,
-          scheduled_days: fsrsFields.scheduled_days!,
-          learning_steps: fsrsFields.learning_steps!,
-          reps: fsrsFields.reps!,
-          lapses: fsrsFields.lapses!,
-          state: "new",
-          last_review: fsrsFields.last_review ?? null,
-          status: "triaging",
-        });
-      }
-
-      const created = db.createCards(cards);
-
-      if (created.length === 1) {
-        res.status(201).json(created[0]);
-      } else {
-        res.status(201).json({ cards: created });
-      }
+      const created = db.createCards([card]);
+      res.status(201).json(created[0]);
     } catch (err) {
       console.error("POST /api/cards error:", err);
       res.status(500).json({ error: "Internal server error" });
@@ -157,24 +130,17 @@ export function mountRoutes(app: Express, db: DbProvider): void {
   });
 
   // -------------------------------------------------------
-  // GET /api/cards -- List cards with optional state filter
+  // GET /api/cards -- List cards with optional status filter
   // -------------------------------------------------------
   app.get("/api/cards", (req: Request, res: Response) => {
     try {
-      const stateParam = req.query.state as string | undefined;
       const statusParam = req.query.status as string | undefined;
 
-      const filters: { state?: string[]; status?: string[] } = {};
-      if (stateParam) {
-        filters.state = stateParam.split(",").map((s) => s.trim());
-      }
-      if (statusParam) {
-        filters.status = statusParam.split(",").map((s) => s.trim());
-      }
+      const filters: { status?: string[] } | undefined = statusParam
+        ? { status: statusParam.split(",").map((s) => s.trim()) }
+        : undefined;
 
-      const cards = db.listCards(
-        Object.keys(filters).length > 0 ? filters : undefined
-      );
+      const cards = db.listCards(filters);
       res.json(cards);
     } catch (err) {
       console.error("GET /api/cards error:", err);
@@ -204,22 +170,11 @@ export function mountRoutes(app: Express, db: DbProvider): void {
       const { id } = req.params;
       const updates = req.body as Record<string, unknown>;
 
-      // Whitelist allowed fields
+      // Whitelist allowed fields (FSRS fields are updated via /review)
       const allowedFields = [
         "front",
         "context",
-        "source_conversation",
         "tags",
-        "due",
-        "stability",
-        "difficulty",
-        "elapsed_days",
-        "scheduled_days",
-        "learning_steps",
-        "reps",
-        "lapses",
-        "state",
-        "last_review",
         "status",
       ];
 
@@ -265,6 +220,43 @@ export function mountRoutes(app: Express, db: DbProvider): void {
     } catch (err) {
       console.error("DELETE /api/cards/:id error:", err);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // -------------------------------------------------------
+  // POST /api/cards/:id/evaluate -- LLM judge only (no scheduling)
+  // -------------------------------------------------------
+  app.post("/api/cards/:id/evaluate", async (req: Request<{ id: string }>, res: Response) => {
+    try {
+      if (!judge) {
+        res.status(501).json({ error: "LLM judge not configured" });
+        return;
+      }
+
+      const { id } = req.params;
+      const { answer } = req.body as { answer?: string };
+
+      if (!answer?.trim()) {
+        res.status(400).json({ error: "'answer' is required" });
+        return;
+      }
+
+      const card = db.getCardById(id);
+      if (!card) {
+        res.status(404).json({ error: "Card not found" });
+        return;
+      }
+
+      const result = await judge.evaluate(card.front, card.context, answer);
+
+      res.json({
+        score: result.score,
+        feedback: result.feedback,
+        rating: scoreToRating(result.score),
+      });
+    } catch (err) {
+      console.error("POST /api/cards/:id/evaluate error:", err);
+      res.status(502).json({ error: "LLM evaluation failed" });
     }
   });
 

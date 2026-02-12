@@ -1,4 +1,4 @@
-import type { Card, Rating } from "./types.js";
+import type { Card } from "./types.js";
 
 export async function fetchCounts(): Promise<{ new: number; due: number }> {
   const res = await fetch("/api/cards/counts");
@@ -6,9 +6,8 @@ export async function fetchCounts(): Promise<{ new: number; due: number }> {
   return res.json();
 }
 
-export async function fetchCards(options?: { state?: string; status?: string }): Promise<Card[]> {
+export async function fetchCards(options?: { status?: string }): Promise<Card[]> {
   const params = new URLSearchParams();
-  if (options?.state) params.set("state", options.state);
   if (options?.status) params.set("status", options.status);
   const qs = params.toString();
   const url = qs ? `/api/cards?${qs}` : "/api/cards";
@@ -48,6 +47,16 @@ export async function deleteCard(id: string): Promise<void> {
   if (!res.ok) throw new Error(`Failed to delete card: ${res.statusText}`);
 }
 
+export async function skipCard(id: string): Promise<Card> {
+  const res = await fetch(`/api/cards/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "suspended" }),
+  });
+  if (!res.ok) throw new Error(`Failed to skip card: ${res.statusText}`);
+  return res.json();
+}
+
 export async function acceptCard(id: string): Promise<Card> {
   const res = await fetch(`/api/cards/${id}`, {
     method: "PATCH",
@@ -58,16 +67,41 @@ export async function acceptCard(id: string): Promise<Card> {
   return res.json();
 }
 
+export interface EvaluateResponse {
+  score: number;
+  feedback: string;
+  rating: string;
+}
+
+export async function evaluateCard(
+  id: string,
+  answer: string
+): Promise<EvaluateResponse> {
+  const res = await fetch(`/api/cards/${id}/evaluate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ answer }),
+  });
+  if (!res.ok) throw new Error(`Failed to evaluate answer: ${res.statusText}`);
+  return res.json();
+}
+
 export async function reviewCard(
   id: string,
-  rating: Rating,
-  answer?: string
-): Promise<Card> {
+  rating: string,
+  answer?: string,
+  llmScore?: number,
+  llmFeedback?: string
+): Promise<void> {
   const res = await fetch(`/api/cards/${id}/review`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ rating, answer }),
+    body: JSON.stringify({
+      rating,
+      answer,
+      llm_score: llmScore,
+      llm_feedback: llmFeedback,
+    }),
   });
   if (!res.ok) throw new Error(`Failed to review card: ${res.statusText}`);
-  return res.json();
 }
