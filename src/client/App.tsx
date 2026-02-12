@@ -25,7 +25,9 @@ function AppLayout() {
     refreshCounts();
   }, [location.pathname]);
 
-  const currentTab = TAB_ROUTES.find((r) => r.value === location.pathname)?.value ?? "/";
+  const currentTab = TAB_ROUTES.some((r) => r.value === location.pathname)
+    ? location.pathname
+    : "/";
 
   return (
     <div className="min-h-screen bg-background">

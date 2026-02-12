@@ -1,3 +1,18 @@
+export const CardStatus = {
+  Triaging: "triaging",
+  Active: "active",
+  Suspended: "suspended",
+} as const;
+export type CardStatus = (typeof CardStatus)[keyof typeof CardStatus];
+
+export const CardState = {
+  New: "new",
+  Learning: "learning",
+  Review: "review",
+  Relearning: "relearning",
+} as const;
+export type CardState = (typeof CardState)[keyof typeof CardState];
+
 export interface Card {
   id: string;
   front: string;
@@ -13,9 +28,9 @@ export interface Card {
   learning_steps: number;
   reps: number;
   lapses: number;
-  state: "new" | "learning" | "review" | "relearning";
+  state: CardState;
   last_review: string | null;
-  status: "triaging" | "active" | "suspended";
+  status: CardStatus;
 }
 
 export type Rating = "Again" | "Hard" | "Good" | "Easy";
