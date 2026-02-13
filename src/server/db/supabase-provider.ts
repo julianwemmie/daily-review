@@ -25,20 +25,22 @@ function makeProvider(client: SupabaseClient): DbProvider {
       return (data ?? []).map(rowToCard);
     },
 
-    async getCardById(id: string): Promise<Card | undefined> {
+    async getCardById(id: string, userId: string): Promise<Card | undefined> {
       const { data, error } = await client
         .from("cards")
         .select("*")
         .eq("id", id)
+        .eq("user_id", userId)
         .maybeSingle();
       if (error) throw error;
       return data ? rowToCard(data) : undefined;
     },
 
-    async listCards(filters?: CardListFilters): Promise<Card[]> {
+    async listCards(userId: string, filters?: CardListFilters): Promise<Card[]> {
       let query = client
         .from("cards")
         .select("*")
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (filters?.status) {
@@ -50,10 +52,11 @@ function makeProvider(client: SupabaseClient): DbProvider {
       return (data ?? []).map(rowToCard);
     },
 
-    async getDueCards(now: string): Promise<DueCardsResult> {
+    async getDueCards(userId: string, now: string): Promise<DueCardsResult> {
       const { data: dueRows, error: dueErr } = await client
         .from("cards")
         .select("*")
+        .eq("user_id", userId)
         .eq("status", "active")
         .lte("due", now)
         .order("due", { ascending: true });
@@ -62,6 +65,7 @@ function makeProvider(client: SupabaseClient): DbProvider {
       const { data: nextDueRow, error: nextErr } = await client
         .from("cards")
         .select("due")
+        .eq("user_id", userId)
         .eq("status", "active")
         .gt("due", now)
         .order("due", { ascending: true })
@@ -75,16 +79,18 @@ function makeProvider(client: SupabaseClient): DbProvider {
       };
     },
 
-    async getCounts(now: string): Promise<CardCounts> {
+    async getCounts(userId: string, now: string): Promise<CardCounts> {
       const { count: newCount, error: newErr } = await client
         .from("cards")
         .select("*", { count: "exact", head: true })
+        .eq("user_id", userId)
         .eq("status", "triaging");
       if (newErr) throw newErr;
 
       const { count: dueCount, error: dueErr } = await client
         .from("cards")
         .select("*", { count: "exact", head: true })
+        .eq("user_id", userId)
         .eq("status", "active")
         .lte("due", now);
       if (dueErr) throw dueErr;
@@ -92,11 +98,12 @@ function makeProvider(client: SupabaseClient): DbProvider {
       return { new: newCount ?? 0, due: dueCount ?? 0 };
     },
 
-    async editCard(id: string, fields: CardEdit): Promise<Card | undefined> {
+    async editCard(id: string, userId: string, fields: CardEdit): Promise<Card | undefined> {
       const { data, error } = await client
         .from("cards")
         .update(fields)
         .eq("id", id)
+        .eq("user_id", userId)
         .select()
         .maybeSingle();
       if (error) throw error;
@@ -105,23 +112,26 @@ function makeProvider(client: SupabaseClient): DbProvider {
 
     async updateSchedule(
       id: string,
+      userId: string,
       fields: SchedulingUpdate
     ): Promise<Card | undefined> {
       const { data, error } = await client
         .from("cards")
         .update(fields)
         .eq("id", id)
+        .eq("user_id", userId)
         .select()
         .maybeSingle();
       if (error) throw error;
       return data ? rowToCard(data) : undefined;
     },
 
-    async deleteCard(id: string): Promise<boolean> {
+    async deleteCard(id: string, userId: string): Promise<boolean> {
       const { error, count } = await client
         .from("cards")
         .delete({ count: "exact" })
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", userId);
       if (error) throw error;
       return (count ?? 0) > 0;
     },

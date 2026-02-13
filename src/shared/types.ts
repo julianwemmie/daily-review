@@ -26,6 +26,7 @@ export type Rating = (typeof Rating)[keyof typeof Rating];
 
 export interface Card {
   id: string;
+  user_id: string;
   front: string;
   context: string | null;
   source_conversation: string | null;

@@ -42,6 +42,7 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
 
       const card: Card = {
         id: crypto.randomUUID(),
+        user_id: req.user!.id,
         front,
         context: context ?? null,
         source_conversation: null,
@@ -63,10 +64,10 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
   // -------------------------------------------------------
   // GET /api/cards/counts -- Lightweight tab badge counts
   // -------------------------------------------------------
-  app.get("/api/cards/counts", async (_, res: Response) => {
+  app.get("/api/cards/counts", async (req: Request, res: Response) => {
     try {
       const now = new Date().toISOString();
-      const counts = await db.getCounts(now);
+      const counts = await db.getCounts(req.user!.id, now);
       res.json(counts);
     } catch (err) {
       console.error("GET /api/cards/counts error:", err);
@@ -82,7 +83,7 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
       const status = Object.values(CardStatus).find(s => s === req.query.status);
       const filters = status ? { status } : undefined;
 
-      const cards = await db.listCards(filters);
+      const cards = await db.listCards(req.user!.id, filters);
       res.json(cards);
     } catch (err) {
       console.error("GET /api/cards error:", err);
@@ -93,10 +94,10 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
   // -------------------------------------------------------
   // GET /api/cards/due -- Cards due for review
   // -------------------------------------------------------
-  app.get("/api/cards/due", async (_req: Request, res: Response) => {
+  app.get("/api/cards/due", async (req: Request, res: Response) => {
     try {
       const now = new Date().toISOString();
-      const result = await db.getDueCards(now);
+      const result = await db.getDueCards(req.user!.id, now);
       res.json(result);
     } catch (err) {
       console.error("GET /api/cards/due error:", err);
@@ -117,7 +118,7 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
         return;
       }
 
-      const updated = await db.editCard(id, cardEdit);
+      const updated = await db.editCard(id, req.user!.id, cardEdit);
       if (!updated) {
         res.status(404).json({ error: "Card not found" });
         return;
@@ -136,7 +137,7 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
   app.delete("/api/cards/:id", async (req: Request<{ id: string }>, res: Response) => {
     try {
       const { id } = req.params;
-      const deleted = await db.deleteCard(id);
+      const deleted = await db.deleteCard(id, req.user!.id);
 
       if (!deleted) {
         res.status(404).json({ error: "Card not found" });
@@ -161,7 +162,7 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
       }
 
       const { id } = req.params;
-      const card = await db.getCardById(id);
+      const card = await db.getCardById(id, req.user!.id);
       if (!card) {
         res.status(404).json({ error: "Card not found" });
         return;
@@ -185,7 +186,7 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
   app.post("/api/cards/:id/review", validate(ReviewBody), async (req: Request<{ id: string }>, res: Response) => {
     try {
       const { id } = req.params;
-      const card = await db.getCardById(id);
+      const card = await db.getCardById(id, req.user!.id);
       if (!card) {
         res.status(404).json({ error: "Card not found" });
         return;
@@ -200,7 +201,7 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
         llm_feedback,
       });
 
-      const updatedCard = await db.updateSchedule(id, updatedFields);
+      const updatedCard = await db.updateSchedule(id, req.user!.id, updatedFields);
       await db.createReviewLog(reviewLog);
 
       res.json({
