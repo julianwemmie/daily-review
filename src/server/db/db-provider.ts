@@ -50,13 +50,13 @@ export interface CardCounts {
 }
 
 export interface DbProvider {
-  createCards(cards: Card[]): Card[];
-  getCardById(id: string): Card | undefined;
-  listCards(filters?: CardListFilters): Card[];
-  getDueCards(now: string): DueCardsResult;
-  getCounts(now: string): CardCounts;
-  editCard(id: string, fields: CardEdit): Card | undefined;
-  updateSchedule(id: string, fields: SchedulingUpdate): Card | undefined;
-  deleteCard(id: string): boolean;
-  createReviewLog(log: ReviewLogInsert): void;
+  createCards(cards: Card[]): Promise<Card[]>;
+  getCardById(id: string): Promise<Card | undefined>;
+  listCards(filters?: CardListFilters): Promise<Card[]>;
+  getDueCards(now: string): Promise<DueCardsResult>;
+  getCounts(now: string): Promise<CardCounts>;
+  editCard(id: string, fields: CardEdit): Promise<Card | undefined>;
+  updateSchedule(id: string, fields: SchedulingUpdate): Promise<Card | undefined>;
+  deleteCard(id: string): Promise<boolean>;
+  createReviewLog(log: ReviewLogInsert): Promise<void>;
 }
