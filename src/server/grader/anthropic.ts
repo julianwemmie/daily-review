@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { LlmJudge, JudgeResult } from "./llm-judge.js";
+import type { LlmGrader, GraderResult } from "./llm.js";
 
 const SYSTEM_PROMPT = `You are a flashcard answer evaluator for a spaced repetition learning system. Your job is to assess how well a learner's free-form answer demonstrates understanding of the concept being tested.
 
@@ -38,8 +38,8 @@ const OUTPUT_SCHEMA = {
 
 const client = new Anthropic();
 
-export const anthropicJudge: LlmJudge = {
-  async evaluate(front, context, answer): Promise<JudgeResult> {
+export const anthropicGrader: LlmGrader = {
+  async evaluate(front, context, answer): Promise<GraderResult> {
     let userMessage = `QUESTION:\n${front}\n\n`;
     if (context) {
       userMessage += `CONTEXT:\n${context}\n\n`;

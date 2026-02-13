@@ -85,7 +85,7 @@ export default function UploadView() {
               </label>
               <Textarea
                 id="context"
-                placeholder="Reference material for the LLM judge (not shown during review)"
+                placeholder="Reference material for the LLM grader (not shown during review)"
                 value={context}
                 onChange={(e) => setContext(e.target.value)}
                 rows={3}
