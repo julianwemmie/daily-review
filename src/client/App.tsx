@@ -3,7 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { CountsProvider, useCounts } from "@/contexts/CountsContext.js";
-import { useSession, signOut } from "@/lib/auth-client.js";
+import { useSession } from "@/lib/auth-client.js";
+import UserMenu from "@/components/UserMenu.js";
 import AuthView from "@/views/AuthView.js";
 import TriageView from "@/views/TriageView.js";
 import ReviewView from "@/views/ReviewView.js";
@@ -36,12 +37,7 @@ function AppLayout() {
       <div className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Daily Review</h1>
-          <button
-            onClick={() => signOut()}
-            className="text-sm text-muted-foreground hover:underline"
-          >
-            Sign out
-          </button>
+          <UserMenu />
         </div>
 
         {countsError && (
