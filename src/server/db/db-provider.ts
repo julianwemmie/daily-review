@@ -50,12 +50,12 @@ export interface CardCounts {
 
 export interface DbProvider {
   createCards(cards: Card[]): Promise<Card[]>;
-  getCardById(id: string): Promise<Card | undefined>;
-  listCards(filters?: CardListFilters): Promise<Card[]>;
-  getDueCards(now: string): Promise<DueCardsResult>;
-  getCounts(now: string): Promise<CardCounts>;
-  editCard(id: string, fields: CardEdit): Promise<Card | undefined>;
-  updateSchedule(id: string, fields: SchedulingUpdate): Promise<Card | undefined>;
-  deleteCard(id: string): Promise<boolean>;
+  getCardById(id: string, userId: string): Promise<Card | undefined>;
+  listCards(userId: string, filters?: CardListFilters): Promise<Card[]>;
+  getDueCards(userId: string, now: string): Promise<DueCardsResult>;
+  getCounts(userId: string, now: string): Promise<CardCounts>;
+  editCard(id: string, userId: string, fields: CardEdit): Promise<Card | undefined>;
+  updateSchedule(id: string, userId: string, fields: SchedulingUpdate): Promise<Card | undefined>;
+  deleteCard(id: string, userId: string): Promise<boolean>;
   createReviewLog(log: ReviewLogInsert): Promise<void>;
 }
