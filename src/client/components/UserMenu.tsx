@@ -68,7 +68,7 @@ export default function UserMenu() {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="h-8 w-8 rounded-full bg-muted text-sm font-medium"
+            className="h-8 w-8 rounded-full bg-muted text-sm font-medium hover:bg-muted/80 hover:ring-2 hover:ring-ring/20 transition-all"
           >
             {initial}
           </Button>
