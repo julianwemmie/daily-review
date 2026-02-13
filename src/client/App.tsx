@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { CountsProvider, useCounts } from "@/contexts/CountsContext.js";
+import { useSession, signOut } from "@/lib/auth-client.js";
+import AuthView from "@/views/AuthView.js";
 import TriageView from "@/views/TriageView.js";
 import ReviewView from "@/views/ReviewView.js";
 import UploadView from "@/views/UploadView.js";
@@ -32,7 +34,15 @@ function AppLayout() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-4 py-8">
-        <h1 className="mb-6 text-2xl font-bold tracking-tight">Daily Review</h1>
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold tracking-tight">Daily Review</h1>
+          <button
+            onClick={() => signOut()}
+            className="text-sm text-muted-foreground hover:underline"
+          >
+            Sign out
+          </button>
+        </div>
 
         {countsError && (
           <p className="mb-4 text-sm text-destructive">{countsError}</p>
@@ -66,6 +76,20 @@ function AppLayout() {
 }
 
 export default function App() {
+  const { data: session, isPending } = useSession();
+
+  if (isPending) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <AuthView />;
+  }
+
   return (
     <BrowserRouter>
       <CountsProvider>
