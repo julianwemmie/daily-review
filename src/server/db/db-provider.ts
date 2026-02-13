@@ -1,7 +1,7 @@
 // Database provider interface — program to this, swap implementations freely.
 
-export { CardStatus, CardState, Rating, type Card } from "../shared/types.js";
-import type { CardStatus, CardState, Card } from "../shared/types.js";
+export { CardStatus, CardState, Rating, type Card } from "../../shared/types.js";
+import type { CardStatus, CardState, Card } from "../../shared/types.js";
 
 export interface CardEdit {
   front?: string;

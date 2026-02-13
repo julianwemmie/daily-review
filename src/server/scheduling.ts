@@ -13,7 +13,7 @@ import {
   type Card,
   type SchedulingUpdate,
   type ReviewLogInsert,
-} from "./db-provider.js";
+} from "./db/db-provider.js";
 
 const f = fsrs();
 

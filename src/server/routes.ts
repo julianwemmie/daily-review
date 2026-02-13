@@ -1,8 +1,8 @@
 import { type Express, type Request, type Response } from "express";
 import crypto from "crypto";
 import { z } from "zod";
-import { CardStatus, CardState, Rating as AppRating, type DbProvider, type Card, type CardEdit } from "./db-provider.js";
-import { type LlmJudge } from "./llm-judge.js";
+import { CardStatus, CardState, Rating as AppRating, type DbProvider, type Card, type CardEdit } from "./db/db-provider.js";
+import { type LlmGrader } from "./grader/llm.js";
 import { newCardSchedule, reschedule } from "./scheduling.js";
 import { validate } from "./middleware/validate.js";
 
@@ -30,7 +30,7 @@ const ReviewBody = z.object({
   llm_feedback: z.string().optional(),
 });
 
-export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): void {
+export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): void {
   // -------------------------------------------------------
   // POST /api/cards -- Create a single card
   // -------------------------------------------------------
@@ -151,12 +151,12 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
   });
 
   // -------------------------------------------------------
-  // POST /api/cards/:id/evaluate -- LLM judge only (no scheduling)
+  // POST /api/cards/:id/evaluate -- LLM grader only (no scheduling)
   // -------------------------------------------------------
   app.post("/api/cards/:id/evaluate", validate(EvaluateBody), async (req: Request<{ id: string }>, res: Response) => {
     try {
-      if (!judge) {
-        res.status(501).json({ error: "LLM judge not configured" });
+      if (!grader) {
+        res.status(501).json({ error: "LLM grader not configured" });
         return;
       }
 
@@ -167,7 +167,7 @@ export function mountRoutes(app: Express, db: DbProvider, judge?: LlmJudge): voi
         return;
       }
 
-      const result = await judge.evaluate(card.front, card.context, req.body.answer);
+      const result = await grader.evaluate(card.front, card.context, req.body.answer);
 
       res.json({
         score: result.score,
