@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -9,9 +9,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Kbd } from "@/components/Kbd.js";
 import { fetchDueCards, evaluateCard, reviewCard } from "@/lib/api.js";
 import { Rating, type Card as CardType } from "@/lib/types.js";
 import { useCounts } from "@/contexts/CountsContext.js";
+import { useHotkey } from "@/lib/useHotkey.js";
 
 function formatTimeUntil(isoDate: string): string {
   const diff = new Date(isoDate).getTime() - Date.now();
@@ -67,7 +69,7 @@ export default function ReviewView() {
     setError(null);
   }
 
-  async function handleEvaluate() {
+  const handleEvaluate = useCallback(async () => {
     const card = cards[currentIndex];
     if (!card || !answer.trim()) return;
     try {
@@ -85,11 +87,11 @@ export default function ReviewView() {
     } finally {
       setEvaluating(false);
     }
-  }
+  }, [cards, currentIndex, answer]);
 
-  async function handleRate(rating: Rating) {
+  const handleRate = useCallback(async (rating: Rating) => {
     const card = cards[currentIndex];
-    if (!card) return;
+    if (!card || submitting) return;
     try {
       setSubmitting(true);
       setError(null);
@@ -108,7 +110,16 @@ export default function ReviewView() {
     } finally {
       setSubmitting(false);
     }
-  }
+  }, [cards, currentIndex, answer, evaluation, submitting, refreshCounts]);
+
+  const RATING_ORDER = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy] as const;
+
+  const hasCard = !!cards[currentIndex];
+  useHotkey({ key: "Enter", meta: true, onPress: handleEvaluate, enabled: hasCard && !evaluation });
+  useHotkey({ key: "1", onPress: () => handleRate(RATING_ORDER[0]), enabled: hasCard && !!evaluation });
+  useHotkey({ key: "2", onPress: () => handleRate(RATING_ORDER[1]), enabled: hasCard && !!evaluation });
+  useHotkey({ key: "3", onPress: () => handleRate(RATING_ORDER[2]), enabled: hasCard && !!evaluation });
+  useHotkey({ key: "4", onPress: () => handleRate(RATING_ORDER[3]), enabled: hasCard && !!evaluation });
 
   if (loading) {
     return (
@@ -185,18 +196,18 @@ export default function ReviewView() {
               onClick={handleEvaluate}
               disabled={!answer.trim() || evaluating}
             >
-              {evaluating ? "Evaluating..." : "Submit"}
+              {evaluating ? "Evaluating..." : <>Submit<Kbd>&#8984;&#9166;</Kbd></>}
             </Button>
           ) : (
             <div className="flex gap-2">
-              {Object.values(Rating).map((rating) => (
+              {RATING_ORDER.map((rating, i) => (
                 <Button
                   key={rating}
                   variant={rating === Rating.Again ? "destructive" : "outline"}
                   onClick={() => handleRate(rating)}
                   disabled={submitting}
                 >
-                  {rating}
+                  {rating}<Kbd>{i + 1}</Kbd>
                 </Button>
               ))}
             </div>
