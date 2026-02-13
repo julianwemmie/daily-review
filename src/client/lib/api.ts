@@ -18,7 +18,6 @@ export async function fetchCards(options?: { status?: CardStatus }): Promise<Car
 
 export interface DueCardsResponse {
   cards: Card[];
-  upcoming_count: number;
   next_due: string | null;
 }
 
