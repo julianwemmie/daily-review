@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -9,8 +9,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Kbd } from "@/components/Kbd.js";
 import { fetchCards, acceptCard, skipCard } from "@/lib/api.js";
 import { useCounts } from "@/contexts/CountsContext.js";
+import { useHotkey } from "@/lib/useHotkey.js";
 import { CardStatus, type Card as CardType } from "@/lib/types.js";
 
 export default function TriageView() {
@@ -39,9 +41,9 @@ export default function TriageView() {
     }
   }
 
-  async function handleAccept() {
+  const handleAccept = useCallback(async () => {
     const card = cards[currentIndex];
-    if (!card) return;
+    if (!card || actionLoading) return;
     try {
       setActionLoading(true);
       await acceptCard(card.id);
@@ -52,11 +54,11 @@ export default function TriageView() {
     } finally {
       setActionLoading(false);
     }
-  }
+  }, [cards, currentIndex, actionLoading, refreshCounts]);
 
-  async function handleSkip() {
+  const handleSkip = useCallback(async () => {
     const card = cards[currentIndex];
-    if (!card) return;
+    if (!card || actionLoading) return;
     try {
       setActionLoading(true);
       await skipCard(card.id);
@@ -67,7 +69,11 @@ export default function TriageView() {
     } finally {
       setActionLoading(false);
     }
-  }
+  }, [cards, currentIndex, actionLoading, refreshCounts]);
+
+  const hasCard = !!cards[currentIndex];
+  useHotkey({ key: "1", onPress: handleAccept, enabled: hasCard });
+  useHotkey({ key: "2", onPress: handleSkip, enabled: hasCard });
 
   function advanceCardIndex() {
     setCurrentIndex((prev) => prev + 1);
@@ -129,14 +135,14 @@ export default function TriageView() {
         </CardContent>
         <CardFooter className="gap-3">
           <Button onClick={handleAccept} disabled={actionLoading}>
-            Accept
+            Accept<Kbd>1</Kbd>
           </Button>
           <Button
             variant="outline"
             onClick={handleSkip}
             disabled={actionLoading}
           >
-            Skip
+            Skip<Kbd>2</Kbd>
           </Button>
         </CardFooter>
       </Card>

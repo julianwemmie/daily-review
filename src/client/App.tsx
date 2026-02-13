@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { CountsProvider, useCounts } from "@/contexts/CountsContext.js";
 import { useSession } from "@/lib/auth-client.js";
+import { useHotkey } from "@/lib/useHotkey.js";
 import UserMenu from "@/components/UserMenu.js";
 import AuthView from "@/views/AuthView.js";
 import TriageView from "@/views/TriageView.js";
@@ -28,6 +29,21 @@ function AppLayout() {
     refreshCounts();
   }, [location.pathname]);
 
+  const currentTabIndex = TAB_ROUTES.findIndex((r) => r.value === location.pathname);
+
+  const goLeft = useCallback(() => {
+    const prev = currentTabIndex > 0 ? currentTabIndex - 1 : TAB_ROUTES.length - 1;
+    navigate(TAB_ROUTES[prev].value);
+  }, [currentTabIndex, navigate]);
+
+  const goRight = useCallback(() => {
+    const next = currentTabIndex < TAB_ROUTES.length - 1 ? currentTabIndex + 1 : 0;
+    navigate(TAB_ROUTES[next].value);
+  }, [currentTabIndex, navigate]);
+
+  useHotkey({ key: "ArrowLeft", onPress: goLeft });
+  useHotkey({ key: "ArrowRight", onPress: goRight });
+
   const currentTab = TAB_ROUTES.some((r) => r.value === location.pathname)
     ? location.pathname
     : "/";
@@ -45,18 +61,25 @@ function AppLayout() {
         )}
 
         <Tabs value={currentTab} onValueChange={(val) => navigate(val)} className="mb-8">
-          <TabsList>
-            {TAB_ROUTES.map((route) => (
-              <TabsTrigger key={route.value} value={route.value} className="gap-1.5">
-                {route.label}
-                {route.countKey && counts[route.countKey] > 0 && (
-                  <Badge className="ml-1 px-1.5 py-0 text-[10px] leading-4 min-w-[1.25rem] bg-emerald-600/70 text-white">
-                    {counts[route.countKey]}
-                  </Badge>
-                )}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="flex items-center gap-3">
+            <TabsList>
+              {TAB_ROUTES.map((route) => (
+                <TabsTrigger key={route.value} value={route.value} className="gap-1.5">
+                  {route.label}
+                  {route.countKey && counts[route.countKey] > 0 && (
+                    <Badge className="ml-1 px-1.5 py-0 text-[10px] leading-4 min-w-[1.25rem] bg-emerald-600/70 text-white">
+                      {counts[route.countKey]}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <span className="text-[11px] text-muted-foreground">
+              <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px]">&larr;</kbd>
+              {" "}
+              <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px]">&rarr;</kbd>
+            </span>
+          </div>
         </Tabs>
 
         <Routes>

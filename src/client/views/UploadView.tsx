@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,8 +10,10 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Kbd } from "@/components/Kbd.js";
 import { createCard } from "@/lib/api.js";
 import { useCounts } from "@/contexts/CountsContext.js";
+import { useHotkey } from "@/lib/useHotkey.js";
 
 export default function UploadView() {
   const [front, setFront] = useState("");
@@ -22,8 +24,7 @@ export default function UploadView() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const doSubmit = useCallback(async () => {
     if (loading) return;
     if (!front.trim()) return;
 
@@ -55,7 +56,14 @@ export default function UploadView() {
     } finally {
       setLoading(false);
     }
+  }, [front, context, tags, loading, refreshCounts]);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    doSubmit();
   }
+
+  useHotkey({ key: "Enter", meta: true, onPress: doSubmit });
 
   return (
     <div className="flex flex-col items-center">
@@ -111,7 +119,7 @@ export default function UploadView() {
           </CardContent>
           <CardFooter className="pt-4">
             <Button type="submit" disabled={loading || !front.trim()}>
-              {loading ? "Creating..." : "Create Card"}
+              {loading ? "Creating..." : <>Create Card<Kbd>&#8984;&#9166;</Kbd></>}
             </Button>
           </CardFooter>
         </form>
