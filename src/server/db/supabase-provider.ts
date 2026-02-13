@@ -20,9 +20,9 @@ function rowToCard(row: Record<string, unknown>): Card {
 function makeProvider(client: SupabaseClient): DbProvider {
   return {
     async createCards(cards: Card[]): Promise<Card[]> {
-      const { error } = await client.from("cards").insert(cards);
+      const { data, error } = await client.from("cards").insert(cards).select();
       if (error) throw error;
-      return cards;
+      return (data ?? []).map(rowToCard);
     },
 
     async getCardById(id: string): Promise<Card | undefined> {
@@ -59,18 +59,27 @@ function makeProvider(client: SupabaseClient): DbProvider {
         .order("due", { ascending: true });
       if (dueErr) throw dueErr;
 
-      const { data: upcoming, error: upErr } = await client
+      const { count: upcomingCount, error: upErr } = await client
+        .from("cards")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "active")
+        .gt("due", now);
+      if (upErr) throw upErr;
+
+      const { data: nextDueRow, error: nextErr } = await client
         .from("cards")
         .select("due")
         .eq("status", "active")
         .gt("due", now)
-        .order("due", { ascending: true });
-      if (upErr) throw upErr;
+        .order("due", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (nextErr) throw nextErr;
 
       return {
         cards: (dueRows ?? []).map(rowToCard),
-        upcoming_count: upcoming?.length ?? 0,
-        next_due: upcoming?.[0]?.due ?? null,
+        upcoming_count: upcomingCount ?? 0,
+        next_due: nextDueRow?.due ?? null,
       };
     },
 
