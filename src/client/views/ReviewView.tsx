@@ -32,7 +32,6 @@ interface Evaluation {
 export default function ReviewView() {
   const [cards, setCards] = useState<CardType[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [upcomingCount, setUpcomingCount] = useState(0);
   const [nextDue, setNextDue] = useState<string | null>(null);
   const [answer, setAnswer] = useState("");
   const [evaluating, setEvaluating] = useState(false);
@@ -52,7 +51,6 @@ export default function ReviewView() {
       setError(null);
       const data = await fetchDueCards();
       setCards(data.cards);
-      setUpcomingCount(data.upcoming_count);
       setNextDue(data.next_due);
       setCurrentIndex(0);
       resetCardState();
@@ -138,10 +136,9 @@ export default function ReviewView() {
     return (
       <div className="flex flex-col items-center gap-2 py-12">
         <p className="text-muted-foreground">No cards due for review</p>
-        {upcomingCount > 0 && nextDue && (
+        {nextDue && (
           <p className="text-sm text-muted-foreground">
-            {upcomingCount} card{upcomingCount !== 1 ? "s" : ""} scheduled, next
-            due in {formatTimeUntil(nextDue)}
+            Next due in {formatTimeUntil(nextDue)}
           </p>
         )}
       </div>
@@ -152,9 +149,6 @@ export default function ReviewView() {
     <div className="flex flex-col items-center gap-6">
       <p className="text-sm text-muted-foreground">
         {remaining} card{remaining !== 1 ? "s" : ""} due
-        {upcomingCount > 0 && (
-          <span> &middot; {upcomingCount} more scheduled</span>
-        )}
       </p>
 
       <Card className="w-full max-w-2xl">

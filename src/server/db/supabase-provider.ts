@@ -59,13 +59,6 @@ function makeProvider(client: SupabaseClient): DbProvider {
         .order("due", { ascending: true });
       if (dueErr) throw dueErr;
 
-      const { count: upcomingCount, error: upErr } = await client
-        .from("cards")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "active")
-        .gt("due", now);
-      if (upErr) throw upErr;
-
       const { data: nextDueRow, error: nextErr } = await client
         .from("cards")
         .select("due")
@@ -78,7 +71,6 @@ function makeProvider(client: SupabaseClient): DbProvider {
 
       return {
         cards: (dueRows ?? []).map(rowToCard),
-        upcoming_count: upcomingCount ?? 0,
         next_due: nextDueRow?.due ?? null,
       };
     },

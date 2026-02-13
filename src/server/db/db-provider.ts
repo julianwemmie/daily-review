@@ -40,7 +40,6 @@ export interface CardListFilters {
 
 export interface DueCardsResult {
   cards: Card[];
-  upcoming_count: number;
   next_due: string | null;
 }
 
