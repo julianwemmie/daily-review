@@ -7,15 +7,23 @@
 # Example:
 #   bash upload-cards.sh '[{"front":"Why X?","context":"Because Y.","tags":["topic"]}]'
 #
-# Environment variables (required):
-#   DAILY_REVIEW_API_KEY - API key generated from the Daily Review user menu
+# Reads DAILY_REVIEW_API_KEY from .env file in the same directory as this script.
 
 set -euo pipefail
 
-# TODO: Replace with your deployed Daily Review URL
-URL="http://localhost:3000"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="${SCRIPT_DIR}/.env"
 
-API_KEY="${DAILY_REVIEW_API_KEY:?Error: DAILY_REVIEW_API_KEY is not set. Generate an API key from the Daily Review app (user menu) and add it to your shell profile: export DAILY_REVIEW_API_KEY=\"your-key\"}"
+if [ -f "$ENV_FILE" ]; then
+  source "$ENV_FILE"
+else
+  echo "Error: ${ENV_FILE} not found. Create it with: DAILY_REVIEW_API_KEY=your-key" >&2
+  exit 1
+fi
+
+URL="https://daily-review-production.up.railway.app"
+
+API_KEY="${DAILY_REVIEW_API_KEY:?Error: DAILY_REVIEW_API_KEY is not set in ${ENV_FILE}}"
 
 CARDS_JSON="${1:?Usage: upload-cards.sh '<json-array-of-cards>'}"
 
