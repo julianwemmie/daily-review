@@ -7,12 +7,27 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     headers: fromNodeHeaders(req.headers),
   });
 
-  if (!session) {
-    res.status(401).json({ error: "Unauthorized" });
+  if (session) {
+    req.user = session.user;
+    req.session = session.session;
+    next();
     return;
   }
 
-  req.user = session.user;
-  req.session = session.session;
-  next();
+  const apiKey = req.headers["x-api-key"];
+  if (typeof apiKey === "string") {
+    try {
+      const result = await auth.api.verifyApiKey({ body: { key: apiKey } });
+      if (result.valid && result.key) {
+        const userId = result.key.userId;
+        req.user = { id: userId } as typeof req.user;
+        next();
+        return;
+      }
+    } catch {
+      // fall through to 401
+    }
+  }
+
+  res.status(401).json({ error: "Unauthorized" });
 }
