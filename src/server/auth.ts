@@ -10,5 +10,9 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
     },
-    plugins: [apiKey()],
+    plugins: [apiKey({
+        rateLimit: {
+            enabled: false,
+        },
+    })],
 })
