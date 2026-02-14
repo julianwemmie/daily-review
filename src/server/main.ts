@@ -18,6 +18,7 @@ app.use("/api", requireAuth);
 
 mountRoutes(app, supabaseProvider, anthropicGrader);
 
+ViteExpress.config({ ignorePaths: /^\/(auth|api)(\/|$)/ });
 ViteExpress.listen(app, port, () =>
   console.log(`Server is listening on port ${port}...`),
 );
