@@ -6,7 +6,7 @@ export interface GraderResult {
 export interface LlmGrader {
   evaluate(
     front: string,
-    context: string | null,
+    back: string | null,
     answer: string
   ): Promise<GraderResult>;
 }

@@ -5,7 +5,7 @@ const SYSTEM_PROMPT = `You are a flashcard answer evaluator for a spaced repetit
 
 You will receive:
 - QUESTION: The flashcard prompt the learner was shown
-- CONTEXT: Reference material about the correct answer (may be absent)
+- REFERENCE ANSWER: The back of the flashcard — the expected answer (may be absent)
 - ANSWER: The learner's free-form response
 
 Scoring guidelines:
@@ -39,10 +39,10 @@ const OUTPUT_SCHEMA = {
 const client = new Anthropic();
 
 export const anthropicGrader: LlmGrader = {
-  async evaluate(front, context, answer): Promise<GraderResult> {
+  async evaluate(front, back, answer): Promise<GraderResult> {
     let userMessage = `QUESTION:\n${front}\n\n`;
-    if (context) {
-      userMessage += `CONTEXT:\n${context}\n\n`;
+    if (back) {
+      userMessage += `REFERENCE ANSWER:\n${back}\n\n`;
     }
     userMessage += `ANSWER:\n${answer}`;
 

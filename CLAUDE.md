@@ -19,8 +19,8 @@ A spaced repetition app that turns Claude Code conversations into flashcards, he
 See `planning/data-model.md` for full schema.
 
 **Card** is the core primitive. Key design decisions:
-- `front` (the prompt) + hidden `context` (reference material for the LLM grader, never shown to user)
-- No `back` field — the LLM evaluates free-form answers
+- `front` (the prompt) + `back` (reference answer, shown after review)
+- The LLM grader uses `back` as reference material; users can also self-grade
 - FSRS scheduling fields are stored on the card but managed by the `ts-fsrs` library
 - Cards start as `state: "new"` which maps to the triage/accept flow
 
@@ -28,11 +28,25 @@ See `planning/data-model.md` for full schema.
 
 ## LLM Grader
 
-The grader receives `front` + `context` + the user's free-form answer and produces a score (0-1), which maps to FSRS ratings:
+The grader receives `front` + `back` + the user's free-form answer and produces a score (0-1), which maps to FSRS ratings:
 - 0.0 - 0.3 → Again
 - 0.3 - 0.6 → Hard
 - 0.6 - 0.85 → Good
 - 0.85 - 1.0 → Easy
+
+## Database Migrations
+
+Always create migrations through the Supabase CLI, never by hand:
+
+```sh
+supabase migration new <migration_name>
+```
+
+This generates a timestamped file in `supabase/migrations/`. Write your SQL into that file.
+
+Apply migrations:
+- **Local**: `supabase migration up`
+- **Remote**: `supabase db push`
 
 ## Tech
 

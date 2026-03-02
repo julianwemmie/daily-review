@@ -17,7 +17,7 @@ import { useHotkey } from "@/lib/useHotkey.js";
 
 export default function UploadView() {
   const [front, setFront] = useState("");
-  const [context, setContext] = useState("");
+  const [back, setBack] = useState("");
   const [tags, setTags] = useState("");
   const { refreshCounts } = useCounts();
   const [loading, setLoading] = useState(false);
@@ -40,12 +40,12 @@ export default function UploadView() {
 
       await createCard({
         front: front.trim(),
-        context: context.trim() || undefined,
+        back: back.trim() || undefined,
         tags: tagList.length > 0 ? tagList : undefined,
       });
 
       setFront("");
-      setContext("");
+      setBack("");
       setTags("");
       setSuccess(true);
       refreshCounts();
@@ -56,7 +56,7 @@ export default function UploadView() {
     } finally {
       setLoading(false);
     }
-  }, [front, context, tags, loading, refreshCounts]);
+  }, [front, back, tags, loading, refreshCounts]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -88,14 +88,14 @@ export default function UploadView() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="context" className="text-sm font-medium">
-                Context (optional)
+              <label htmlFor="back" className="text-sm font-medium">
+                Back (optional)
               </label>
               <Textarea
-                id="context"
-                placeholder="Reference material for the LLM grader (not shown during review)"
-                value={context}
-                onChange={(e) => setContext(e.target.value)}
+                id="back"
+                placeholder="Reference answer shown after review"
+                value={back}
+                onChange={(e) => setBack(e.target.value)}
                 rows={3}
               />
             </div>

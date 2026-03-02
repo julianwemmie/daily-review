@@ -1,20 +1,20 @@
 import { type Express, type Request, type Response } from "express";
 import crypto from "crypto";
 import { z } from "zod";
-import { CardStatus, CardState, Rating as AppRating, type DbProvider, type Card, type CardEdit } from "./db/db-provider.js";
+import { CardStatus, CardState, Rating as AppRating, type DbProvider, type Card, type CardEdit, type CardListFilters } from "./db/db-provider.js";
 import { type LlmGrader } from "./grader/llm.js";
 import { newCardSchedule, reschedule } from "./scheduling.js";
 import { validate } from "./middleware/validate.js";
 
 const CreateCardBody = z.object({
   front: z.string().min(1),
-  context: z.string().optional(),
+  back: z.string().optional(),
   tags: z.array(z.string()).optional(),
 });
 
 const UpdateCardBody = z.object({
   front: z.string().min(1).optional(),
-  context: z.string().nullable().optional(),
+  back: z.string().nullable().optional(),
   tags: z.array(z.string()).nullable().optional(),
   status: z.enum([CardStatus.Triaging, CardStatus.Active, CardStatus.Suspended]).optional(),
 });
@@ -36,7 +36,7 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
   // -------------------------------------------------------
   app.post("/api/cards", validate(CreateCardBody), async (req: Request, res: Response) => {
     try {
-      const { front, context, tags } = req.body;
+      const { front, back, tags } = req.body;
       const now = new Date();
       const fsrsFields = newCardSchedule(now);
 
@@ -44,7 +44,7 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
         id: crypto.randomUUID(),
         user_id: req.user!.id,
         front,
-        context: context ?? null,
+        back: back ?? null,
         source_conversation: null,
         tags: tags ?? null,
         created_at: now.toISOString(),
@@ -81,9 +81,12 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
   app.get("/api/cards", async (req: Request, res: Response) => {
     try {
       const status = Object.values(CardStatus).find(s => s === req.query.status);
-      const filters = status ? { status } : undefined;
+      const q = typeof req.query.q === "string" ? req.query.q.trim() : undefined;
+      const filters: CardListFilters = {};
+      if (status) filters.status = status;
+      if (q) filters.q = q;
 
-      const cards = await db.listCards(req.user!.id, filters);
+      const cards = await db.listCards(req.user!.id, Object.keys(filters).length > 0 ? filters : undefined);
       res.json(cards);
     } catch (err) {
       console.error("GET /api/cards error:", err);
@@ -168,7 +171,7 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
         return;
       }
 
-      const result = await grader.evaluate(card.front, card.context, req.body.answer);
+      const result = await grader.evaluate(card.front, card.back, req.body.answer);
 
       res.json({
         score: result.score,

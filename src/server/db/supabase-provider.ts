@@ -47,6 +47,13 @@ function makeProvider(client: SupabaseClient): DbProvider {
         query = query.eq("status", filters.status);
       }
 
+      if (filters?.q) {
+        // Escape characters that have special meaning in PostgREST filter syntax
+        const escaped = filters.q.replace(/[,%()\\]/g, (ch) => `\\${ch}`);
+        const pattern = `%${escaped}%`;
+        query = query.or(`front.ilike.${pattern},back.ilike.${pattern}`);
+      }
+
       const { data, error } = await query;
       if (error) throw error;
       return (data ?? []).map(rowToCard);

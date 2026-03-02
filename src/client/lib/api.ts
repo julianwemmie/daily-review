@@ -6,9 +6,10 @@ export async function fetchCounts(): Promise<{ new: number; due: number }> {
   return res.json();
 }
 
-export async function fetchCards(options?: { status?: CardStatus }): Promise<Card[]> {
+export async function fetchCards(options?: { status?: CardStatus; q?: string }): Promise<Card[]> {
   const params = new URLSearchParams();
   if (options?.status) params.set("status", options.status);
+  if (options?.q) params.set("q", options.q);
   const qs = params.toString();
   const url = qs ? `/api/cards?${qs}` : "/api/cards";
   const res = await fetch(url);
@@ -27,9 +28,24 @@ export async function fetchDueCards(): Promise<DueCardsResponse> {
   return res.json();
 }
 
+export async function updateCard(id: string, data: {
+  front?: string;
+  back?: string | null;
+  tags?: string[] | null;
+  status?: CardStatus;
+}): Promise<Card> {
+  const res = await fetch(`/api/cards/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`Failed to update card: ${res.statusText}`);
+  return res.json();
+}
+
 export async function createCard(data: {
   front: string;
-  context?: string;
+  back?: string;
   tags?: string[];
 }): Promise<Card> {
   const res = await fetch("/api/cards", {
@@ -44,16 +60,6 @@ export async function createCard(data: {
 export async function deleteCard(id: string): Promise<void> {
   const res = await fetch(`/api/cards/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error(`Failed to delete card: ${res.statusText}`);
-}
-
-export async function skipCard(id: string): Promise<Card> {
-  const res = await fetch(`/api/cards/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: CardStatus.Suspended }),
-  });
-  if (!res.ok) throw new Error(`Failed to skip card: ${res.statusText}`);
-  return res.json();
 }
 
 export async function acceptCard(id: string): Promise<Card> {

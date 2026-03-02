@@ -28,7 +28,7 @@ export interface Card {
   id: string;
   user_id: string;
   front: string;
-  context: string | null;
+  back: string | null;
   source_conversation: string | null;
   tags: string[] | null;
   created_at: string;
