@@ -5,7 +5,7 @@ import type { CardStatus, CardState, Card } from "../../shared/types.js";
 
 export interface CardEdit {
   front?: string;
-  context?: string | null;
+  back?: string | null;
   source_conversation?: string | null;
   tags?: string[] | null;
   status?: CardStatus;
@@ -36,6 +36,7 @@ export interface ReviewLogInsert {
 
 export interface CardListFilters {
   status?: CardStatus;
+  q?: string;
 }
 
 export interface DueCardsResult {

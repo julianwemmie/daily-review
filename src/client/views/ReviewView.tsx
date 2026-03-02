@@ -31,13 +31,19 @@ interface Evaluation {
   feedback: string;
 }
 
+type GradeMode = "self" | "ai";
+
 export default function ReviewView() {
   const [cards, setCards] = useState<CardType[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextDue, setNextDue] = useState<string | null>(null);
   const [answer, setAnswer] = useState("");
+  const [gradeMode, setGradeMode] = useState<GradeMode>(
+    () => (localStorage.getItem("gradeMode") as GradeMode) || "self"
+  );
   const [evaluating, setEvaluating] = useState(false);
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
+  const [selfGraded, setSelfGraded] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const { refreshCounts } = useCounts();
@@ -66,8 +72,11 @@ export default function ReviewView() {
   function resetCardState() {
     setAnswer("");
     setEvaluation(null);
+    setSelfGraded(false);
     setError(null);
   }
+
+  const showingResult = !!evaluation || selfGraded;
 
   const handleEvaluate = useCallback(async () => {
     const card = cards[currentIndex];
@@ -88,6 +97,19 @@ export default function ReviewView() {
       setEvaluating(false);
     }
   }, [cards, currentIndex, answer]);
+
+  const handleSelfGrade = useCallback(() => {
+    if (!answer.trim()) return;
+    setSelfGraded(true);
+  }, [answer]);
+
+  const handleSubmit = useCallback(() => {
+    if (gradeMode === "ai") {
+      handleEvaluate();
+    } else {
+      handleSelfGrade();
+    }
+  }, [gradeMode, handleEvaluate, handleSelfGrade]);
 
   const handleRate = useCallback(async (rating: Rating) => {
     const card = cards[currentIndex];
@@ -115,11 +137,11 @@ export default function ReviewView() {
   const RATING_ORDER = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy] as const;
 
   const hasCard = !!cards[currentIndex];
-  useHotkey({ key: "Enter", meta: true, onPress: handleEvaluate, enabled: hasCard && !evaluation });
-  useHotkey({ key: "1", onPress: () => handleRate(RATING_ORDER[0]), enabled: hasCard && !!evaluation });
-  useHotkey({ key: "2", onPress: () => handleRate(RATING_ORDER[1]), enabled: hasCard && !!evaluation });
-  useHotkey({ key: "3", onPress: () => handleRate(RATING_ORDER[2]), enabled: hasCard && !!evaluation });
-  useHotkey({ key: "4", onPress: () => handleRate(RATING_ORDER[3]), enabled: hasCard && !!evaluation });
+  useHotkey({ key: "Enter", meta: true, onPress: handleSubmit, enabled: hasCard && !showingResult });
+  useHotkey({ key: "1", onPress: () => handleRate(RATING_ORDER[0]), enabled: hasCard && showingResult });
+  useHotkey({ key: "2", onPress: () => handleRate(RATING_ORDER[1]), enabled: hasCard && showingResult });
+  useHotkey({ key: "3", onPress: () => handleRate(RATING_ORDER[2]), enabled: hasCard && showingResult });
+  useHotkey({ key: "4", onPress: () => handleRate(RATING_ORDER[3]), enabled: hasCard && showingResult });
 
   if (loading) {
     return (
@@ -129,7 +151,7 @@ export default function ReviewView() {
     );
   }
 
-  if (error && !evaluation) {
+  if (error && !showingResult) {
     return (
       <div className="flex flex-col items-center gap-4 py-12">
         <p className="text-destructive">{error}</p>
@@ -158,9 +180,32 @@ export default function ReviewView() {
 
   return (
     <div className="flex flex-col items-center gap-6">
-      <p className="text-sm text-muted-foreground">
-        {remaining} card{remaining !== 1 ? "s" : ""} due
-      </p>
+      <div className="flex w-full max-w-2xl items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {remaining} card{remaining !== 1 ? "s" : ""} due
+        </p>
+        <div className="flex items-center gap-2">
+          <span className={`text-xs ${gradeMode === "self" ? "text-foreground font-medium" : "text-muted-foreground"}`}>Self</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={gradeMode === "ai"}
+            className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={() => setGradeMode((m) => {
+              const next = m === "self" ? "ai" : "self";
+              localStorage.setItem("gradeMode", next);
+              return next;
+            })}
+          >
+            <span
+              className={`pointer-events-none block h-4 w-4 rounded-full bg-foreground shadow-sm transition-transform ${
+                gradeMode === "ai" ? "translate-x-4" : "translate-x-0"
+              }`}
+            />
+          </button>
+          <span className={`text-xs ${gradeMode === "ai" ? "text-foreground font-medium" : "text-muted-foreground"}`}>AI</span>
+        </div>
+      </div>
 
       <Card className="w-full max-w-2xl">
         <CardHeader>
@@ -176,7 +221,7 @@ export default function ReviewView() {
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
             rows={4}
-            disabled={evaluating || !!evaluation}
+            disabled={evaluating || showingResult}
           />
 
           {evaluation && (
@@ -189,11 +234,22 @@ export default function ReviewView() {
               </p>
             </div>
           )}
+
+          {showingResult && currentCard.back && (
+            <div className="rounded-lg border border-dashed p-4 space-y-1">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Reference Answer
+              </p>
+              <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                {currentCard.back}
+              </div>
+            </div>
+          )}
         </CardContent>
         <CardFooter className="flex flex-col gap-3 items-start">
-          {!evaluation ? (
+          {!showingResult ? (
             <Button
-              onClick={handleEvaluate}
+              onClick={handleSubmit}
               disabled={!answer.trim() || evaluating}
             >
               {evaluating ? "Evaluating..." : <>Submit<Kbd>&#8984;&#9166;</Kbd></>}
