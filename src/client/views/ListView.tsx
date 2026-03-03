@@ -167,7 +167,7 @@ export default function ListView() {
             {cards.length} card{cards.length !== 1 ? "s" : ""}
           </p>
           {cards.map((card) => (
-            <Card key={card.id} className="w-full">
+            <Card key={card.id} className="w-full gap-1">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div className="flex items-center gap-2">
                   <Badge variant={statusVariants[card.status]}>
@@ -203,8 +203,8 @@ export default function ListView() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="whitespace-pre-wrap text-sm leading-relaxed">
+              <CardContent className="space-y-4">
+                <p className="whitespace-pre-wrap text-base font-semibold leading-relaxed">
                   {card.front}
                 </p>
                 {card.back && (
