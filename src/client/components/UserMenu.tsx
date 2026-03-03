@@ -68,7 +68,7 @@ export default function UserMenu({ onHelpClick }: { onHelpClick?: () => void }) 
           {notificationsLoaded && (
             <DropdownMenuItem onSelect={handleToggleNotifications}>
               <Bell className="mr-2 h-4 w-4" />
-              <span className="flex-1">Notifications</span>
+              <span className="flex-1">Email Reminders</span>
               <span
                 role="switch"
                 aria-checked={notificationsEnabled}
