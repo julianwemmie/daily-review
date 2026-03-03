@@ -5,9 +5,10 @@ interface HotkeyOptions {
   meta?: boolean;
   onPress: () => void;
   enabled?: boolean;
+  allowInInput?: boolean;
 }
 
-export function useHotkey({ key, meta = false, onPress, enabled = true }: HotkeyOptions) {
+export function useHotkey({ key, meta = false, onPress, enabled = true, allowInInput = false }: HotkeyOptions) {
   useEffect(() => {
     if (!enabled) return;
 
@@ -20,7 +21,7 @@ export function useHotkey({ key, meta = false, onPress, enabled = true }: Hotkey
 
       // For meta combos, allow even when in input fields
       // For plain keys (like 1, 2), skip if user is typing in an input
-      if (!meta && inInput) return;
+      if (!meta && !allowInInput && inInput) return;
 
       if (e.key === key) {
         e.preventDefault();
@@ -30,5 +31,5 @@ export function useHotkey({ key, meta = false, onPress, enabled = true }: Hotkey
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [key, meta, onPress, enabled]);
+  }, [key, meta, onPress, enabled, allowInInput]);
 }
