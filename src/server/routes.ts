@@ -207,12 +207,41 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
       const updatedCard = await db.updateSchedule(id, req.user!.id, updatedFields);
       await db.createReviewLog(reviewLog);
 
+      // Update last_review_at for email nudge tracking
+      await db.updateLastReviewAt(req.user!.id, now.toISOString());
+
       res.json({
         card: updatedCard,
         review_log: reviewLog,
       });
     } catch (err) {
       console.error("POST /api/cards/:id/review error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // -------------------------------------------------------
+  // GET /api/notifications -- Get notification preference
+  // -------------------------------------------------------
+  app.get("/api/notifications", async (req: Request, res: Response) => {
+    try {
+      const enabled = await db.getEmailNotificationsEnabled(req.user!.id);
+      res.json({ email_notifications_enabled: enabled });
+    } catch (err) {
+      console.error("GET /api/notifications error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // -------------------------------------------------------
+  // PUT /api/notifications -- Update notification preference
+  // -------------------------------------------------------
+  app.put("/api/notifications", validate(z.object({ enabled: z.boolean() })), async (req: Request, res: Response) => {
+    try {
+      await db.setEmailNotificationsEnabled(req.user!.id, req.body.enabled);
+      res.json({ email_notifications_enabled: req.body.enabled });
+    } catch (err) {
+      console.error("PUT /api/notifications error:", err);
       res.status(500).json({ error: "Internal server error" });
     }
   });

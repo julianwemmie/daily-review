@@ -147,6 +147,41 @@ function makeProvider(client: SupabaseClient): DbProvider {
       const { error } = await client.from("review_logs").insert(log);
       if (error) throw error;
     },
+
+    async updateLastReviewAt(userId: string, now: string): Promise<void> {
+      const { error } = await client
+        .from("user")
+        .update({ last_review_at: now })
+        .eq("id", userId);
+      if (error) throw error;
+
+      // Reset nudge history so escalation starts fresh next time user goes inactive
+      const { error: deleteErr } = await client
+        .from("email_nudges_sent")
+        .delete()
+        .eq("user_id", userId);
+      if (deleteErr) {
+        console.error("Failed to reset email nudges for user:", deleteErr);
+      }
+    },
+
+    async getEmailNotificationsEnabled(userId: string): Promise<boolean> {
+      const { data, error } = await client
+        .from("user")
+        .select("email_notifications_enabled")
+        .eq("id", userId)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.email_notifications_enabled ?? true;
+    },
+
+    async setEmailNotificationsEnabled(userId: string, enabled: boolean): Promise<void> {
+      const { error } = await client
+        .from("user")
+        .update({ email_notifications_enabled: enabled })
+        .eq("id", userId);
+      if (error) throw error;
+    },
   };
 }
 

@@ -7,6 +7,7 @@ import { mountRoutes } from "./routes.js";
 import { supabaseProvider } from "./db/supabase-provider.js";
 import { anthropicGrader } from "./grader/anthropic.js";
 import { requireAuth } from "./middleware/auth.js";
+import { startEmailNotificationCron, mountUnsubscribeRoute } from "./email-notifications.js";
 
 const port = Number(process.env.PORT) || 3000;
 
@@ -14,9 +15,16 @@ const app = express();
 app.all('/auth/{*any}', toNodeHandler(auth));
 
 app.use(express.json({ limit: '1mb' }));
+
+// Unauthenticated routes (before requireAuth)
+mountUnsubscribeRoute(app, supabaseProvider);
+
 app.use("/api", requireAuth);
 
 mountRoutes(app, supabaseProvider, anthropicGrader);
+
+// Start the daily email notification cron job
+startEmailNotificationCron();
 
 ViteExpress.config({ ignorePaths: /^\/(auth|api)(\/|$)/ });
 ViteExpress.listen(app, port, () =>
