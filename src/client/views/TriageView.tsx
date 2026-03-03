@@ -6,8 +6,6 @@ import {
   Card,
   CardContent,
   CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Kbd } from "@/components/Kbd.js";
@@ -250,32 +248,31 @@ export default function TriageView() {
                     }}
                   >
                     <Card className="w-full">
-                      <CardHeader>
-                        <CardTitle className="text-lg">New Card</CardTitle>
-                      </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                        <div className="whitespace-pre-wrap text-base font-semibold leading-relaxed">
                           {card.front}
                         </div>
                         {isFront && card.back && (
                           showBack ? (
-                            <div className="rounded-lg border border-dashed p-4 space-y-1">
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            <div
+                              className="rounded border border-dashed p-3 cursor-pointer"
+                              onClick={() => setShowBack(false)}
+                            >
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
                                 Back
                               </p>
-                              <div className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
+                              <p className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
                                 {card.back}
-                              </div>
+                              </p>
                             </div>
                           ) : (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-muted-foreground"
+                            <button
+                              type="button"
+                              className="w-full rounded border border-dashed p-3 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:bg-muted/50 transition-colors cursor-pointer"
                               onClick={() => setShowBack(true)}
                             >
-                              Show back
-                            </Button>
+                              Show answer
+                            </button>
                           )
                         )}
                         {isFront && card.tags && card.tags.length > 0 && (

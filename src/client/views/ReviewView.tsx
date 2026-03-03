@@ -5,8 +5,6 @@ import {
   Card,
   CardContent,
   CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Kbd } from "@/components/Kbd.js";
@@ -208,11 +206,8 @@ export default function ReviewView() {
       </div>
 
       <Card className="w-full max-w-2xl">
-        <CardHeader>
-          <CardTitle className="text-lg">Review</CardTitle>
-        </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <div className="whitespace-pre-wrap text-sm leading-relaxed">
+          <div className="whitespace-pre-wrap text-base font-semibold leading-relaxed">
             {currentCard.front}
           </div>
 
