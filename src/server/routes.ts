@@ -245,4 +245,30 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
       res.status(500).json({ error: "Internal server error" });
     }
   });
+
+  // -------------------------------------------------------
+  // GET /api/onboarding/status -- Get onboarding completion status
+  // -------------------------------------------------------
+  app.get("/api/onboarding/status", async (req: Request, res: Response) => {
+    try {
+      const completed = await db.getOnboardingCompleted(req.user!.id);
+      res.json({ completed });
+    } catch (err) {
+      console.error("GET /api/onboarding/status error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // -------------------------------------------------------
+  // POST /api/onboarding/complete -- Mark onboarding as completed
+  // -------------------------------------------------------
+  app.post("/api/onboarding/complete", async (req: Request, res: Response) => {
+    try {
+      await db.setOnboardingCompleted(req.user!.id);
+      res.json({ completed: true });
+    } catch (err) {
+      console.error("POST /api/onboarding/complete error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
 }

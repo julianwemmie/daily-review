@@ -8,23 +8,44 @@ A spaced repetition app that turns Claude Code conversations into flashcards, he
 2. **Upload**: Cards are sent to a cloud backend (API + Postgres).
 3. **Review**: A web UI presents due cards. The user answers in free-form text. An LLM grader scores the response instead of comparing against a rigid "correct answer".
 4. **Scheduling**: FSRS (Free Spaced Repetition Scheduler) manages when cards come back, based on the LLM grader's score.
+5. **Notifications**: Inactive users receive escalating email nudges (1 → 3 → 7 → 14 days) via Resend, encouraging them to return.
 
 ## Architecture
 
 - **Local** (Claude Code): Conversation parsing, card generation skill (`/flashcards`)
-- **Cloud**: API + Postgres backend, review UI, LLM grader
+- **Cloud**: Express API + Supabase Postgres, React review UI, LLM grader, email notifications
 
 **ReviewLog** is an append-only history of every review event, enabling stats and retention analytics.
 
 ## LLM Grader
 
-The grader receives `front` + `back` + the user's free-form answer and produces an informational score (0-1), displayed as "Accuracy: XX%" with feedback. The user then self-selects their FSRS rating (Again / Hard / Good / Easy). Score ranges for reference:
+The grader receives `front` + `back` + the user's free-form answer and produces an informational score (0-1), displayed as "Accuracy: XX%" with feedback. The user then self-selects their FSRS rating (Again / Hard / Good / Easy).
+
+Users can toggle between AI grading (LLM evaluates the answer) and self grading (user rates themselves without LLM evaluation).
+
+Score ranges for reference:
 - 0.0 - 0.3 → Again
 - 0.3 - 0.6 → Hard
 - 0.6 - 0.85 → Good
 - 0.85 - 1.0 → Easy
 
+## Authentication
+
+- **User accounts**: Email/password auth via [better-auth](https://www.better-auth.com/)
+- **API keys**: Users generate API keys in the app to authenticate the `/flashcards` CLI skill when uploading cards
+
+## Email Notifications
+
+Re-engagement nudges for inactive users, sent via [Resend](https://resend.com/) and scheduled with `node-cron`.
+
+- **Trigger**: Escalating inactivity gaps — 1 day, 3 days, 7 days, 14 days, then stop
+- **User control**: On/off toggle in profile menu + one-click unsubscribe link in emails
+
 ## Tech
 
+- **Frontend**: React, Vite, Tailwind CSS, shadcn/ui, Framer Motion
+- **Backend**: Express, Supabase (Postgres), better-auth
 - **Scheduling**: [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs)
+- **Email**: [Resend](https://resend.com/), node-cron
+- **AI**: Anthropic SDK (grading)
 - Cards store markdown strings (for code snippets); rendering with syntax highlighting is a UI concern

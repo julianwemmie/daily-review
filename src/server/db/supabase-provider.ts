@@ -182,6 +182,24 @@ function makeProvider(client: SupabaseClient): DbProvider {
         .eq("id", userId);
       if (error) throw error;
     },
+
+    async getOnboardingCompleted(userId: string): Promise<boolean> {
+      const { data, error } = await client
+        .from("user")
+        .select("onboarding_completed")
+        .eq("id", userId)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.onboarding_completed ?? false;
+    },
+
+    async setOnboardingCompleted(userId: string): Promise<void> {
+      const { error } = await client
+        .from("user")
+        .update({ onboarding_completed: true })
+        .eq("id", userId);
+      if (error) throw error;
+    },
   };
 }
 
