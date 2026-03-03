@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LogOut, KeyRound, Copy, Check } from "lucide-react";
+import { LogOut, KeyRound, Copy, Check, HelpCircle } from "lucide-react";
 import { signOut, useSession, authClient } from "@/lib/auth-client.js";
 import { Button } from "@/components/ui/button.js";
 import {
@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.js";
 
-export default function UserMenu() {
+export default function UserMenu({ onHelpClick }: { onHelpClick?: () => void }) {
   const { data: session } = useSession();
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const [generatedKey, setGeneratedKey] = useState<string | null>(null);
@@ -81,6 +81,10 @@ export default function UserMenu() {
           <DropdownMenuItem onSelect={() => setApiKeyDialogOpen(true)}>
             <KeyRound className="mr-2 h-4 w-4" />
             Generate API key
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => onHelpClick?.()}>
+            <HelpCircle className="mr-2 h-4 w-4" />
+            Help
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => signOut()}>

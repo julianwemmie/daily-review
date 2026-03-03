@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,7 @@ import { CountsProvider, useCounts } from "@/contexts/CountsContext.js";
 import { useSession } from "@/lib/auth-client.js";
 import { useHotkey } from "@/lib/useHotkey.js";
 import UserMenu from "@/components/UserMenu.js";
+import OnboardingModal from "@/components/OnboardingModal.js";
 import AuthView from "@/views/AuthView.js";
 import TriageView from "@/views/TriageView.js";
 import ReviewView from "@/views/ReviewView.js";
@@ -23,6 +24,24 @@ function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { counts, countsError, refreshCounts } = useCounts();
+  const { data: session } = useSession();
+
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+
+  const onboardingKey = `onboarding_dismissed_${session?.user?.id}`;
+
+  useEffect(() => {
+    if (session?.user?.id && !localStorage.getItem(onboardingKey)) {
+      setOnboardingOpen(true);
+    }
+  }, [session?.user?.id, onboardingKey]);
+
+  function handleOnboardingOpenChange(open: boolean) {
+    setOnboardingOpen(open);
+    if (!open) {
+      localStorage.setItem(onboardingKey, "true");
+    }
+  }
 
   // Refresh counts on route change
   useEffect(() => {
@@ -53,7 +72,7 @@ function AppLayout() {
       <div className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Daily Review</h1>
-          <UserMenu />
+          <UserMenu onHelpClick={() => setOnboardingOpen(true)} />
         </div>
 
         {countsError && (
@@ -90,6 +109,8 @@ function AppLayout() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
+
+      <OnboardingModal open={onboardingOpen} onOpenChange={handleOnboardingOpenChange} />
     </div>
   );
 }
