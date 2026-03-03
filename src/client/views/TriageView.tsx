@@ -159,11 +159,19 @@ export default function TriageView() {
 
   return (
     <div className="flex flex-col items-center gap-6">
-      {/* Counter + bulk actions */}
+      {/* Counter + nav + bulk actions */}
       <div className="flex items-center gap-4">
-        <p className="text-sm text-muted-foreground">
-          {currentIndex + 1} of {cards.length}
-        </p>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" onClick={goPrev}>
+            <Kbd>&#8593;</Kbd>
+          </Button>
+          <p className="text-sm text-muted-foreground">
+            {currentIndex + 1} of {cards.length}
+          </p>
+          <Button variant="ghost" size="sm" onClick={goNext}>
+            <Kbd>&#8595;</Kbd>
+          </Button>
+        </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -185,16 +193,8 @@ export default function TriageView() {
       </div>
 
       <Card className="w-full max-w-2xl">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle className="text-lg">New Card</CardTitle>
-          <div className="flex gap-1">
-            <Button variant="ghost" size="sm" onClick={goPrev}>
-              <Kbd>&#8593;</Kbd>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={goNext}>
-              <Kbd>&#8595;</Kbd>
-            </Button>
-          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="whitespace-pre-wrap text-sm leading-relaxed">
