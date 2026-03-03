@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { LazyMotion, domAnimation, m, AnimatePresence } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +15,21 @@ import { fetchCards, acceptCard, deleteCard } from "@/lib/api.js";
 import { useCounts } from "@/contexts/CountsContext.js";
 import { useHotkey } from "@/lib/useHotkey.js";
 import { CardStatus, type Card as CardType } from "@/lib/types.js";
+
+const STACK_SIZE = 3;
+
+const stackStyles = [
+  { y: 0, scale: 1, opacity: 1 },
+  { y: -8, scale: 0.97, opacity: 0.7 },
+  { y: -16, scale: 0.94, opacity: 0.45 },
+] as const;
+
+const springTransition = {
+  type: "spring" as const,
+  stiffness: 500,
+  damping: 35,
+  mass: 0.8,
+};
 
 export default function TriageView() {
   const [cards, setCards] = useState<CardType[]>([]);
@@ -155,95 +171,144 @@ export default function TriageView() {
     );
   }
 
-  const currentCard = cards[currentIndex];
+  // Build the visible stack: current card + up to 2 behind it
+  const stackIndices: number[] = [];
+  for (let offset = 0; offset < Math.min(STACK_SIZE, cards.length); offset++) {
+    stackIndices.push((currentIndex + offset) % cards.length);
+  }
 
   return (
-    <div className="flex flex-col items-center gap-6">
-      {/* Counter + nav + bulk actions */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" onClick={goPrev}>
-            <Kbd>&#8593;</Kbd>
-          </Button>
-          <p className="text-sm text-muted-foreground">
-            {currentIndex + 1} of {cards.length}
-          </p>
-          <Button variant="ghost" size="sm" onClick={goNext}>
-            <Kbd>&#8595;</Kbd>
-          </Button>
+    <LazyMotion features={domAnimation}>
+      <div className="flex flex-col items-center gap-6">
+        {/* Counter + nav + bulk actions */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" onClick={goPrev}>
+              <Kbd>&#8593;</Kbd>
+            </Button>
+            <p className="text-sm text-muted-foreground">
+              {currentIndex + 1} of {cards.length}
+            </p>
+            <Button variant="ghost" size="sm" onClick={goNext}>
+              <Kbd>&#8595;</Kbd>
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleAcceptAll}
+              disabled={actionLoading}
+            >
+              Accept All
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDiscardAll}
+              disabled={actionLoading}
+            >
+              Discard All
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleAcceptAll}
-            disabled={actionLoading}
-          >
-            Accept All
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDiscardAll}
-            disabled={actionLoading}
-          >
-            Discard All
-          </Button>
+
+        {/* Animated card stack */}
+        <div className="relative w-full max-w-2xl" style={{ minHeight: 200 }}>
+          <AnimatePresence mode="popLayout">
+            {stackIndices
+              .slice()
+              .reverse()
+              .map((cardIdx) => {
+                const offset = stackIndices.indexOf(cardIdx);
+                const card = cards[cardIdx];
+                const style = stackStyles[offset];
+                const isFront = offset === 0;
+
+                return (
+                  <m.div
+                    key={card.id}
+                    initial={false}
+                    animate={{
+                      y: style.y,
+                      scale: style.scale,
+                      opacity: style.opacity,
+                    }}
+                    exit={{
+                      x: 300,
+                      opacity: 0,
+                      transition: { duration: 0.25 },
+                    }}
+                    transition={springTransition}
+                    style={{
+                      position: isFront ? "relative" : "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      zIndex: STACK_SIZE - offset,
+                      pointerEvents: isFront ? "auto" : "none",
+                    }}
+                  >
+                    <Card className="w-full">
+                      <CardHeader>
+                        <CardTitle className="text-lg">New Card</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                          {card.front}
+                        </div>
+                        {isFront && card.back && (
+                          showBack ? (
+                            <div className="rounded-lg border border-dashed p-4 space-y-1">
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                Back
+                              </p>
+                              <div className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
+                                {card.back}
+                              </div>
+                            </div>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-muted-foreground"
+                              onClick={() => setShowBack(true)}
+                            >
+                              Show back
+                            </Button>
+                          )
+                        )}
+                        {isFront && card.tags && card.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {card.tags.map((tag) => (
+                              <Badge key={tag} variant="secondary">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                      {isFront && (
+                        <CardFooter className="gap-3">
+                          <Button onClick={handleAccept} disabled={actionLoading}>
+                            Accept<Kbd>1</Kbd>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={handleDiscard}
+                            disabled={actionLoading}
+                          >
+                            Discard<Kbd>2</Kbd>
+                          </Button>
+                        </CardFooter>
+                      )}
+                    </Card>
+                  </m.div>
+                );
+              })}
+          </AnimatePresence>
         </div>
       </div>
-
-      <Card className="w-full max-w-2xl">
-        <CardHeader>
-          <CardTitle className="text-lg">New Card</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="whitespace-pre-wrap text-sm leading-relaxed">
-            {currentCard.front}
-          </div>
-          {currentCard.back && (
-            showBack ? (
-              <div className="rounded-lg border border-dashed p-4 space-y-1">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Back
-                </p>
-                <div className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
-                  {currentCard.back}
-                </div>
-              </div>
-            ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground"
-                onClick={() => setShowBack(true)}
-              >
-                Show back
-              </Button>
-            )
-          )}
-          {currentCard.tags && currentCard.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {currentCard.tags.map((tag) => (
-                <Badge key={tag} variant="secondary">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </CardContent>
-        <CardFooter className="gap-3">
-          <Button onClick={handleAccept} disabled={actionLoading}>
-            Accept<Kbd>1</Kbd>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleDiscard}
-            disabled={actionLoading}
-          >
-            Discard<Kbd>2</Kbd>
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
+    </LazyMotion>
   );
 }
