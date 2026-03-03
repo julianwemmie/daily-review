@@ -62,4 +62,6 @@ export interface DbProvider {
   updateLastReviewAt(userId: string, now: string): Promise<void>;
   getEmailNotificationsEnabled(userId: string): Promise<boolean>;
   setEmailNotificationsEnabled(userId: string, enabled: boolean): Promise<void>;
+  getOnboardingCompleted(userId: string): Promise<boolean>;
+  setOnboardingCompleted(userId: string): Promise<void>;
 }
