@@ -109,3 +109,19 @@ export async function reviewCard(
   });
   if (!res.ok) throw new Error(`Failed to review card: ${res.statusText}`);
 }
+
+export async function getNotificationPreference(): Promise<boolean> {
+  const res = await fetch("/api/notifications");
+  if (!res.ok) throw new Error(`Failed to get notification preference: ${res.statusText}`);
+  const data = await res.json();
+  return data.email_notifications_enabled;
+}
+
+export async function setNotificationPreference(enabled: boolean): Promise<void> {
+  const res = await fetch("/api/notifications", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ enabled }),
+  });
+  if (!res.ok) throw new Error(`Failed to update notification preference: ${res.statusText}`);
+}

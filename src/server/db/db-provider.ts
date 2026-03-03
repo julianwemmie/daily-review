@@ -59,4 +59,7 @@ export interface DbProvider {
   updateSchedule(id: string, userId: string, fields: SchedulingUpdate): Promise<Card | undefined>;
   deleteCard(id: string, userId: string): Promise<boolean>;
   createReviewLog(log: ReviewLogInsert): Promise<void>;
+  updateLastReviewAt(userId: string, now: string): Promise<void>;
+  getEmailNotificationsEnabled(userId: string): Promise<boolean>;
+  setEmailNotificationsEnabled(userId: string, enabled: boolean): Promise<void>;
 }
