@@ -1,5 +1,5 @@
 ---
-status: open
+status: closed
 type: fix
 created: 2026-03-03
 ---

@@ -184,13 +184,13 @@ export default function TriageView() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="sm" onClick={goPrev}>
-              <Kbd>&#8593;</Kbd>
+              <Kbd className="ml-0">&#8593;</Kbd>
             </Button>
             <p className="text-sm text-muted-foreground">
               {currentIndex + 1} of {cards.length}
             </p>
             <Button variant="ghost" size="sm" onClick={goNext}>
-              <Kbd>&#8595;</Kbd>
+              <Kbd className="ml-0">&#8595;</Kbd>
             </Button>
           </div>
           <div className="flex gap-2">
