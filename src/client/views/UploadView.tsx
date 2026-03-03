@@ -65,6 +65,12 @@ export default function UploadView() {
 
   useHotkey({ key: "Enter", meta: true, onPress: doSubmit });
 
+  useHotkey({
+    key: "Escape",
+    allowInInput: true,
+    onPress: () => (document.activeElement as HTMLElement)?.blur(),
+  });
+
   return (
     <div className="flex flex-col items-center">
       <Card className="w-full max-w-2xl">
