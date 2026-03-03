@@ -50,6 +50,9 @@ export default function ListView() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  // Revealed answers state
+  const [revealedBacks, setRevealedBacks] = useState<Set<string>>(new Set());
+
   // Edit dialog state
   const [editingCard, setEditingCard] = useState<CardType | null>(null);
   const [editFront, setEditFront] = useState("");
@@ -205,14 +208,35 @@ export default function ListView() {
                   {card.front}
                 </p>
                 {card.back && (
-                  <div className="rounded border border-dashed p-3">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                      Back
-                    </p>
-                    <p className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
-                      {card.back}
-                    </p>
-                  </div>
+                  revealedBacks.has(card.id) ? (
+                    <div
+                      className="rounded border border-dashed p-3 cursor-pointer"
+                      onClick={() =>
+                        setRevealedBacks((prev) => {
+                          const next = new Set(prev);
+                          next.delete(card.id);
+                          return next;
+                        })
+                      }
+                    >
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                        Back
+                      </p>
+                      <p className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
+                        {card.back}
+                      </p>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="w-full rounded border border-dashed p-3 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() =>
+                        setRevealedBacks((prev) => new Set(prev).add(card.id))
+                      }
+                    >
+                      Show answer
+                    </button>
+                  )
                 )}
               </CardContent>
             </Card>
