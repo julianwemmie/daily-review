@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { CountsProvider, useCounts } from "@/contexts/CountsContext.js";
 import { useSession } from "@/lib/auth-client.js";
 import { useHotkey } from "@/lib/useHotkey.js";
+import { useCounts, usePrefetchCards } from "@/hooks/useCards.js";
 import UserMenu from "@/components/UserMenu.js";
 import OnboardingModal from "@/components/OnboardingModal.js";
 import AuthView from "@/views/AuthView.js";
@@ -12,6 +13,15 @@ import TriageView from "@/views/TriageView.js";
 import ReviewView from "@/views/ReviewView.js";
 import UploadView from "@/views/UploadView.js";
 import ListView from "@/views/ListView.js";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const TAB_ROUTES = [
   { value: "/", label: "New", countKey: "new" },
@@ -23,8 +33,11 @@ const TAB_ROUTES = [
 function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { counts, countsError, refreshCounts } = useCounts();
+  const { data: counts, error: countsError } = useCounts();
   const { data: session } = useSession();
+
+  // Prefetch all card views on mount for instant tab switching
+  usePrefetchCards();
 
   const [onboardingOpen, setOnboardingOpen] = useState(false);
 
@@ -47,11 +60,6 @@ function AppLayout() {
       }).catch(() => {});
     }
   }
-
-  // Refresh counts on route change
-  useEffect(() => {
-    refreshCounts();
-  }, [location.pathname]);
 
   const currentTabIndex = TAB_ROUTES.findIndex((r) => r.value === location.pathname);
 
@@ -81,7 +89,7 @@ function AppLayout() {
         </div>
 
         {countsError && (
-          <p className="mb-4 text-sm text-destructive">{countsError}</p>
+          <p className="mb-4 text-sm text-destructive">{countsError.message}</p>
         )}
 
         <Tabs value={currentTab} onValueChange={(val) => navigate(val)} className="mb-8">
@@ -90,7 +98,7 @@ function AppLayout() {
               {TAB_ROUTES.map((route) => (
                 <TabsTrigger key={route.value} value={route.value} className="gap-1.5">
                   {route.label}
-                  {route.countKey && counts[route.countKey] > 0 && (
+                  {route.countKey && counts && counts[route.countKey] > 0 && (
                     <Badge className="ml-1 px-1.5 py-0 text-[10px] leading-4 min-w-[1.25rem] bg-emerald-600/70 text-white">
                       {counts[route.countKey]}
                     </Badge>
@@ -136,10 +144,10 @@ export default function App() {
   }
 
   return (
-    <BrowserRouter>
-      <CountsProvider>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
         <AppLayout />
-      </CountsProvider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }

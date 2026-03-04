@@ -143,6 +143,29 @@ function makeProvider(client: SupabaseClient): DbProvider {
       return (count ?? 0) > 0;
     },
 
+    async batchAcceptCards(ids: string[], userId: string): Promise<number> {
+      if (ids.length === 0) return 0;
+      const { error, count } = await client
+        .from("cards")
+        .update({ status: "active" }, { count: "exact" })
+        .in("id", ids)
+        .eq("user_id", userId)
+        .eq("status", "triaging");
+      if (error) throw error;
+      return count ?? 0;
+    },
+
+    async batchDeleteCards(ids: string[], userId: string): Promise<number> {
+      if (ids.length === 0) return 0;
+      const { error, count } = await client
+        .from("cards")
+        .delete({ count: "exact" })
+        .in("id", ids)
+        .eq("user_id", userId);
+      if (error) throw error;
+      return count ?? 0;
+    },
+
     async createReviewLog(log: ReviewLogInsert): Promise<void> {
       const { error } = await client.from("review_logs").insert(log);
       if (error) throw error;
