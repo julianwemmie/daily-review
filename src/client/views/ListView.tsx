@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { LazyMotion, domAnimation, m } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +18,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { LayoutList, LayoutGrid, MoreVertical } from "lucide-react";
 import { useListCards, useDeleteCard, useUpdateCard } from "@/hooks/useCards.js";
 import type { Card as CardType } from "@/lib/types.js";
+
+type ViewMode = "list" | "grid";
+const VIEW_MODE_KEY = "dailyReview:listViewMode";
 
 const statusLabels: Record<CardType["status"], string> = {
   triaging: "Triaging",
@@ -47,19 +58,52 @@ export default function ListView() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const filters = {
-    ...(statusFilter !== "all" ? { status: statusFilter as CardType["status"] } : {}),
-    ...(debouncedQuery ? { q: debouncedQuery } : {}),
-  };
-  const hasFilters = Object.keys(filters).length > 0;
-  const { data: cards = [], isLoading: loading, error: queryError, refetch } = useListCards(
-    hasFilters ? filters : undefined
-  );
+  // View mode state with localStorage persistence
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    try {
+      const stored = localStorage.getItem(VIEW_MODE_KEY);
+      if (stored === "list" || stored === "grid") return stored;
+    } catch {}
+    return "list";
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(VIEW_MODE_KEY, viewMode);
+    } catch {}
+  }, [viewMode]);
+
+  // Fetch all cards once, filter client-side
+  const { data: allCards = [], isLoading: loading, error: queryError, refetch } = useListCards();
   const [actionError, setActionError] = useState<string | null>(null);
   const error = actionError ?? (queryError ? queryError.message : null);
 
+  // Client-side filtering: status first, then search within that subset
+  const cards = allCards.filter((card) => {
+    if (statusFilter !== "all" && card.status !== statusFilter) return false;
+    if (debouncedQuery) {
+      const q = debouncedQuery.toLowerCase();
+      const inFront = card.front.toLowerCase().includes(q);
+      const inBack = card.back?.toLowerCase().includes(q);
+      const inTags = card.tags?.some((t) => t.toLowerCase().includes(q));
+      if (!inFront && !inBack && !inTags) return false;
+    }
+    return true;
+  });
+
   // Revealed answers state
   const [revealedBacks, setRevealedBacks] = useState<Set<string>>(new Set());
+
+  // Flipped grid cards state
+  const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set());
+  const toggleFlip = useCallback((id: string) => {
+    setFlippedCards((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   // Edit dialog state
   const [editingCard, setEditingCard] = useState<CardType | null>(null);
@@ -123,24 +167,47 @@ export default function ListView() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Search + filter controls */}
+      {/* Filter controls + search */}
       <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <Tabs
+            value={statusFilter}
+            onValueChange={(v) => setStatusFilter(v as StatusFilter)}
+          >
+            <TabsList>
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="triaging">Triaging</TabsTrigger>
+              <TabsTrigger value="active">Active</TabsTrigger>
+              <TabsTrigger value="suspended">Suspended</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <div className="flex items-center gap-1">
+            <Button
+              variant={viewMode === "list" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              aria-label="List view"
+              onClick={() => setViewMode("list")}
+            >
+              <LayoutList className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "grid" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              aria-label="Grid view"
+              onClick={() => setViewMode("grid")}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
         <Input
           placeholder="Search cards..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <Tabs
-          value={statusFilter}
-          onValueChange={(v) => setStatusFilter(v as StatusFilter)}
-        >
-          <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="triaging">Triaging</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="suspended">Suspended</TabsTrigger>
-          </TabsList>
-        </Tabs>
       </div>
 
       {loading ? (
@@ -158,81 +225,197 @@ export default function ListView() {
           <p className="text-sm text-muted-foreground">
             {cards.length} card{cards.length !== 1 ? "s" : ""}
           </p>
-          {cards.map((card) => (
-            <Card key={card.id} className="w-full gap-1">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div className="flex items-center gap-2">
-                  <Badge variant={statusVariants[card.status]}>
-                    {statusLabels[card.status]}
-                  </Badge>
-                  {card.status === "active" && card.state !== "new" && (
-                    <Badge variant="outline">
-                      {fsrsStateLabels[card.state]}
-                    </Badge>
-                  )}
-                  {card.tags?.map((tag) => (
-                    <Badge key={tag} variant="outline">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground"
-                    onClick={() => openEdit(card)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-destructive"
-                    onClick={() => handleDelete(card.id)}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="whitespace-pre-wrap text-base font-semibold leading-relaxed">
-                  {card.front}
-                </p>
-                {card.back && (
-                  revealedBacks.has(card.id) ? (
+
+          {viewMode === "grid" ? (
+            /* ── Grid View ── */
+            <LazyMotion features={domAnimation}>
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+                {cards.map((card) => {
+                  const isFlipped = flippedCards.has(card.id);
+                  return (
                     <div
-                      className="rounded border border-dashed p-3 cursor-pointer"
-                      onClick={() =>
-                        setRevealedBacks((prev) => {
-                          const next = new Set(prev);
-                          next.delete(card.id);
-                          return next;
-                        })
-                      }
+                      key={card.id}
+                      className="relative min-h-[200px] cursor-pointer"
+                      style={{ perspective: "800px" }}
+                      onClick={() => toggleFlip(card.id)}
                     >
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                        Back
-                      </p>
-                      <p className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
-                        {card.back}
-                      </p>
+                      <m.div
+                        animate={{ rotateY: isFlipped ? 180 : 0 }}
+                        transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+                        style={{ transformStyle: "preserve-3d" }}
+                        className="relative w-full h-full"
+                      >
+                        {/* Front face */}
+                        <Card
+                          className="absolute inset-0 flex flex-col gap-0 hover:ring-2 hover:ring-ring/30 transition-shadow"
+                          style={{ backfaceVisibility: "hidden" }}
+                        >
+                          <CardHeader className="pb-2">
+                            <div className="flex items-start justify-between gap-1.5">
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <Badge variant={statusVariants[card.status]} className="text-[10px]">
+                                  {statusLabels[card.status]}
+                                </Badge>
+                                {card.status === "active" && card.state !== "new" && (
+                                  <Badge variant="outline" className="text-[10px]">
+                                    {fsrsStateLabels[card.state]}
+                                  </Badge>
+                                )}
+                                {card.tags?.map((tag) => (
+                                  <Badge key={tag} variant="outline" className="text-[10px]">
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                  <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
+                                    <MoreVertical className="h-3.5 w-3.5" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => openEdit(card)}>
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={() => handleDelete(card.id)}
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="flex-1 overflow-hidden">
+                            <p className="whitespace-pre-wrap text-sm font-semibold leading-snug line-clamp-4">
+                              {card.front}
+                            </p>
+                          </CardContent>
+                        </Card>
+
+                        {/* Back face */}
+                        <Card
+                          className="absolute inset-0 flex flex-col gap-0 hover:ring-2 hover:ring-ring/30 transition-shadow"
+                          style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+                        >
+                          <CardHeader className="pb-2">
+                            <div className="flex items-start justify-between gap-1.5">
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                Back
+                              </p>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                  <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
+                                    <MoreVertical className="h-3.5 w-3.5" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => openEdit(card)}>
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={() => handleDelete(card.id)}
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="flex-1 overflow-hidden">
+                            <p className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed line-clamp-4">
+                              {card.back || "No back content"}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </m.div>
                     </div>
-                  ) : (
-                    <button
-                      type="button"
-                      className="w-full rounded border border-dashed p-3 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() =>
-                        setRevealedBacks((prev) => new Set(prev).add(card.id))
-                      }
-                    >
-                      Show answer
-                    </button>
-                  )
-                )}
-              </CardContent>
-            </Card>
-          ))}
+                  );
+                })}
+              </div>
+            </LazyMotion>
+          ) : (
+            /* ── List View ── */
+            <div className="flex flex-col gap-4">
+              {cards.map((card) => (
+                <Card key={card.id} className="w-full gap-1">
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <div className="flex items-center gap-2">
+                      <Badge variant={statusVariants[card.status]}>
+                        {statusLabels[card.status]}
+                      </Badge>
+                      {card.status === "active" && card.state !== "new" && (
+                        <Badge variant="outline">
+                          {fsrsStateLabels[card.state]}
+                        </Badge>
+                      )}
+                      {card.tags?.map((tag) => (
+                        <Badge key={tag} variant="outline">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground"
+                        onClick={() => openEdit(card)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground hover:text-destructive"
+                        onClick={() => handleDelete(card.id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="whitespace-pre-wrap text-base font-semibold leading-relaxed">
+                      {card.front}
+                    </p>
+                    {card.back && (
+                      revealedBacks.has(card.id) ? (
+                        <div
+                          className="rounded border border-dashed p-3 cursor-pointer"
+                          onClick={() =>
+                            setRevealedBacks((prev) => {
+                              const next = new Set(prev);
+                              next.delete(card.id);
+                              return next;
+                            })
+                          }
+                        >
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                            Back
+                          </p>
+                          <p className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
+                            {card.back}
+                          </p>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          className="w-full rounded border border-dashed p-3 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:bg-muted/50 transition-colors cursor-pointer"
+                          onClick={() =>
+                            setRevealedBacks((prev) => new Set(prev).add(card.id))
+                          }
+                        >
+                          Show answer
+                        </button>
+                      )
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </>
       )}
 
