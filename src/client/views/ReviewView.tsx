@@ -136,6 +136,11 @@ export default function ReviewView() {
 
   const hasCard = !!cards[currentIndex];
   useHotkey({ key: "Enter", meta: true, onPress: handleSubmit, enabled: hasCard && !showingResult });
+  useHotkey({
+    key: "Escape",
+    allowInInput: true,
+    onPress: () => (document.activeElement as HTMLElement)?.blur(),
+  });
   useHotkey({ key: "1", onPress: () => handleRate(RATING_ORDER[0]), enabled: hasCard && showingResult });
   useHotkey({ key: "2", onPress: () => handleRate(RATING_ORDER[1]), enabled: hasCard && showingResult });
   useHotkey({ key: "3", onPress: () => handleRate(RATING_ORDER[2]), enabled: hasCard && showingResult });
