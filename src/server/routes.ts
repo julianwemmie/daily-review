@@ -30,6 +30,10 @@ const ReviewBody = z.object({
   llm_feedback: z.string().optional(),
 });
 
+const BatchCreateBody = z.object({
+  cards: z.array(CreateCardBody).min(1).max(500),
+});
+
 const BatchIdsBody = z.object({
   ids: z.array(z.string().uuid()).min(1).max(500),
 });
@@ -61,6 +65,35 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
       res.status(201).json(created[0]);
     } catch (err) {
       console.error("POST /api/cards error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // -------------------------------------------------------
+  // POST /api/cards/batch-create -- Create multiple cards
+  // -------------------------------------------------------
+  app.post("/api/cards/batch-create", validate(BatchCreateBody), async (req: Request, res: Response) => {
+    try {
+      const now = new Date();
+      const fsrsFields = newCardSchedule(now);
+
+      const cards: Card[] = req.body.cards.map((c: { front: string; back?: string; tags?: string[] }) => ({
+        id: crypto.randomUUID(),
+        user_id: req.user!.id,
+        front: c.front,
+        back: c.back ?? null,
+        source_conversation: null,
+        tags: c.tags ?? null,
+        created_at: now.toISOString(),
+        ...fsrsFields,
+        state: CardState.New,
+        status: CardStatus.Triaging,
+      }));
+
+      const created = await db.createCards(cards);
+      res.status(201).json({ created: created.length, cards: created });
+    } catch (err) {
+      console.error("POST /api/cards/batch-create error:", err);
       res.status(500).json({ error: "Internal server error" });
     }
   });

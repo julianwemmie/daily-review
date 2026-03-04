@@ -3,18 +3,24 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "bin": {
+    "daily-review": "./src/cli/main.ts"
+  },
   "scripts": {
     "dev": "nodemon -w src/server -x tsx src/server/main.ts",
     "start": "NODE_ENV=production tsx src/server/main.ts",
-    "build": "vite build"
+    "build": "vite build",
+    "cli": "tsx src/cli/main.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
+    "@clack/prompts": "^1.1.0",
     "@supabase/supabase-js": "^2.95.3",
     "@tanstack/react-query": "^5.90.21",
     "better-auth": "^1.4.18",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "commander": "^14.0.3",
     "dotenv": "^17.2.4",
     "express": "^5.1.0",
     "lucide-react": "^0.563.0",

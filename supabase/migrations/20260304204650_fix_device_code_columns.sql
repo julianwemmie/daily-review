@@ -1,0 +1,2 @@
+ALTER TABLE "deviceCode" ADD COLUMN IF NOT EXISTS "lastPolledAt" TIMESTAMP;
+ALTER TABLE "deviceCode" ADD COLUMN IF NOT EXISTS "pollingInterval" INTEGER;

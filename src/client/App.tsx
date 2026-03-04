@@ -13,6 +13,7 @@ import TriageView from "@/views/TriageView.js";
 import ReviewView from "@/views/ReviewView.js";
 import UploadView from "@/views/UploadView.js";
 import ListView from "@/views/ListView.js";
+import DeviceView from "@/views/DeviceView.js";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -128,7 +129,7 @@ function AppLayout() {
   );
 }
 
-export default function App() {
+function AuthGate() {
   const { data: session, isPending } = useSession();
 
   if (isPending) {
@@ -143,10 +144,17 @@ export default function App() {
     return <AuthView />;
   }
 
+  return <AppLayout />;
+}
+
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AppLayout />
+        <Routes>
+          <Route path="/device" element={<DeviceView />} />
+          <Route path="*" element={<AuthGate />} />
+        </Routes>
       </BrowserRouter>
     </QueryClientProvider>
   );
