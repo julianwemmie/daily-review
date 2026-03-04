@@ -167,48 +167,27 @@ export default function ListView() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Filter controls + search */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <Tabs
-            value={statusFilter}
-            onValueChange={(v) => setStatusFilter(v as StatusFilter)}
-          >
-            <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="triaging">Triaging</TabsTrigger>
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="suspended">Suspended</TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          <div className="flex items-center gap-1">
-            <Button
-              variant={viewMode === "list" ? "secondary" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              aria-label="List view"
-              onClick={() => setViewMode("list")}
-            >
-              <LayoutList className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === "grid" ? "secondary" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              aria-label="Grid view"
-              onClick={() => setViewMode("grid")}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        <Input
-          placeholder="Search cards..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+      {/* Category filters – pulled up to align with nav tabs */}
+      <div className="flex md:-mt-[4.3rem] md:justify-end">
+        <Tabs
+          value={statusFilter}
+          onValueChange={(v) => setStatusFilter(v as StatusFilter)}
+        >
+          <TabsList>
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="triaging">Triaging</TabsTrigger>
+            <TabsTrigger value="active">Active</TabsTrigger>
+            <TabsTrigger value="suspended">Suspended</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
+
+      {/* Search */}
+      <Input
+        placeholder="Search cards..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
@@ -222,9 +201,31 @@ export default function ListView() {
         </div>
       ) : (
         <>
-          <p className="text-sm text-muted-foreground">
-            {cards.length} card{cards.length !== 1 ? "s" : ""}
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              {cards.length} card{cards.length !== 1 ? "s" : ""}
+            </p>
+            <div className="flex items-center gap-1">
+              <Button
+                variant={viewMode === "list" ? "secondary" : "ghost"}
+                size="icon"
+                className="h-8 w-8"
+                aria-label="List view"
+                onClick={() => { setViewMode("list"); setFlippedCards(new Set()); }}
+              >
+                <LayoutList className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "grid" ? "secondary" : "ghost"}
+                size="icon"
+                className="h-8 w-8"
+                aria-label="Grid view"
+                onClick={() => { setViewMode("grid"); setFlippedCards(new Set()); }}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
 
           {viewMode === "grid" ? (
             /* ── Grid View ── */
