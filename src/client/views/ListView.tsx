@@ -342,8 +342,8 @@ export default function ListView() {
             <div className="flex flex-col gap-4">
               {cards.map((card) => (
                 <Card key={card.id} className="w-full gap-1">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <div className="flex items-center gap-2">
+                  <CardHeader className="flex flex-row items-start justify-between gap-2 pb-2">
+                    <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                       <Badge variant={statusVariants[card.status]}>
                         {statusLabels[card.status]}
                       </Badge>
@@ -358,7 +358,7 @@ export default function ListView() {
                         </Badge>
                       ))}
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex shrink-0 gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
