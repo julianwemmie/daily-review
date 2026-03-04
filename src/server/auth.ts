@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { apiKey } from "better-auth/plugins";
+import { apiKey, bearer, deviceAuthorization } from "better-auth/plugins";
 import { Pool } from "pg";
 
 export const auth = betterAuth({
@@ -21,9 +21,15 @@ export const auth = betterAuth({
             enabled: true,
         },
     },
-    plugins: [apiKey({
-        rateLimit: {
-            enabled: false,
-        },
-    })],
+    plugins: [
+        apiKey({
+            rateLimit: {
+                enabled: false,
+            },
+        }),
+        bearer(),
+        deviceAuthorization({
+            verificationUri: "/device",
+        }),
+    ],
 })
