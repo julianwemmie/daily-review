@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { fetchCards, deleteCard, updateCard } from "@/lib/api.js";
+import { useListCards, useDeleteCard, useUpdateCard } from "@/hooks/useCards.js";
 import type { Card as CardType } from "@/lib/types.js";
 
 const statusLabels: Record<CardType["status"], string> = {
@@ -42,13 +42,21 @@ const fsrsStateLabels: Record<CardType["state"], string> = {
 type StatusFilter = "all" | CardType["status"];
 
 export default function ListView() {
-  const [cards, setCards] = useState<CardType[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const filters = {
+    ...(statusFilter !== "all" ? { status: statusFilter as CardType["status"] } : {}),
+    ...(debouncedQuery ? { q: debouncedQuery } : {}),
+  };
+  const hasFilters = Object.keys(filters).length > 0;
+  const { data: cards = [], isLoading: loading, error: queryError, refetch } = useListCards(
+    hasFilters ? filters : undefined
+  );
+  const [actionError, setActionError] = useState<string | null>(null);
+  const error = actionError ?? (queryError ? queryError.message : null);
 
   // Revealed answers state
   const [revealedBacks, setRevealedBacks] = useState<Set<string>>(new Set());
@@ -57,7 +65,9 @@ export default function ListView() {
   const [editingCard, setEditingCard] = useState<CardType | null>(null);
   const [editFront, setEditFront] = useState("");
   const [editBack, setEditBack] = useState("");
-  const [editSaving, setEditSaving] = useState(false);
+
+  const deleteMutation = useDeleteCard();
+  const updateMutation = useUpdateCard();
 
   useEffect(() => {
     debounceRef.current = setTimeout(() => {
@@ -66,32 +76,12 @@ export default function ListView() {
     return () => clearTimeout(debounceRef.current);
   }, [searchQuery]);
 
-  useEffect(() => {
-    loadCards();
-  }, [statusFilter, debouncedQuery]);
-
-  async function loadCards() {
-    try {
-      setLoading(true);
-      setError(null);
-      const filters: { status?: CardType["status"]; q?: string } = {};
-      if (statusFilter !== "all") filters.status = statusFilter;
-      if (debouncedQuery) filters.q = debouncedQuery;
-      const all = await fetchCards(Object.keys(filters).length > 0 ? filters : undefined);
-      setCards(all);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load cards");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function handleDelete(id: string) {
     try {
-      await deleteCard(id);
-      setCards((prev) => prev.filter((c) => c.id !== id));
+      setActionError(null);
+      await deleteMutation.mutateAsync(id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete card");
+      setActionError(err instanceof Error ? err.message : "Failed to delete card");
     }
   }
 
@@ -101,28 +91,30 @@ export default function ListView() {
     setEditBack(card.back ?? "");
   }
 
+  const editSaving = updateMutation.isPending;
+
   const handleEditSave = useCallback(async () => {
     if (!editingCard || editSaving) return;
     try {
-      setEditSaving(true);
-      const updated = await updateCard(editingCard.id, {
-        front: editFront.trim(),
-        back: editBack.trim() || null,
+      setActionError(null);
+      await updateMutation.mutateAsync({
+        id: editingCard.id,
+        data: {
+          front: editFront.trim(),
+          back: editBack.trim() || null,
+        },
       });
-      setCards((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
       setEditingCard(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save card");
-    } finally {
-      setEditSaving(false);
+      setActionError(err instanceof Error ? err.message : "Failed to save card");
     }
-  }, [editingCard, editFront, editBack, editSaving]);
+  }, [editingCard, editFront, editBack, editSaving, updateMutation]);
 
   if (error && !loading) {
     return (
       <div className="flex flex-col items-center gap-4 py-12">
         <p className="text-destructive">{error}</p>
-        <Button variant="outline" onClick={loadCards}>
+        <Button variant="outline" onClick={() => refetch()}>
           Retry
         </Button>
       </div>

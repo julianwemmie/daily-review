@@ -11,16 +11,15 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Kbd } from "@/components/Kbd.js";
-import { createCard } from "@/lib/api.js";
-import { useCounts } from "@/contexts/CountsContext.js";
+import { useCreateCard } from "@/hooks/useCards.js";
 import { useHotkey } from "@/lib/useHotkey.js";
 
 export default function UploadView() {
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
   const [tags, setTags] = useState("");
-  const { refreshCounts } = useCounts();
-  const [loading, setLoading] = useState(false);
+  const createMutation = useCreateCard();
+  const loading = createMutation.isPending;
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -29,7 +28,6 @@ export default function UploadView() {
     if (!front.trim()) return;
 
     try {
-      setLoading(true);
       setError(null);
       setSuccess(false);
 
@@ -38,7 +36,7 @@ export default function UploadView() {
         .map((t) => t.trim())
         .filter(Boolean);
 
-      await createCard({
+      await createMutation.mutateAsync({
         front: front.trim(),
         back: back.trim() || undefined,
         tags: tagList.length > 0 ? tagList : undefined,
@@ -48,15 +46,12 @@ export default function UploadView() {
       setBack("");
       setTags("");
       setSuccess(true);
-      refreshCounts();
 
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create card");
-    } finally {
-      setLoading(false);
     }
-  }, [front, back, tags, loading, refreshCounts]);
+  }, [front, back, tags, loading, createMutation]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

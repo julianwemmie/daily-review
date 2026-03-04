@@ -8,9 +8,9 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Kbd } from "@/components/Kbd.js";
-import { fetchDueCards, evaluateCard, reviewCard } from "@/lib/api.js";
-import { Rating, type Card as CardType } from "@/lib/types.js";
-import { useCounts } from "@/contexts/CountsContext.js";
+import { evaluateCard } from "@/lib/api.js";
+import { Rating } from "@/lib/types.js";
+import { useDueCards, useReviewCard } from "@/hooks/useCards.js";
 import { useHotkey } from "@/lib/useHotkey.js";
 
 function formatTimeUntil(isoDate: string): string {
@@ -32,9 +32,10 @@ interface Evaluation {
 type GradeMode = "self" | "ai";
 
 export default function ReviewView() {
-  const [cards, setCards] = useState<CardType[]>([]);
+  const { data: dueData, isLoading: loading, error: queryError, refetch } = useDueCards();
+  const cards = dueData?.cards ?? [];
+  const nextDue = dueData?.next_due ?? null;
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [nextDue, setNextDue] = useState<string | null>(null);
   const [answer, setAnswer] = useState("");
   const [gradeMode, setGradeMode] = useState<GradeMode>(
     () => (localStorage.getItem("gradeMode") as GradeMode) || "self"
@@ -42,30 +43,17 @@ export default function ReviewView() {
   const [evaluating, setEvaluating] = useState(false);
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [selfGraded, setSelfGraded] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const { refreshCounts } = useCounts();
   const [error, setError] = useState<string | null>(null);
 
+  // Clamp currentIndex when the cards array shrinks (e.g., after query refetch)
   useEffect(() => {
-    loadCards();
-  }, []);
-
-  async function loadCards() {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await fetchDueCards();
-      setCards(data.cards);
-      setNextDue(data.next_due);
-      setCurrentIndex(0);
-      resetCardState();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load cards");
-    } finally {
-      setLoading(false);
+    if (cards.length > 0) {
+      setCurrentIndex((prev) => Math.min(prev, cards.length - 1));
     }
-  }
+  }, [cards.length]);
+
+  const reviewMutation = useReviewCard();
+  const submitting = reviewMutation.isPending;
 
   function resetCardState() {
     setAnswer("");
@@ -113,24 +101,20 @@ export default function ReviewView() {
     const card = cards[currentIndex];
     if (!card || submitting) return;
     try {
-      setSubmitting(true);
       setError(null);
-      await reviewCard(
-        card.id,
+      await reviewMutation.mutateAsync({
+        id: card.id,
         rating,
-        answer || undefined,
-        evaluation?.score,
-        evaluation?.feedback
-      );
-      refreshCounts();
+        answer: answer || undefined,
+        llmScore: evaluation?.score,
+        llmFeedback: evaluation?.feedback,
+      });
       setCurrentIndex((prev) => prev + 1);
       resetCardState();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to submit review");
-    } finally {
-      setSubmitting(false);
     }
-  }, [cards, currentIndex, answer, evaluation, submitting, refreshCounts]);
+  }, [cards, currentIndex, answer, evaluation, submitting, reviewMutation]);
 
   const RATING_ORDER = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy] as const;
 
@@ -154,11 +138,13 @@ export default function ReviewView() {
     );
   }
 
-  if (error && !showingResult) {
+  const displayError = error ?? (queryError ? queryError.message : null);
+
+  if (displayError && !showingResult) {
     return (
       <div className="flex flex-col items-center gap-4 py-12">
-        <p className="text-destructive">{error}</p>
-        <Button variant="outline" onClick={loadCards}>
+        <p className="text-destructive">{displayError}</p>
+        <Button variant="outline" onClick={() => refetch()}>
           Retry
         </Button>
       </div>

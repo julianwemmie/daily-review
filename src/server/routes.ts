@@ -30,6 +30,10 @@ const ReviewBody = z.object({
   llm_feedback: z.string().optional(),
 });
 
+const BatchIdsBody = z.object({
+  ids: z.array(z.string().uuid()).min(1).max(500),
+});
+
 export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): void {
   // -------------------------------------------------------
   // POST /api/cards -- Create a single card
@@ -76,10 +80,30 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
   });
 
   // -------------------------------------------------------
-  // GET /api/cards -- List cards with optional status filter
+  // GET /api/cards -- Consolidated card endpoint
+  //   ?view=triage  -> cards with status "triaging"
+  //   ?view=due     -> FSRS due cards (with next_due)
+  //   ?view=list    -> all cards (default), supports status & q filters
+  //   (no view)     -> same as list (backwards compatible)
   // -------------------------------------------------------
   app.get("/api/cards", async (req: Request, res: Response) => {
     try {
+      const view = req.query.view as string | undefined;
+
+      if (view === "triage") {
+        const cards = await db.listCards(req.user!.id, { status: CardStatus.Triaging });
+        res.json(cards);
+        return;
+      }
+
+      if (view === "due") {
+        const now = new Date().toISOString();
+        const result = await db.getDueCards(req.user!.id, now);
+        res.json(result);
+        return;
+      }
+
+      // view=list or no view (backwards compatible)
       const status = Object.values(CardStatus).find(s => s === req.query.status);
       const q = typeof req.query.q === "string" ? req.query.q.trim() : undefined;
       const filters: CardListFilters = {};
@@ -95,15 +119,29 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
   });
 
   // -------------------------------------------------------
-  // GET /api/cards/due -- Cards due for review
+  // POST /api/cards/batch-accept -- Accept multiple triage cards
   // -------------------------------------------------------
-  app.get("/api/cards/due", async (req: Request, res: Response) => {
+  app.post("/api/cards/batch-accept", validate(BatchIdsBody), async (req: Request, res: Response) => {
     try {
-      const now = new Date().toISOString();
-      const result = await db.getDueCards(req.user!.id, now);
-      res.json(result);
+      const { ids } = req.body;
+      const count = await db.batchAcceptCards(ids, req.user!.id);
+      res.json({ accepted: count });
     } catch (err) {
-      console.error("GET /api/cards/due error:", err);
+      console.error("POST /api/cards/batch-accept error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // -------------------------------------------------------
+  // POST /api/cards/batch-delete -- Delete multiple cards
+  // -------------------------------------------------------
+  app.post("/api/cards/batch-delete", validate(BatchIdsBody), async (req: Request, res: Response) => {
+    try {
+      const { ids } = req.body;
+      const count = await db.batchDeleteCards(ids, req.user!.id);
+      res.json({ deleted: count });
+    } catch (err) {
+      console.error("POST /api/cards/batch-delete error:", err);
       res.status(500).json({ error: "Internal server error" });
     }
   });

@@ -6,25 +6,30 @@ export async function fetchCounts(): Promise<{ new: number; due: number }> {
   return res.json();
 }
 
-export async function fetchCards(options?: { status?: CardStatus; q?: string }): Promise<Card[]> {
-  const params = new URLSearchParams();
-  if (options?.status) params.set("status", options.status);
-  if (options?.q) params.set("q", options.q);
-  const qs = params.toString();
-  const url = qs ? `/api/cards?${qs}` : "/api/cards";
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch cards: ${res.statusText}`);
-  return res.json();
-}
-
 export interface DueCardsResponse {
   cards: Card[];
   next_due: string | null;
 }
 
-export async function fetchDueCards(): Promise<DueCardsResponse> {
-  const res = await fetch("/api/cards/due");
+export async function fetchTriageCards(): Promise<Card[]> {
+  const res = await fetch("/api/cards?view=triage");
+  if (!res.ok) throw new Error(`Failed to fetch triage cards: ${res.statusText}`);
+  return res.json();
+}
+
+export async function fetchDueCardsView(): Promise<DueCardsResponse> {
+  const res = await fetch("/api/cards?view=due");
   if (!res.ok) throw new Error(`Failed to fetch due cards: ${res.statusText}`);
+  return res.json();
+}
+
+export async function fetchListCards(options?: { status?: CardStatus; q?: string }): Promise<Card[]> {
+  const params = new URLSearchParams();
+  params.set("view", "list");
+  if (options?.status) params.set("status", options.status);
+  if (options?.q) params.set("q", options.q);
+  const res = await fetch(`/api/cards?${params.toString()}`);
+  if (!res.ok) throw new Error(`Failed to fetch cards: ${res.statusText}`);
   return res.json();
 }
 
@@ -69,6 +74,26 @@ export async function acceptCard(id: string): Promise<Card> {
     body: JSON.stringify({ status: CardStatus.Active }),
   });
   if (!res.ok) throw new Error(`Failed to accept card: ${res.statusText}`);
+  return res.json();
+}
+
+export async function batchAcceptCards(ids: string[]): Promise<{ accepted: number }> {
+  const res = await fetch("/api/cards/batch-accept", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+  });
+  if (!res.ok) throw new Error(`Failed to accept cards: ${res.statusText}`);
+  return res.json();
+}
+
+export async function batchDeleteCards(ids: string[]): Promise<{ deleted: number }> {
+  const res = await fetch("/api/cards/batch-delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+  });
+  if (!res.ok) throw new Error(`Failed to delete cards: ${res.statusText}`);
   return res.json();
 }
 
