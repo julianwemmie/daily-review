@@ -1,0 +1,36 @@
+---
+layout: ../../layouts/Docs.astro
+title: API Keys
+---
+
+# API Keys
+
+API keys authenticate the CLI and the `/flashcards` skill when uploading cards to your account.
+
+## Generating a key
+
+1. Open the Daily Review web app
+2. Click your profile icon in the top right
+3. Select **API Keys**
+4. Click **Generate New Key**
+5. Copy the key — it's only shown once
+
+## Using a key
+
+Pass it to the CLI:
+
+```bash
+daily-review login --api-key YOUR_KEY
+```
+
+The key is stored locally in `~/.config/daily-review/` and used for all subsequent uploads.
+
+## Revoking keys
+
+You can revoke any key from the API Keys page in the web app. Revoked keys stop working immediately.
+
+## Security
+
+- Keys are hashed before storage — we never store your raw key
+- Each key is scoped to your account only
+- Generate separate keys for different machines if you want granular revocation
