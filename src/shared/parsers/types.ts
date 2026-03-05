@@ -26,5 +26,5 @@ export interface ParseResult {
   /** Warnings (e.g. media references that won't display) */
   warnings: string[];
   /** Source format identifier */
-  format: "anki" | "mochi";
+  format: "anki" | "mochi" | "json";
 }

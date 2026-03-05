@@ -66,4 +66,5 @@ export interface DbProvider {
   setEmailNotificationsEnabled(userId: string, enabled: boolean): Promise<void>;
   getOnboardingCompleted(userId: string): Promise<boolean>;
   setOnboardingCompleted(userId: string): Promise<void>;
+  getReviewLogsForCards(cardIds: string[]): Promise<ReviewLogInsert[]>;
 }

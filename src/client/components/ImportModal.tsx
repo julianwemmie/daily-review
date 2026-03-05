@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { parseAnkiFile } from "../../shared/parsers/anki-parser.js";
 import { parseMochiFile } from "../../shared/parsers/mochi-parser.js";
+import { parseJsonFile } from "../../shared/parsers/json-parser.js";
 import sqlWasmUrl from "sql.js/dist/sql-wasm.wasm?url";
 import { mapImportedCards, IMPORT_BATCH_SIZE, MAX_IMPORT_FILE_SIZE } from "../../shared/parsers/card-mapper.js";
 import type { ParseResult, ImportedCard } from "../../shared/parsers/types.js";
@@ -61,8 +62,8 @@ export default function ImportModal({
     setFileName(file.name);
 
     const ext = file.name.split(".").pop()?.toLowerCase();
-    if (ext !== "apkg" && ext !== "mochi") {
-      setParseError("Unsupported file format. Please use .apkg (Anki) or .mochi files.");
+    if (ext !== "apkg" && ext !== "mochi" && ext !== "json") {
+      setParseError("Unsupported file format. Please use .apkg (Anki), .mochi, or .json (Daily Review export) files.");
       return;
     }
 
@@ -75,9 +76,11 @@ export default function ImportModal({
 
     try {
       const buffer = await file.arrayBuffer();
-      const result = ext === "apkg"
-        ? await parseAnkiFile(buffer, { sqlJsWasmUrl: sqlWasmUrl })
-        : await parseMochiFile(buffer);
+      const result = ext === "json"
+        ? parseJsonFile(buffer)
+        : ext === "apkg"
+          ? await parseAnkiFile(buffer, { sqlJsWasmUrl: sqlWasmUrl })
+          : await parseMochiFile(buffer);
 
       if (result.cards.length === 0) {
         setParseError("No cards found in this file.");
@@ -160,7 +163,7 @@ export default function ImportModal({
           </DialogTitle>
           {step === "select" && (
             <DialogDescription>
-              Import flashcards from Anki (.apkg) or Mochi (.mochi) files.
+              Import flashcards from Anki (.apkg), Mochi (.mochi), or Daily Review (.json) files.
             </DialogDescription>
           )}
         </DialogHeader>
@@ -180,14 +183,14 @@ export default function ImportModal({
                   Drop a file here or click to browse
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Supports .apkg (Anki) and .mochi files
+                  Supports .apkg (Anki), .mochi, and .json (Daily Review) files
                 </p>
               </div>
             </div>
             <input
               ref={fileInputRef}
               type="file"
-              accept=".apkg,.mochi"
+              accept=".apkg,.mochi,.json"
               onChange={handleFileInput}
               className="hidden"
             />
@@ -205,7 +208,7 @@ export default function ImportModal({
           <div className="flex flex-col gap-4 min-h-0 overflow-hidden">
             {/* File info */}
             <div className="flex items-center gap-2">
-              <Badge variant="outline">{parseResult.format === "anki" ? "Anki" : "Mochi"}</Badge>
+              <Badge variant="outline">{parseResult.format === "anki" ? "Anki" : parseResult.format === "mochi" ? "Mochi" : "Daily Review"}</Badge>
               <span className="text-sm text-muted-foreground truncate">{fileName}</span>
               <button
                 type="button"

@@ -6,11 +6,12 @@ import { ApiClient } from "../api.js";
 import { getAuth, getServerUrl } from "../config.js";
 import { parseAnkiFile } from "../../shared/parsers/anki-parser.js";
 import { parseMochiFile } from "../../shared/parsers/mochi-parser.js";
+import { parseJsonFile } from "../../shared/parsers/json-parser.js";
 import { mapImportedCards, IMPORT_BATCH_SIZE, MAX_IMPORT_FILE_SIZE } from "../../shared/parsers/card-mapper.js";
 
 export const importCommand = new Command("import")
-  .description("Import flashcards from Anki (.apkg) or Mochi (.mochi) files")
-  .argument("<file>", "Path to .apkg or .mochi file")
+  .description("Import flashcards from Anki (.apkg), Mochi (.mochi), or Daily Review (.json) files")
+  .argument("<file>", "Path to .apkg, .mochi, or .json file")
   .option("--preserve-scheduling", "Attempt to map source scheduling data to FSRS parameters")
   .option("--tags <tags>", "Extra comma-separated tags to add to all imported cards")
   .option("--api-key <key>", "API key")
@@ -30,8 +31,8 @@ export const importCommand = new Command("import")
 
     // Detect format from extension
     const ext = path.extname(filePath).toLowerCase();
-    if (ext !== ".apkg" && ext !== ".mochi") {
-      p.log.error("Unsupported file format. Please use .apkg (Anki) or .mochi files.");
+    if (ext !== ".apkg" && ext !== ".mochi" && ext !== ".json") {
+      p.log.error("Unsupported file format. Please use .apkg (Anki), .mochi, or .json (Daily Review export) files.");
       process.exit(1);
     }
 
@@ -52,11 +53,14 @@ export const importCommand = new Command("import")
         buffer.byteOffset + buffer.byteLength,
       );
 
-      const result = ext === ".apkg"
-        ? await parseAnkiFile(arrayBuffer)
-        : await parseMochiFile(arrayBuffer);
+      const result = ext === ".json"
+        ? parseJsonFile(arrayBuffer)
+        : ext === ".apkg"
+          ? await parseAnkiFile(arrayBuffer)
+          : await parseMochiFile(arrayBuffer);
 
-      spinner.stop(`Parsed ${result.cards.length} card${result.cards.length !== 1 ? "s" : ""} from ${result.format === "anki" ? "Anki" : "Mochi"} file`);
+      const formatLabel = result.format === "anki" ? "Anki" : result.format === "mochi" ? "Mochi" : "Daily Review";
+      spinner.stop(`Parsed ${result.cards.length} card${result.cards.length !== 1 ? "s" : ""} from ${formatLabel} file`);
 
       // Show warnings
       for (const warning of result.warnings) {

@@ -110,6 +110,13 @@ export class ApiClient {
     });
   }
 
+  async exportCards(opts?: { includeScheduling?: boolean; includeReviewHistory?: boolean }): Promise<{ exportedAt: string; version: number; includesScheduling: boolean; cards: unknown[] }> {
+    const params = new URLSearchParams();
+    if (opts?.includeScheduling) params.set("includeScheduling", "true");
+    if (opts?.includeReviewHistory) params.set("includeReviewHistory", "true");
+    return this.request(`/api/cards/export?${params}`);
+  }
+
   async batchAcceptCards(ids: string[]): Promise<{ accepted: number }> {
     return this.request("/api/cards/batch-accept", {
       method: "POST",

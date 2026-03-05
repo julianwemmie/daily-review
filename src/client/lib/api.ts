@@ -147,6 +147,21 @@ export async function batchCreateCards(
   return res.json();
 }
 
+export async function exportCards(opts?: { includeScheduling?: boolean; includeReviewHistory?: boolean }): Promise<void> {
+  const params = new URLSearchParams();
+  if (opts?.includeScheduling) params.set("includeScheduling", "true");
+  if (opts?.includeReviewHistory) params.set("includeReviewHistory", "true");
+  const res = await fetch(`/api/cards/export?${params.toString()}`);
+  if (!res.ok) throw new Error(`Failed to export cards: ${res.statusText}`);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "daily-review-export.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export async function getNotificationPreference(): Promise<boolean> {
   const res = await fetch("/api/notifications");
   if (!res.ok) throw new Error(`Failed to get notification preference: ${res.statusText}`);
