@@ -24,9 +24,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LayoutList, LayoutGrid, MoreVertical, Download } from "lucide-react";
-import { useListCards, useDeleteCard, useUpdateCard } from "@/hooks/useCards.js";
+import { LayoutList, LayoutGrid, MoreVertical, Download, Trash2, X } from "lucide-react";
+import { useListCards, useDeleteCard, useUpdateCard, useBatchDeleteCards } from "@/hooks/useCards.js";
 import ImportModal from "@/components/ImportModal.js";
+import BulkDeleteModal from "@/components/BulkDeleteModal.js";
 import type { Card as CardType } from "@/lib/types.js";
 
 type ViewMode = "list" | "grid";
@@ -58,6 +59,11 @@ export default function ListView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [tagPills, setTagPills] = useState<string[]>([]);
+  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
+  const [highlightedTagIndex, setHighlightedTagIndex] = useState(-1);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // View mode state with localStorage persistence
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
@@ -79,9 +85,36 @@ export default function ListView() {
   const [actionError, setActionError] = useState<string | null>(null);
   const error = actionError ?? (queryError ? queryError.message : null);
 
-  // Client-side filtering: status first, then search within that subset
+  // Collect all unique tags across all cards
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    for (const card of allCards) {
+      card.tags?.forEach((t) => tagSet.add(t));
+    }
+    return Array.from(tagSet).sort();
+  }, [allCards]);
+
+  // Tag suggestions based on current search input
+  const tagSuggestions = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    return allTags.filter(
+      (tag) => tag.toLowerCase().includes(q) && !tagPills.includes(tag),
+    );
+  }, [searchQuery, allTags, tagPills]);
+
+  // Reset highlighted index when suggestions change
+  useEffect(() => {
+    setHighlightedTagIndex(-1);
+  }, [tagSuggestions.length]);
+
+  // Client-side filtering: status + tag pills + search
   const cards = allCards.filter((card) => {
     if (statusFilter !== "all" && card.status !== statusFilter) return false;
+    // All tag pills must match
+    for (const pill of tagPills) {
+      if (!card.tags?.includes(pill)) return false;
+    }
     if (debouncedQuery) {
       const q = debouncedQuery.toLowerCase();
       const inFront = card.front.toLowerCase().includes(q);
@@ -116,6 +149,62 @@ export default function ListView() {
 
   const deleteMutation = useDeleteCard();
   const updateMutation = useUpdateCard();
+  const batchDeleteMutation = useBatchDeleteCards();
+
+  const addTagPill = useCallback((tag: string) => {
+    setTagPills((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
+    setSearchQuery("");
+    setShowTagSuggestions(false);
+    searchInputRef.current?.focus();
+  }, []);
+
+  const removeTagPill = useCallback((tag: string) => {
+    setTagPills((prev) => prev.filter((t) => t !== tag));
+  }, []);
+
+  const visibleSuggestions = tagSuggestions.slice(0, 8);
+
+  const handleSearchKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "ArrowDown" && visibleSuggestions.length > 0) {
+        e.preventDefault();
+        setHighlightedTagIndex((prev) =>
+          prev < visibleSuggestions.length - 1 ? prev + 1 : 0,
+        );
+      } else if (e.key === "ArrowUp" && visibleSuggestions.length > 0) {
+        e.preventDefault();
+        setHighlightedTagIndex((prev) =>
+          prev > 0 ? prev - 1 : visibleSuggestions.length - 1,
+        );
+      } else if (e.key === "Enter" && highlightedTagIndex >= 0 && visibleSuggestions[highlightedTagIndex]) {
+        e.preventDefault();
+        addTagPill(visibleSuggestions[highlightedTagIndex]);
+      } else if (e.key === "Tab" && visibleSuggestions.length > 0 && searchQuery.trim()) {
+        e.preventDefault();
+        const index = highlightedTagIndex >= 0 ? highlightedTagIndex : 0;
+        addTagPill(visibleSuggestions[index]);
+      } else if (e.key === "Backspace" && searchQuery === "" && tagPills.length > 0) {
+        removeTagPill(tagPills[tagPills.length - 1]);
+      } else if (e.key === "Escape") {
+        setShowTagSuggestions(false);
+        setHighlightedTagIndex(-1);
+      }
+    },
+    [visibleSuggestions, highlightedTagIndex, searchQuery, tagPills, addTagPill, removeTagPill],
+  );
+
+  const handleBulkDelete = useCallback(
+    async (ids: string[]) => {
+      try {
+        setActionError(null);
+        await batchDeleteMutation.mutateAsync(ids);
+        setBulkDeleteOpen(false);
+      } catch (err) {
+        setActionError(err instanceof Error ? err.message : "Failed to delete cards");
+      }
+    },
+    [batchDeleteMutation],
+  );
 
   useEffect(() => {
     debounceRef.current = setTimeout(() => {
@@ -186,14 +275,75 @@ export default function ListView() {
         </Tabs>
       </div>
 
-      {/* Search + Import */}
+      {/* Search + Delete + Import */}
       <div className="flex gap-2">
-        <Input
-          placeholder="Search cards..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1"
-        />
+        <div className="relative flex-1">
+          <div
+            className="flex flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 cursor-text"
+            onClick={() => searchInputRef.current?.focus()}
+          >
+            {tagPills.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+              >
+                {tag}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeTagPill(tag);
+                  }}
+                  className="ml-0.5 hover:text-destructive cursor-pointer"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+            <input
+              ref={searchInputRef}
+              placeholder={tagPills.length === 0 ? "Search cards..." : ""}
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowTagSuggestions(true);
+              }}
+              onFocus={() => setShowTagSuggestions(true)}
+              onBlur={() => {
+                // Delay to allow click on suggestion
+                setTimeout(() => setShowTagSuggestions(false), 150);
+              }}
+              onKeyDown={handleSearchKeyDown}
+              className="flex-1 min-w-[80px] bg-transparent outline-none placeholder:text-muted-foreground"
+            />
+          </div>
+          {/* Tag suggestions dropdown */}
+          {showTagSuggestions && visibleSuggestions.length > 0 && (
+            <div className="absolute z-50 top-full left-0 right-0 mt-1 rounded-md border bg-popover shadow-md py-1">
+              <p className="px-3 py-1 text-xs font-medium text-muted-foreground">Tags</p>
+              {visibleSuggestions.map((tag, i) => (
+                <button
+                  key={tag}
+                  type="button"
+                  className={`w-full text-left px-3 py-1.5 text-sm cursor-pointer ${i === highlightedTagIndex ? "bg-muted" : "hover:bg-muted"}`}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onMouseEnter={() => setHighlightedTagIndex(i)}
+                  onClick={() => addTagPill(tag)}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => setBulkDeleteOpen(true)}
+          disabled={cards.length === 0}
+        >
+          <Trash2 className="h-4 w-4 mr-1.5" />
+          Delete
+        </Button>
         <Button variant="outline" onClick={() => setImportOpen(true)}>
           <Download className="h-4 w-4 mr-1.5" />
           Import
@@ -430,6 +580,15 @@ export default function ListView() {
           )}
         </>
       )}
+
+      {/* Bulk delete modal */}
+      <BulkDeleteModal
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+        cards={cards}
+        onDelete={handleBulkDelete}
+        isDeleting={batchDeleteMutation.isPending}
+      />
 
       {/* Import modal */}
       <ImportModal open={importOpen} onOpenChange={setImportOpen} />
