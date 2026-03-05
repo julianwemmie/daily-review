@@ -2,7 +2,7 @@
 
 Base URL: `/api`
 
-All `/api/*` routes require authentication (session cookie or `X-API-Key` header). Auth itself is handled by better-auth at `/auth/*` (outside this API).
+All `/api/*` routes require authentication (session cookie or `x-api-key` header). Auth itself is handled by better-auth at `/auth/*` (outside this API).
 
 The one exception is `GET /api/unsubscribe`, which is unauthenticated (token-based).
 
