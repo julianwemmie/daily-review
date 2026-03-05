@@ -20,4 +20,4 @@ See `docs/` for a project overview.
   - Apply locally: `supabase migration up`
   - Apply remote: `supabase db push`
 - **No linter or formatter** is configured — there is no ESLint, Prettier, or Biome
-- **No test framework** is configured yet
+- **Testing**: Vitest — run `bun run test` or `bun run test:watch`
