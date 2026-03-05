@@ -54,9 +54,20 @@ If the user specifies a branch name, use that. Otherwise, run `git worktree list
 
 Determine the worktree path and branch name from `git worktree list`.
 
-### Step 2: Commit and push
+### Step 2: Move associated task to done (if applicable)
 
-In the worktree directory, auto-commit all changes:
+**This must happen before committing so the task change is included in the PR.**
+
+Look in `<worktree-path>/tasks/` for any open task file whose slug matches or closely relates to the branch name. If the user specified or heavily implied a task, or if there's an obvious match, move it to done:
+- `mkdir -p <worktree-path>/tasks/done/`
+- Move the file from `<worktree-path>/tasks/` to `<worktree-path>/tasks/done/`
+- Update the frontmatter status to `done`
+
+If no matching task is found, skip this step silently.
+
+### Step 3: Commit and push
+
+In the worktree directory, auto-commit all changes (including the task move from Step 2):
 
 ```bash
 cd <worktree-path>
@@ -73,14 +84,6 @@ Then push:
 ```bash
 git push -u origin <branch-name>
 ```
-
-### Step 3: Move associated task to done (if applicable)
-
-Look in `./tasks/` (in the main repo) for any open task file whose slug matches or closely relates to the branch name. If the user specified or heavily implied a task, or if there's an obvious match, move it to done using the `/task` skill pattern:
-- Move the file from `./tasks/` to `./tasks/done/`
-- Update the frontmatter status to `done`
-
-If no matching task is found, skip this step silently.
 
 ### Step 4: Create a PR
 
