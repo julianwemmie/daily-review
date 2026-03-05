@@ -6,12 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/lib/auth-client.js";
 import { useHotkey } from "@/lib/useHotkey.js";
 import { useCounts, usePrefetchCards } from "@/hooks/useCards.js";
+import { ROUTES } from "@/lib/routes.js";
 import UserMenu from "@/components/UserMenu.js";
 import OnboardingModal from "@/components/OnboardingModal.js";
 import AuthView from "@/views/AuthView.js";
 import TriageView from "@/views/TriageView.js";
 import ReviewView from "@/views/ReviewView.js";
-import UploadView from "@/views/UploadView.js";
+import CreateView from "@/views/CreateView.js";
 import ListView from "@/views/ListView.js";
 import DeviceView from "@/views/DeviceView.js";
 
@@ -25,10 +26,10 @@ const queryClient = new QueryClient({
 });
 
 const TAB_ROUTES = [
-  { value: "/", label: "New", countKey: "new" },
-  { value: "/review", label: "Review", countKey: "due" },
-  { value: "/list", label: "List", countKey: null },
-  { value: "/upload", label: "Upload", countKey: null },
+  { value: ROUTES.triage, label: "New", countKey: "new" },
+  { value: ROUTES.review, label: "Review", countKey: "due" },
+  { value: ROUTES.list, label: "List", countKey: null },
+  { value: ROUTES.create, label: "Create", countKey: null },
 ] as const;
 
 function AppLayout() {
@@ -116,11 +117,11 @@ function AppLayout() {
         </Tabs>
 
         <Routes>
-          <Route path="/" element={<TriageView />} />
-          <Route path="/review" element={<ReviewView />} />
-          <Route path="/list" element={<ListView />} />
-          <Route path="/upload" element={<UploadView />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path={ROUTES.triage} element={<TriageView />} />
+          <Route path={ROUTES.review} element={<ReviewView />} />
+          <Route path={ROUTES.list} element={<ListView />} />
+          <Route path={ROUTES.create} element={<CreateView />} />
+          <Route path="*" element={<Navigate to={ROUTES.triage} replace />} />
         </Routes>
       </div>
 
@@ -152,7 +153,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          <Route path="/device" element={<DeviceView />} />
+          <Route path={ROUTES.device} element={<DeviceView />} />
           <Route path="*" element={<AuthGate />} />
         </Routes>
       </BrowserRouter>
