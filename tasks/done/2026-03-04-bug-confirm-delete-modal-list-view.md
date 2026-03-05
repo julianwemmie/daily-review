@@ -1,5 +1,5 @@
 ---
-status: open
+status: done
 type: bug
 created: 2026-03-04
 ---

@@ -97,7 +97,9 @@ export default function ListView() {
 
   // Flipped grid cards state
   const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set());
+  const suppressFlipRef = useRef(false);
   const toggleFlip = useCallback((id: string) => {
+    if (suppressFlipRef.current) return;
     setFlippedCards((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -108,6 +110,9 @@ export default function ListView() {
 
   // Import modal state
   const [importOpen, setImportOpen] = useState(false);
+
+  // Delete confirmation state
+  const [deletingCard, setDeletingCard] = useState<CardType | null>(null);
 
   // Edit dialog state
   const [editingCard, setEditingCard] = useState<CardType | null>(null);
@@ -279,7 +284,7 @@ export default function ListView() {
                                   </Badge>
                                 ))}
                               </div>
-                              <DropdownMenu>
+                              <DropdownMenu onOpenChange={(open) => { suppressFlipRef.current = open; }}>
                                 <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                                   <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
                                     <MoreVertical className="h-3.5 w-3.5" />
@@ -291,7 +296,7 @@ export default function ListView() {
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     className="text-destructive"
-                                    onClick={() => handleDelete(card.id)}
+                                    onClick={() => setDeletingCard(card)}
                                   >
                                     Delete
                                   </DropdownMenuItem>
@@ -316,7 +321,7 @@ export default function ListView() {
                               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                                 Back
                               </p>
-                              <DropdownMenu>
+                              <DropdownMenu onOpenChange={(open) => { suppressFlipRef.current = open; }}>
                                 <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                                   <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
                                     <MoreVertical className="h-3.5 w-3.5" />
@@ -328,7 +333,7 @@ export default function ListView() {
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     className="text-destructive"
-                                    onClick={() => handleDelete(card.id)}
+                                    onClick={() => setDeletingCard(card)}
                                   >
                                     Delete
                                   </DropdownMenuItem>
@@ -382,7 +387,7 @@ export default function ListView() {
                         variant="ghost"
                         size="sm"
                         className="text-muted-foreground hover:text-destructive"
-                        onClick={() => handleDelete(card.id)}
+                        onClick={() => setDeletingCard(card)}
                       >
                         Delete
                       </Button>
@@ -464,6 +469,38 @@ export default function ListView() {
             </Button>
             <Button onClick={handleEditSave} disabled={editSaving || !editFront.trim()}>
               {editSaving ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={!!deletingCard} onOpenChange={(open) => !open && setDeletingCard(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Card</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete this card? This action cannot be undone.
+          </p>
+          {deletingCard && (
+            <div className="rounded border p-3">
+              <p className="text-sm font-medium line-clamp-3">{deletingCard.front}</p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeletingCard(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (!deletingCard) return;
+                await handleDelete(deletingCard.id);
+                setDeletingCard(null);
+              }}
+            >
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
