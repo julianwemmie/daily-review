@@ -23,15 +23,11 @@ The grader receives `front` + `back` + the user's free-form answer and produces 
 
 Users can toggle between AI grading (LLM evaluates the answer) and self grading (user rates themselves without LLM evaluation).
 
-Score ranges for reference:
-- 0.0 - 0.3 → Again
-- 0.3 - 0.6 → Hard
-- 0.6 - 0.85 → Good
-- 0.85 - 1.0 → Easy
+The score is informational only — it helps the user gauge their answer, but does not determine the FSRS rating. The user manually selects their rating (Again / Hard / Good / Easy) after seeing the score.
 
 ## Authentication
 
-- **User accounts**: Email/password auth via [better-auth](https://www.better-auth.com/)
+- **User accounts**: Email/password and GitHub OAuth via [better-auth](https://www.better-auth.com/)
 - **API keys**: Users generate API keys in the app to authenticate the `/flashcards` CLI skill when uploading cards
 
 ## Email Notifications
@@ -43,9 +39,16 @@ Re-engagement nudges for inactive users, sent via [Resend](https://resend.com/) 
 
 ## Tech
 
-- **Frontend**: React, Vite, Tailwind CSS, shadcn/ui, Framer Motion
+- **Frontend**: React, Vite, Tailwind CSS, shadcn/ui, Motion
 - **Backend**: Express, Supabase (Postgres), better-auth
 - **Scheduling**: [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs)
 - **Email**: [Resend](https://resend.com/), node-cron
 - **AI**: Anthropic SDK (grading)
-- Cards store markdown strings (for code snippets); rendering with syntax highlighting is a UI concern
+- Cards store plain text strings (which may contain code snippets); displayed with `whitespace-pre-wrap` to preserve formatting
+
+## Related docs
+
+- [API](api.md)
+- [Auth](auth.md)
+- [CLI](cli.md)
+- [Schema](schema.md)

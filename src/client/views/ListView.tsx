@@ -24,8 +24,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LayoutList, LayoutGrid, MoreVertical } from "lucide-react";
+import { LayoutList, LayoutGrid, MoreVertical, Download } from "lucide-react";
 import { useListCards, useDeleteCard, useUpdateCard } from "@/hooks/useCards.js";
+import ImportModal from "@/components/ImportModal.js";
 import type { Card as CardType } from "@/lib/types.js";
 
 type ViewMode = "list" | "grid";
@@ -105,6 +106,9 @@ export default function ListView() {
     });
   }, []);
 
+  // Import modal state
+  const [importOpen, setImportOpen] = useState(false);
+
   // Edit dialog state
   const [editingCard, setEditingCard] = useState<CardType | null>(null);
   const [editFront, setEditFront] = useState("");
@@ -182,12 +186,19 @@ export default function ListView() {
         </Tabs>
       </div>
 
-      {/* Search */}
-      <Input
-        placeholder="Search cards..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
+      {/* Search + Import */}
+      <div className="flex gap-2">
+        <Input
+          placeholder="Search cards..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="flex-1"
+        />
+        <Button variant="outline" onClick={() => setImportOpen(true)}>
+          <Download className="h-4 w-4 mr-1.5" />
+          Import
+        </Button>
+      </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
@@ -244,7 +255,7 @@ export default function ListView() {
                         animate={{ rotateY: isFlipped ? 180 : 0 }}
                         transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
                         style={{ transformStyle: "preserve-3d" }}
-                        className="relative w-full h-full"
+                        className="relative w-full min-h-[200px]"
                       >
                         {/* Front face */}
                         <Card
@@ -290,7 +301,7 @@ export default function ListView() {
                           </CardHeader>
                           <CardContent className="flex-1 overflow-hidden">
                             <p className="whitespace-pre-wrap text-sm font-semibold leading-snug line-clamp-4">
-                              {card.front}
+                              {card.front?.trim() || <span className="text-muted-foreground font-normal italic">No content</span>}
                             </p>
                           </CardContent>
                         </Card>
@@ -419,6 +430,9 @@ export default function ListView() {
           )}
         </>
       )}
+
+      {/* Import modal */}
+      <ImportModal open={importOpen} onOpenChange={setImportOpen} />
 
       {/* Edit dialog */}
       <Dialog open={!!editingCard} onOpenChange={(open) => !open && setEditingCard(null)}>

@@ -135,6 +135,18 @@ export async function reviewCard(
   if (!res.ok) throw new Error(`Failed to review card: ${res.statusText}`);
 }
 
+export async function batchCreateCards(
+  cards: { front: string; back?: string; tags?: string[] }[],
+): Promise<{ created: number; cards: Card[] }> {
+  const res = await fetch("/api/cards/batch-create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cards }),
+  });
+  if (!res.ok) throw new Error(`Failed to import cards: ${res.statusText}`);
+  return res.json();
+}
+
 export async function getNotificationPreference(): Promise<boolean> {
   const res = await fetch("/api/notifications");
   if (!res.ok) throw new Error(`Failed to get notification preference: ${res.statusText}`);

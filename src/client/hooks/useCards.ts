@@ -9,6 +9,7 @@ import {
   deleteCard,
   batchAcceptCards,
   batchDeleteCards,
+  batchCreateCards,
   updateCard,
   createCard,
   reviewCard,
@@ -102,10 +103,32 @@ export function useAcceptCard() {
 }
 
 export function useDeleteCard() {
-  const invalidate = useInvalidateCards();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => deleteCard(id),
-    onSuccess: invalidate,
+    onMutate: async (id) => {
+      // Cancel any in-flight fetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: cardKeys.all });
+      const prev = queryClient.getQueryData<Card[]>(cardKeys.list());
+      if (prev) {
+        queryClient.setQueryData<Card[]>(
+          cardKeys.list(),
+          prev.filter((c) => c.id !== id),
+        );
+      }
+      return { prev };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.prev) {
+        queryClient.setQueryData(cardKeys.list(), context.prev);
+      }
+    },
+    onSuccess: () => {
+      // Invalidate counts and other views, but not the list (already optimistically updated)
+      queryClient.invalidateQueries({ queryKey: cardKeys.counts() });
+      queryClient.invalidateQueries({ queryKey: cardKeys.triage() });
+      queryClient.invalidateQueries({ queryKey: cardKeys.due() });
+    },
   });
 }
 
@@ -156,6 +179,15 @@ export function useBatchAcceptCards() {
   const invalidate = useInvalidateCards();
   return useMutation({
     mutationFn: (ids: string[]) => batchAcceptCards(ids),
+    onSuccess: invalidate,
+  });
+}
+
+export function useBatchCreateCards() {
+  const invalidate = useInvalidateCards();
+  return useMutation({
+    mutationFn: (cards: { front: string; back?: string; tags?: string[] }[]) =>
+      batchCreateCards(cards),
     onSuccess: invalidate,
   });
 }
