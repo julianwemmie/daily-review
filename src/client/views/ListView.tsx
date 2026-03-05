@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LayoutList, LayoutGrid, MoreVertical, Download, Trash2, X, Settings, Upload } from "lucide-react";
 import { useListCards, useDeleteCard, useUpdateCard, useBatchDeleteCards } from "@/hooks/useCards.js";
+import { exportCards } from "@/lib/api.js";
 import ImportModal from "@/components/ImportModal.js";
 import BulkDeleteModal from "@/components/BulkDeleteModal.js";
 import type { Card as CardType } from "@/lib/types.js";
@@ -63,6 +65,10 @@ export default function ListView() {
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const [highlightedTagIndex, setHighlightedTagIndex] = useState(-1);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportIncludeScheduling, setExportIncludeScheduling] = useState(true);
+  const [exportIncludeReviewHistory, setExportIncludeReviewHistory] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // View mode state with localStorage persistence
@@ -224,6 +230,19 @@ export default function ListView() {
     [batchDeleteMutation],
   );
 
+  const handleExport = useCallback(async () => {
+    try {
+      setExporting(true);
+      setActionError(null);
+      await exportCards({ includeScheduling: exportIncludeScheduling, includeReviewHistory: exportIncludeReviewHistory });
+      setExportOpen(false);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to export cards");
+    } finally {
+      setExporting(false);
+    }
+  }, [exportIncludeScheduling, exportIncludeReviewHistory]);
+
   useEffect(() => {
     debounceRef.current = setTimeout(() => {
       setDebouncedQuery(searchQuery);
@@ -370,10 +389,9 @@ export default function ListView() {
               <Download className="h-4 w-4" />
               Import
             </DropdownMenuItem>
-            <DropdownMenuItem disabled>
+            <DropdownMenuItem onClick={() => setExportOpen(true)}>
               <Upload className="h-4 w-4" />
               Export
-              <span className="ml-auto text-xs text-muted-foreground">Soon</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -624,6 +642,52 @@ export default function ListView() {
 
       {/* Import modal */}
       <ImportModal open={importOpen} onOpenChange={setImportOpen} />
+
+      {/* Export modal */}
+      <Dialog open={exportOpen} onOpenChange={setExportOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Export Cards</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Download all {allCards.length} card{allCards.length !== 1 ? "s" : ""} as a JSON file.
+          </p>
+          <div className="flex flex-col gap-3">
+            <div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={exportIncludeScheduling}
+                  onCheckedChange={(v) => setExportIncludeScheduling(v === true)}
+                />
+                <span className="text-sm">Include scheduling data</span>
+              </label>
+              <p className="text-xs text-muted-foreground ml-6">
+                FSRS parameters like stability, difficulty, reps, and due dates.
+              </p>
+            </div>
+            <div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={exportIncludeReviewHistory}
+                  onCheckedChange={(v) => setExportIncludeReviewHistory(v === true)}
+                />
+                <span className="text-sm">Include review history</span>
+              </label>
+              <p className="text-xs text-muted-foreground ml-6">
+                Past review ratings, answers, and LLM feedback for each card.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setExportOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleExport} disabled={exporting || allCards.length === 0}>
+              {exporting ? "Exporting..." : "Export"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit dialog */}
       <Dialog open={!!editingCard} onOpenChange={(open) => !open && setEditingCard(null)}>

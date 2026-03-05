@@ -2,6 +2,7 @@
 import { program } from "commander";
 import { uploadCommand } from "./commands/upload.js";
 import { importCommand } from "./commands/import.js";
+import { exportCommand } from "./commands/export.js";
 import { listCommand } from "./commands/list.js";
 import { deleteCommand } from "./commands/delete.js";
 import { reviewCommand } from "./commands/review.js";
@@ -15,6 +16,7 @@ program
 
 program.addCommand(uploadCommand);
 program.addCommand(importCommand);
+program.addCommand(exportCommand);
 program.addCommand(listCommand);
 program.addCommand(deleteCommand);
 program.addCommand(reviewCommand);

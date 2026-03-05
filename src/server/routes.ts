@@ -99,6 +99,78 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
   });
 
   // -------------------------------------------------------
+  // GET /api/cards/export -- Export all cards as JSON
+  // -------------------------------------------------------
+  app.get("/api/cards/export", async (req: Request, res: Response) => {
+    try {
+      const includeScheduling = req.query.includeScheduling === "true";
+      const includeReviewHistory = req.query.includeReviewHistory === "true";
+      const cards = await db.listCards(req.user!.id);
+
+      // Fetch review logs only if requested
+      const logsByCard = new Map<string, Awaited<ReturnType<typeof db.getReviewLogsForCards>>>();
+      if (includeReviewHistory) {
+        const cardIds = cards.map((c) => c.id);
+        const reviewLogs = await db.getReviewLogsForCards(cardIds);
+        for (const log of reviewLogs) {
+          const arr = logsByCard.get(log.card_id) ?? [];
+          arr.push(log);
+          logsByCard.set(log.card_id, arr);
+        }
+      }
+
+      const exportCards = cards.map((card) => {
+        const base: Record<string, unknown> = {
+          front: card.front,
+          back: card.back,
+          tags: card.tags,
+          status: card.status,
+          createdAt: card.created_at,
+        };
+
+        if (includeScheduling) {
+          base.state = card.state;
+          base.due = card.due;
+          base.stability = card.stability;
+          base.difficulty = card.difficulty;
+          base.elapsedDays = card.elapsed_days;
+          base.scheduledDays = card.scheduled_days;
+          base.learningSteps = card.learning_steps;
+          base.reps = card.reps;
+          base.lapses = card.lapses;
+          base.lastReview = card.last_review;
+        }
+
+        if (includeReviewHistory) {
+          base.reviewLogs = (logsByCard.get(card.id) ?? []).map((log) => ({
+            rating: log.rating,
+            answer: log.answer,
+            llmScore: log.llm_score,
+            llmFeedback: log.llm_feedback,
+            reviewedAt: log.reviewed_at,
+          }));
+        }
+
+        return base;
+      });
+
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        version: 1,
+        includesScheduling: includeScheduling,
+        includesReviewHistory: includeReviewHistory,
+        cards: exportCards,
+      };
+
+      res.setHeader("Content-Disposition", `attachment; filename="daily-review-export.json"`);
+      res.json(payload);
+    } catch (err) {
+      console.error("GET /api/cards/export error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // -------------------------------------------------------
   // GET /api/cards/counts -- Lightweight tab badge counts
   // -------------------------------------------------------
   app.get("/api/cards/counts", async (req: Request, res: Response) => {

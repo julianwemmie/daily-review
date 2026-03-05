@@ -223,6 +223,17 @@ function makeProvider(client: SupabaseClient): DbProvider {
         .eq("id", userId);
       if (error) throw error;
     },
+
+    async getReviewLogsForCards(cardIds: string[]): Promise<ReviewLogInsert[]> {
+      if (cardIds.length === 0) return [];
+      const { data, error } = await client
+        .from("review_logs")
+        .select("*")
+        .in("card_id", cardIds)
+        .order("reviewed_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as ReviewLogInsert[];
+    },
   };
 }
 
