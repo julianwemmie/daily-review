@@ -3,7 +3,6 @@ import { LazyMotion, domAnimation, m } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
@@ -24,7 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LayoutList, LayoutGrid, MoreVertical, Download, Trash2, X } from "lucide-react";
+import { LayoutList, LayoutGrid, MoreVertical, Download, Trash2, X, Settings, Upload } from "lucide-react";
 import { useListCards, useDeleteCard, useUpdateCard, useBatchDeleteCards } from "@/hooks/useCards.js";
 import ImportModal from "@/components/ImportModal.js";
 import BulkDeleteModal from "@/components/BulkDeleteModal.js";
@@ -284,7 +283,7 @@ export default function ListView() {
       <div className="flex gap-2">
         <div className="relative flex-1">
           <div
-            className="flex flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 cursor-text"
+            className="flex flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 h-9 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 cursor-text"
             onClick={() => searchInputRef.current?.focus()}
           >
             {tagPills.map((tag) => (
@@ -341,18 +340,29 @@ export default function ListView() {
             </div>
           )}
         </div>
-        <Button
-          variant="outline"
-          onClick={() => setBulkDeleteOpen(true)}
-          disabled={cards.length === 0}
-        >
-          <Trash2 className="h-4 w-4 mr-1.5" />
-          Delete
-        </Button>
-        <Button variant="outline" onClick={() => setImportOpen(true)}>
-          <Download className="h-4 w-4 mr-1.5" />
-          Import
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">
+              <Settings className="h-4 w-4 -mr-1" />
+              Manage
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setBulkDeleteOpen(true)} disabled={cards.length === 0}>
+              <Trash2 className="h-4 w-4" />
+              Bulk Delete
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setImportOpen(true)}>
+              <Download className="h-4 w-4" />
+              Import
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled>
+              <Upload className="h-4 w-4" />
+              Export
+              <span className="ml-auto text-xs text-muted-foreground">Soon</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {loading ? (
@@ -593,6 +603,9 @@ export default function ListView() {
         cards={cards}
         onDelete={handleBulkDelete}
         isDeleting={batchDeleteMutation.isPending}
+        statusFilter={statusFilter}
+        tagPills={tagPills}
+        searchQuery={debouncedQuery}
       />
 
       {/* Import modal */}
