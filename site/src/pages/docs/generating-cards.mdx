@@ -1,0 +1,48 @@
+---
+layout: ../../layouts/Docs.astro
+title: Generating Cards
+---
+
+# Generating Cards
+
+Daily Review creates flashcards by analyzing your Claude Code conversations. There are two ways to generate cards.
+
+## Using the Claude Code skill
+
+In any Claude Code session, run:
+
+```
+/flashcards
+```
+
+The skill scans your recent conversations (stored as JSONL in `~/.claude/projects/`), extracts key concepts, and generates flashcards. It then uploads them to your Daily Review account.
+
+## Using the CLI
+
+If you prefer more control, use the CLI directly:
+
+```bash
+daily-review upload
+```
+
+This does the same thing — scans conversations, generates cards, and uploads them.
+
+## What gets extracted?
+
+The card generator looks for:
+
+- New APIs or libraries you learned about
+- Debugging techniques and solutions
+- Architectural patterns and design decisions
+- Configuration and setup steps
+- Language features or syntax you encountered
+
+Each card has a **front** (the question/prompt) and a **back** (the answer/explanation), both stored as plain text that may include code snippets.
+
+## Card quality
+
+Cards are generated to test understanding, not surface-level recall. Instead of "What does `Array.map` do?", you'll get questions like "How would you transform an array of user objects into an array of just their email addresses?"
+
+## Deduplication
+
+If a concept already exists in your collection, it won't create a duplicate card. The generator compares against your existing cards before uploading.

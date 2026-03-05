@@ -1,0 +1,35 @@
+---
+layout: ../../layouts/Docs.astro
+title: Grading Modes
+---
+
+# Grading Modes
+
+Daily Review offers two ways to evaluate your answers during review.
+
+## AI Grading
+
+The default mode. When you submit an answer, an LLM receives the card's front, back, and your response. It returns:
+
+- **Accuracy score** (0-100%) — how well your answer matches the expected knowledge
+- **Feedback** — specific notes on what you got right, what you missed, and any corrections
+
+The score is informational only. After seeing it, you select your own FSRS rating (Again / Hard / Good / Easy) based on how confident you feel.
+
+## Self Grading
+
+Toggle this mode if you prefer traditional flashcard review. The flow becomes:
+
+1. See the question
+2. Think of your answer (mentally or typed)
+3. Reveal the card's back
+4. Rate yourself directly
+
+No LLM call is made. This is faster and works offline.
+
+## When to use which
+
+- **AI Grading** is best for complex topics where you want objective feedback on your understanding
+- **Self Grading** is best for quick reviews, simple facts, or when you want to move fast
+
+You can switch between modes at any time — even mid-session.

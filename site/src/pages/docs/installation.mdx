@@ -1,0 +1,53 @@
+---
+layout: ../../layouts/Docs.astro
+title: Installation
+---
+
+# Installation
+
+## Prerequisites
+
+- Node.js 18 or later
+- A Claude Code installation (for the `/flashcards` skill)
+- A Daily Review account
+
+## Install the CLI
+
+```bash
+npm install -g daily-review
+```
+
+Or use it directly with npx:
+
+```bash
+npx daily-review upload
+```
+
+## Authenticate
+
+Log in from your terminal. This opens a browser window for authentication:
+
+```bash
+daily-review login
+```
+
+You can also authenticate with an API key. Generate one from the Daily Review web app under your profile settings, then:
+
+```bash
+daily-review login --api-key YOUR_KEY
+```
+
+## Verify
+
+Check that everything is connected:
+
+```bash
+daily-review status
+```
+
+You should see your account info and card count.
+
+## Next steps
+
+- [Generating Cards](/docs/generating-cards) — learn how to create flashcards from your sessions
+- [API Keys](/docs/api-keys) — manage authentication tokens

@@ -1,0 +1,40 @@
+---
+layout: ../../layouts/Docs.astro
+title: Reviewing Cards
+---
+
+# Reviewing Cards
+
+Open the Daily Review web app to review your due cards. The review flow is straightforward but powerful.
+
+## The review flow
+
+1. A card's **front** (question) is shown
+2. Type your answer in free-form text
+3. The LLM grader evaluates your response against the card's **back** (answer)
+4. You see your **accuracy score** and feedback
+5. Select your self-rating: **Again**, **Hard**, **Good**, or **Easy**
+6. FSRS schedules the next review based on your rating
+
+## Free-form answers
+
+Unlike traditional flashcard apps, you don't need to match an exact answer. Write your response in your own words — the AI grader understands paraphrasing, partial answers, and different levels of detail.
+
+The accuracy score (0-100%) is informational. It helps you gauge how well you knew the material, but **you** choose the FSRS rating.
+
+## Grading modes
+
+You can toggle between two modes in the review UI:
+
+- **AI grading** — the LLM evaluates your answer and provides a score with feedback
+- **Self grading** — you reveal the answer and rate yourself without LLM evaluation
+
+Switch between modes at any time during a review session.
+
+## Triage
+
+New cards enter a triage queue before joining your review rotation. In triage, you can:
+
+- Accept the card as-is
+- Edit the front or back
+- Delete cards you don't want
