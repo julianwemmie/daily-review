@@ -13,9 +13,7 @@ Run `daily-review login` before using other commands. Two methods are available:
 - **Browser login (default)**: `daily-review login` — opens a browser window using the OAuth device flow. Approve the code shown in the terminal and the session token is saved automatically.
 - **API key**: `daily-review login --api-key` — prompts for an API key (generate one in the web app). Useful for headless environments.
 
-You can also set the `DAILY_REVIEW_API_KEY` env var to skip login entirely.
-
-Auth resolution order: `--api-key` flag > `DAILY_REVIEW_API_KEY` env var > saved session token > saved API key.
+You can also set the `DAILY_REVIEW_API_KEY` env var to skip login entirely. See [Authentication](auth.md) for full details on auth resolution order.
 
 ## Commands
 
