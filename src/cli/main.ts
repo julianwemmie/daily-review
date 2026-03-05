@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { program } from "commander";
 import { uploadCommand } from "./commands/upload.js";
+import { importCommand } from "./commands/import.js";
 import { listCommand } from "./commands/list.js";
 import { deleteCommand } from "./commands/delete.js";
 import { reviewCommand } from "./commands/review.js";
@@ -13,6 +14,7 @@ program
   .version("0.0.1");
 
 program.addCommand(uploadCommand);
+program.addCommand(importCommand);
 program.addCommand(listCommand);
 program.addCommand(deleteCommand);
 program.addCommand(reviewCommand);

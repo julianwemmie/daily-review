@@ -18,6 +18,10 @@ Transform code reviews from gatekeeping to knowledge sharing through constructiv
 - Reducing code review cycle time
 - Maintaining code quality standards
 
+## Output Format
+
+**Always present all review findings (required changes, suggestions, questions, nits) as a single numbered list** so the user can easily reference items by number (e.g. "fix 1, 3, and 5 — skip 2"). Use continuous numbering across all severity categories.
+
 ## Core Principles
 
 ### 1. The Review Mindset
@@ -508,20 +512,14 @@ When author disagrees with your feedback:
 - [What was done well]
 - [Good patterns or approaches]
 
-## Required Changes
+## Findings
 
-🔴 [Blocking issue 1]
-🔴 [Blocking issue 2]
-
-## Suggestions
-
-💡 [Improvement 1]
-💡 [Improvement 2]
-
-## Questions
-
-❓ [Clarification needed on X]
-❓ [Alternative approach consideration]
+1. 🔴 [blocking] [Blocking issue 1]
+2. 🔴 [blocking] [Blocking issue 2]
+3. 🟡 [important] [Suggestion 1]
+4. 💡 [suggestion] [Suggestion 2]
+5. 🟢 [nit] [Minor item]
+6. ❓ [question] [Clarification needed on X]
 
 ## Verdict
 
