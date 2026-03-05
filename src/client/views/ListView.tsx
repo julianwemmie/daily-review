@@ -543,6 +543,22 @@ export default function ListView() {
                                   <DropdownMenuItem onClick={() => openEdit(card)}>
                                     Edit
                                   </DropdownMenuItem>
+                                  {card.status !== CardStatus.Triaging && (
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        updateMutation.mutate({
+                                          id: card.id,
+                                          data: {
+                                            status: card.status === CardStatus.Suspended
+                                              ? CardStatus.Active
+                                              : CardStatus.Suspended,
+                                          },
+                                        });
+                                      }}
+                                    >
+                                      {card.status === CardStatus.Suspended ? "Unsuspend" : "Suspend"}
+                                    </DropdownMenuItem>
+                                  )}
                                   <DropdownMenuItem
                                     className="text-destructive"
                                     onClick={() => setDeletingCard(card)}
@@ -580,6 +596,22 @@ export default function ListView() {
                                   <DropdownMenuItem onClick={() => openEdit(card)}>
                                     Edit
                                   </DropdownMenuItem>
+                                  {card.status !== CardStatus.Triaging && (
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        updateMutation.mutate({
+                                          id: card.id,
+                                          data: {
+                                            status: card.status === CardStatus.Suspended
+                                              ? CardStatus.Active
+                                              : CardStatus.Suspended,
+                                          },
+                                        });
+                                      }}
+                                    >
+                                      {card.status === CardStatus.Suspended ? "Unsuspend" : "Suspend"}
+                                    </DropdownMenuItem>
+                                  )}
                                   <DropdownMenuItem
                                     className="text-destructive"
                                     onClick={() => setDeletingCard(card)}
