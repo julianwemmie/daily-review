@@ -24,7 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LayoutList, LayoutGrid, MoreVertical, Download, Trash2, X, Settings, Upload } from "lucide-react";
+import { LayoutList, LayoutGrid, MoreVertical, Download, Trash2, X, Settings, Upload, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { useListCards, useDeleteCard, useUpdateCard, useBatchDeleteCards } from "@/hooks/useCards.js";
 import ImportModal from "@/components/ImportModal.js";
 import BulkDeleteModal from "@/components/BulkDeleteModal.js";
@@ -51,6 +51,22 @@ const fsrsStateLabels: Record<CardType["state"], string> = {
   review: "Review",
   relearning: "Relearning",
 };
+
+function formatRelativeDue(dueStr: string): { text: string; overdue: boolean } {
+  const now = new Date();
+  const due = new Date(dueStr);
+  const diffMs = due.getTime() - now.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < -1) return { text: `Overdue by ${Math.abs(diffDays)}d`, overdue: true };
+  if (diffDays === -1) return { text: "Overdue by 1d", overdue: true };
+  if (diffDays === 0) return { text: "Due today", overdue: false };
+  if (diffDays === 1) return { text: "Due tomorrow", overdue: false };
+  return { text: `Due in ${diffDays}d`, overdue: false };
+}
+
+type SortColumn = "front" | "status" | "due" | "created" | "reps" | "tags";
+type SortDirection = "asc" | "desc";
 
 type StatusFilter = "all" | CardType["status"];
 
@@ -79,6 +95,19 @@ export default function ListView() {
       localStorage.setItem(VIEW_MODE_KEY, viewMode);
     } catch {}
   }, [viewMode]);
+
+  // Sort state for table view
+  const [sortColumn, setSortColumn] = useState<SortColumn>("due");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+
+  const toggleSort = useCallback((col: SortColumn) => {
+    if (col === sortColumn) {
+      setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortColumn(col);
+      setSortDirection("asc");
+    }
+  }, [sortColumn]);
 
   // Fetch all cards once, filter client-side
   const { data: allCards = [], isLoading: loading, error: queryError, refetch } = useListCards();
@@ -124,6 +153,34 @@ export default function ListView() {
     }
     return true;
   });
+
+  // Sorted cards for table view
+  const sortedCards = useMemo(() => {
+    const sorted = [...cards];
+    const dir = sortDirection === "asc" ? 1 : -1;
+    sorted.sort((a, b) => {
+      switch (sortColumn) {
+        case "front":
+          return dir * a.front.localeCompare(b.front);
+        case "status":
+          return dir * a.status.localeCompare(b.status);
+        case "due":
+          return dir * (new Date(a.due).getTime() - new Date(b.due).getTime());
+        case "created":
+          return dir * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        case "reps":
+          return dir * (a.reps - b.reps);
+        case "tags": {
+          const aTag = [...(a.tags ?? [])].sort().join(",");
+          const bTag = [...(b.tags ?? [])].sort().join(",");
+          return dir * aTag.localeCompare(bTag);
+        }
+        default:
+          return 0;
+      }
+    });
+    return sorted;
+  }, [cards, sortColumn, sortDirection]);
 
   // Revealed answers state
   const [revealedBacks, setRevealedBacks] = useState<Set<string>>(new Set());
@@ -528,84 +585,105 @@ export default function ListView() {
               </div>
             </LazyMotion>
           ) : (
-            /* ── List View ── */
-            <div className="flex flex-col gap-4">
+            <>
+            {/* ── Table View (desktop) ── */}
+            <div className="hidden sm:block rounded-md border overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    {([
+                      ["front", "Front"],
+                      ["status", "Status"],
+                      ["due", "Due"],
+                      ["created", "Created"],
+                      ["reps", "Reps"],
+                      ["tags", "Tags"],
+                    ] as const).map(([col, label]) => (
+                      <th
+                        key={col}
+                        className={`text-left font-medium text-muted-foreground px-4 py-2 cursor-pointer select-none hover:text-foreground transition-colors ${col === "front" ? "w-[50%]" : ""} ${col === "reps" ? "w-[60px]" : ""}`}
+                        onClick={() => toggleSort(col)}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          {label}
+                          {sortColumn === col ? (
+                            sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                          ) : (
+                            <ChevronsUpDown className="h-3 w-3 opacity-30" />
+                          )}
+                        </span>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedCards.map((card) => {
+                    const dueInfo = card.status === "triaging"
+                      ? { text: "\u2014", overdue: false }
+                      : formatRelativeDue(card.due);
+                    const isOverdue = dueInfo.overdue && card.status !== "suspended";
+                    return (
+                      <tr
+                        key={card.id}
+                        className="border-b last:border-b-0 hover:bg-muted/50 cursor-pointer transition-colors"
+                        onClick={() => openEdit(card)}
+                      >
+                        <td className="px-4 py-2.5 max-w-0">
+                          <p className="truncate font-medium">{card.front}</p>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <Badge variant={statusVariants[card.status]} className="text-[10px]">
+                            {statusLabels[card.status]}
+                          </Badge>
+                        </td>
+                        <td className={`px-4 py-2.5 whitespace-nowrap ${isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                          {dueInfo.text}
+                        </td>
+                        <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">
+                          {new Date(card.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-2.5 text-muted-foreground tabular-nums">
+                          {card.reps}
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <div className="flex flex-wrap gap-1">
+                            {card.tags?.map((tag) => (
+                              <Badge key={tag} variant="outline" className="text-[10px]">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ── Mobile card list fallback ── */}
+            <div className="flex sm:hidden flex-col gap-4">
               {cards.map((card) => (
-                <Card key={card.id} className="w-full gap-1">
-                  <CardHeader className="flex flex-row items-start justify-between gap-2 pb-2">
+                <Card key={card.id} className="w-full gap-1 cursor-pointer" onClick={() => openEdit(card)}>
+                  <CardHeader className="pb-2">
                     <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                       <Badge variant={statusVariants[card.status]}>
                         {statusLabels[card.status]}
                       </Badge>
-                      {card.status === "active" && card.state !== "new" && (
-                        <Badge variant="outline">
-                          {fsrsStateLabels[card.state]}
-                        </Badge>
-                      )}
                       {card.tags?.map((tag) => (
                         <Badge key={tag} variant="outline">
                           {tag}
                         </Badge>
                       ))}
                     </div>
-                    <div className="flex shrink-0 gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-muted-foreground"
-                        onClick={() => openEdit(card)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-muted-foreground hover:text-destructive"
-                        onClick={() => setDeletingCard(card)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="whitespace-pre-wrap text-base font-semibold leading-relaxed">
-                      {card.front}
-                    </p>
-                    {card.back && (
-                      revealedBacks.has(card.id) ? (
-                        <div
-                          className="rounded border border-dashed p-3 cursor-pointer"
-                          onClick={() =>
-                            setRevealedBacks((prev) => {
-                              const next = new Set(prev);
-                              next.delete(card.id);
-                              return next;
-                            })
-                          }
-                        >
-                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                            Back
-                          </p>
-                          <p className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
-                            {card.back}
-                          </p>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          className="w-full rounded border border-dashed p-3 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:bg-muted/50 transition-colors cursor-pointer"
-                          onClick={() =>
-                            setRevealedBacks((prev) => new Set(prev).add(card.id))
-                          }
-                        >
-                          Show answer
-                        </button>
-                      )
-                    )}
+                  <CardContent>
+                    <p className="text-sm font-medium line-clamp-2">{card.front}</p>
                   </CardContent>
                 </Card>
               ))}
             </div>
+            </>
           )}
         </>
       )}
