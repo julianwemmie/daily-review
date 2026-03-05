@@ -30,7 +30,7 @@ import { useListCards, useDeleteCard, useUpdateCard, useBatchDeleteCards } from 
 import { exportCards } from "@/lib/api.js";
 import ImportModal from "@/components/ImportModal.js";
 import BulkDeleteModal from "@/components/BulkDeleteModal.js";
-import type { Card as CardType } from "@/lib/types.js";
+import { CardStatus, type Card as CardType } from "@/lib/types.js";
 
 type ViewMode = "list" | "grid";
 const VIEW_MODE_KEY = "dailyReview:listViewMode";
@@ -543,6 +543,22 @@ export default function ListView() {
                                   <DropdownMenuItem onClick={() => openEdit(card)}>
                                     Edit
                                   </DropdownMenuItem>
+                                  {card.status !== CardStatus.Triaging && (
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        updateMutation.mutate({
+                                          id: card.id,
+                                          data: {
+                                            status: card.status === CardStatus.Suspended
+                                              ? CardStatus.Active
+                                              : CardStatus.Suspended,
+                                          },
+                                        });
+                                      }}
+                                    >
+                                      {card.status === CardStatus.Suspended ? "Unsuspend" : "Suspend"}
+                                    </DropdownMenuItem>
+                                  )}
                                   <DropdownMenuItem
                                     className="text-destructive"
                                     onClick={() => setDeletingCard(card)}
@@ -580,6 +596,22 @@ export default function ListView() {
                                   <DropdownMenuItem onClick={() => openEdit(card)}>
                                     Edit
                                   </DropdownMenuItem>
+                                  {card.status !== CardStatus.Triaging && (
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        updateMutation.mutate({
+                                          id: card.id,
+                                          data: {
+                                            status: card.status === CardStatus.Suspended
+                                              ? CardStatus.Active
+                                              : CardStatus.Suspended,
+                                          },
+                                        });
+                                      }}
+                                    >
+                                      {card.status === CardStatus.Suspended ? "Unsuspend" : "Suspend"}
+                                    </DropdownMenuItem>
+                                  )}
                                   <DropdownMenuItem
                                     className="text-destructive"
                                     onClick={() => setDeletingCard(card)}
