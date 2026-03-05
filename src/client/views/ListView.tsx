@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { LazyMotion, domAnimation, m } from "motion/react";
 
 import { Button } from "@/components/ui/button";
@@ -140,8 +141,21 @@ export default function ListView() {
     });
   }, []);
 
-  // Import modal state
-  const [importOpen, setImportOpen] = useState(false);
+  // Import modal state — auto-open when navigated with ?action=import
+  const [searchParams, setSearchParams] = useSearchParams();
+  const actionParam = searchParams.get("action");
+  const [importOpen, setImportOpen] = useState(actionParam === "import");
+
+  useEffect(() => {
+    if (actionParam === "import") {
+      setImportOpen(true);
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("action");
+        return next;
+      }, { replace: true });
+    }
+  }, [actionParam, setSearchParams]);
 
   // Delete confirmation state
   const [deletingCard, setDeletingCard] = useState<CardType | null>(null);

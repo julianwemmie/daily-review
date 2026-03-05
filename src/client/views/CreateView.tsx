@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,8 +14,9 @@ import { Input } from "@/components/ui/input";
 import { Kbd } from "@/components/Kbd.js";
 import { useCreateCard } from "@/hooks/useCards.js";
 import { useHotkey } from "@/lib/useHotkey.js";
+import { ROUTES } from "@/lib/routes.js";
 
-export default function UploadView() {
+export default function CreateView() {
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
   const [tags, setTags] = useState("");
@@ -68,6 +70,15 @@ export default function UploadView() {
 
   return (
     <div className="flex flex-col items-center">
+      <p className="w-full max-w-2xl mb-3 text-sm text-muted-foreground">
+        Looking to import from Anki or Mochi?{" "}
+        <Link
+          to={`${ROUTES.list}?action=import`}
+          className="underline hover:text-foreground transition-colors"
+        >
+          Import here
+        </Link>
+      </p>
       <Card className="w-full max-w-2xl">
         <form onSubmit={handleSubmit}>
           <CardHeader>

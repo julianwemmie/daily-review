@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { Upload, AlertTriangle, FileUp, Check } from "lucide-react";
+import { Download, AlertTriangle, FileUp, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -309,7 +309,7 @@ export default function ImportModal({
                 Cancel
               </Button>
               <Button onClick={handleImport} disabled={importing}>
-                <Upload className="h-4 w-4 mr-1.5" />
+                <Download className="h-4 w-4" />
                 Import {parseResult.cards.length.toLocaleString()} card{parseResult.cards.length !== 1 ? "s" : ""}
               </Button>
             </DialogFooter>
