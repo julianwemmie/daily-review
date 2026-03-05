@@ -17,6 +17,9 @@ interface BulkDeleteModalProps {
   cards: Card[];
   onDelete: (ids: string[]) => void;
   isDeleting: boolean;
+  statusFilter?: string;
+  tagPills?: string[];
+  searchQuery?: string;
 }
 
 export default function BulkDeleteModal({
@@ -25,7 +28,11 @@ export default function BulkDeleteModal({
   cards,
   onDelete,
   isDeleting,
+  statusFilter,
+  tagPills = [],
+  searchQuery,
 }: BulkDeleteModalProps) {
+  const hasFilters = (statusFilter && statusFilter !== "all") || tagPills.length > 0 || !!searchQuery;
   const [unchecked, setUnchecked] = useState<Set<string>>(new Set());
 
   const checkedCount = cards.length - unchecked.size;
@@ -70,6 +77,25 @@ export default function BulkDeleteModal({
             Delete {cards.length} card{cards.length !== 1 ? "s" : ""}?
           </DialogTitle>
         </DialogHeader>
+
+        {hasFilters ? (
+          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            <span>Filtered by:</span>
+            {statusFilter && statusFilter !== "all" && (
+              <Badge variant="secondary" className="text-[10px]">{statusFilter}</Badge>
+            )}
+            {tagPills.map((tag) => (
+              <Badge key={tag} variant="outline" className="text-[10px]">{tag}</Badge>
+            ))}
+            {searchQuery && (
+              <Badge variant="outline" className="text-[10px]">"{searchQuery}"</Badge>
+            )}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Tip: Use the search bar to filter cards before deleting.
+          </p>
+        )}
 
         <div className="flex flex-col gap-2">
           {/* Select all */}
