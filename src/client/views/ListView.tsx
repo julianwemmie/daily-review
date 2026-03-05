@@ -227,6 +227,8 @@ export default function ListView() {
   const [editingCard, setEditingCard] = useState<CardType | null>(null);
   const [editFront, setEditFront] = useState("");
   const [editBack, setEditBack] = useState("");
+  const [editTags, setEditTags] = useState<string[]>([]);
+  const [newTagInput, setNewTagInput] = useState("");
 
   const deleteMutation = useDeleteCard();
   const updateMutation = useUpdateCard();
@@ -320,6 +322,8 @@ export default function ListView() {
     setEditingCard(card);
     setEditFront(card.front);
     setEditBack(card.back ?? "");
+    setEditTags(card.tags ?? []);
+    setNewTagInput("");
   }
 
   const editSaving = updateMutation.isPending;
@@ -333,13 +337,14 @@ export default function ListView() {
         data: {
           front: editFront.trim(),
           back: editBack.trim() || null,
+          tags: editTags.length > 0 ? editTags : null,
         },
       });
       setEditingCard(null);
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Failed to save card");
     }
-  }, [editingCard, editFront, editBack, editSaving, updateMutation]);
+  }, [editingCard, editFront, editBack, editTags, editSaving, updateMutation]);
 
   if (error && !loading) {
     return (
@@ -858,6 +863,44 @@ export default function ListView() {
                 onChange={(e) => setEditBack(e.target.value)}
                 rows={4}
               />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium">Tags</label>
+              <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                {editTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => setEditTags((prev) => prev.filter((t) => t !== tag))}
+                      className="ml-0.5 hover:text-destructive cursor-pointer"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+                <input
+                  placeholder={editTags.length === 0 ? "Add a tag..." : ""}
+                  value={newTagInput}
+                  onChange={(e) => setNewTagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.key === "Enter" || e.key === ",") && newTagInput.trim()) {
+                      e.preventDefault();
+                      const tag = newTagInput.trim().replace(/,/g, "");
+                      if (tag && !editTags.includes(tag)) {
+                        setEditTags((prev) => [...prev, tag]);
+                      }
+                      setNewTagInput("");
+                    } else if (e.key === "Backspace" && newTagInput === "" && editTags.length > 0) {
+                      setEditTags((prev) => prev.slice(0, -1));
+                    }
+                  }}
+                  className="flex-1 min-w-[80px] bg-transparent outline-none placeholder:text-muted-foreground"
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>
