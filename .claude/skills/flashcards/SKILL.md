@@ -52,22 +52,26 @@ Each card has three fields:
 
 ## Step 4: Upload
 
-Build a JSON array of card objects and run the script directly — do NOT check environment variables, inspect the server, or verify prerequisites first. Just run it:
+Build a JSON array of card objects and write it to a temporary file, then use the CLI to upload:
 
 ```bash
-bash .claude/skills/flashcards/upload-cards.sh '<json-array>'
+TMPFILE=$(mktemp /tmp/flashcards-XXXXXX.json)
+cat > "$TMPFILE" << 'CARDS_EOF'
+[{"front":"...","context":"...","tags":["..."]}]
+CARDS_EOF
+cd "<project-root>" && bun run cli upload "$TMPFILE"
+rm "$TMPFILE"
 ```
 
-The script handles its own validation and will produce a clear error if anything is wrong.
+The CLI handles authentication automatically (env var `DAILY_REVIEW_API_KEY`, config file, or session token from `bun run cli login`).
 
-If the script fails because `DAILY_REVIEW_API_KEY` is not set, **stop and tell the user**. Do NOT save cards to files or try workarounds. Just relay the error and tell them to:
+If the upload fails because the user is not authenticated, **stop and tell the user** to either:
 
-1. Go to the Daily Review app and generate an API key from the user menu
-2. Add it to their shell profile (`~/.zshrc` or `~/.bashrc`):
+1. Run `bun run cli login` to authenticate via the browser, or
+2. Add an API key to their shell profile (`~/.zshrc` or `~/.bashrc`):
    ```bash
    export DAILY_REVIEW_API_KEY="their-key-here"
    ```
-3. Restart their terminal (or `source ~/.zshrc`)
 
 ## Output
 
