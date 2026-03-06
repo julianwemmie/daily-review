@@ -17,7 +17,7 @@ const GAP_LEVELS = [
 
 const APP_URL = process.env.VITE_APP_URL || "http://localhost:3000";
 const UNSUBSCRIBE_SECRET = process.env.RESEND_UNSUBSCRIBE_SECRET || "change-me-in-production";
-const RESEND_FROM = process.env.RESEND_FROM || "Daily Review <notifications@dailyreview.app>";
+const RESEND_FROM = process.env.RESEND_FROM || "Amber <notifications@amber.cards>";
 
 // ---------------------------------------------------------------------------
 // Unsubscribe token helpers (HMAC-signed)
@@ -65,13 +65,13 @@ function buildEmailHtml(dueCount: number, unsubscribeUrl: string): string {
     <tr><td align="center">
       <table width="100%" style="max-width:480px;background:#ffffff;border-radius:8px;border:1px solid #e5e7eb;padding:32px;">
         <tr><td>
-          <h2 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#111827;">Daily Review</h2>
+          <h2 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#111827;">Amber</h2>
           <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#374151;">
             You have <strong>${dueCount}</strong> card${dueCount !== 1 ? "s" : ""} waiting for review.
           </p>
           <a href="${APP_URL}/review"
              style="display:inline-block;padding:10px 20px;background:#111827;color:#ffffff;text-decoration:none;border-radius:6px;font-size:14px;font-weight:500;">
-            Open Daily Review
+            Open Amber
           </a>
         </td></tr>
       </table>
@@ -205,7 +205,7 @@ export function mountUnsubscribeRoute(app: Express, db: DbProvider): void {
         <title>Unsubscribed</title></head>
         <body style="margin:0;padding:40px 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f9fafb;text-align:center;">
           <h2 style="color:#111827;">Unsubscribed</h2>
-          <p style="color:#374151;">You have been unsubscribed from Daily Review email notifications.</p>
+          <p style="color:#374151;">You have been unsubscribed from Amber email notifications.</p>
           <p style="color:#6b7280;font-size:14px;">You can re-enable notifications from your profile settings at any time.</p>
         </body>
         </html>

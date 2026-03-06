@@ -73,7 +73,7 @@ Tracks which inactivity nudge emails have been sent to each user so the schedule
 
 ### `deviceCode`
 
-OAuth device-code flow for CLI login (e.g. `daily-review login`).
+OAuth device-code flow for CLI login (e.g. `amber-cards login`).
 
 | Column | Notes |
 |---|---|

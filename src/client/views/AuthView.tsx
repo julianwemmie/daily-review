@@ -40,12 +40,12 @@ export default function AuthView() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
-      <h1 className="text-3xl font-bold mb-6">Daily Review</h1>
+      <h1 className="text-3xl font-bold mb-6">Amber</h1>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>{isSignUp ? "Create account" : "Sign in"}</CardTitle>
           <CardDescription>
-            {isSignUp ? "Get started with Daily Review" : "Welcome back"}
+            {isSignUp ? "Get started with Amber" : "Welcome back"}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">

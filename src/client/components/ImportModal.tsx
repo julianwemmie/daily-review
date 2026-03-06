@@ -63,7 +63,7 @@ export default function ImportModal({
 
     const ext = file.name.split(".").pop()?.toLowerCase();
     if (ext !== "apkg" && ext !== "mochi" && ext !== "json") {
-      setParseError("Unsupported file format. Please use .apkg (Anki), .mochi, or .json (Daily Review export) files.");
+      setParseError("Unsupported file format. Please use .apkg (Anki), .mochi, or .json (Amber export) files.");
       return;
     }
 
@@ -163,7 +163,7 @@ export default function ImportModal({
           </DialogTitle>
           {step === "select" && (
             <DialogDescription>
-              Import flashcards from Anki (.apkg), Mochi (.mochi), or Daily Review (.json) files.
+              Import flashcards from Anki (.apkg), Mochi (.mochi), or Amber (.json) files.
             </DialogDescription>
           )}
         </DialogHeader>
@@ -183,7 +183,7 @@ export default function ImportModal({
                   Drop a file here or click to browse
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Supports .apkg (Anki), .mochi, and .json (Daily Review) files
+                  Supports .apkg (Anki), .mochi, and .json (Amber) files
                 </p>
               </div>
             </div>
@@ -208,7 +208,7 @@ export default function ImportModal({
           <div className="flex flex-col gap-4 min-h-0 overflow-hidden">
             {/* File info */}
             <div className="flex items-center gap-2">
-              <Badge variant="outline">{parseResult.format === "anki" ? "Anki" : parseResult.format === "mochi" ? "Mochi" : "Daily Review"}</Badge>
+              <Badge variant="outline">{parseResult.format === "anki" ? "Anki" : parseResult.format === "mochi" ? "Mochi" : "Amber"}</Badge>
               <span className="text-sm text-muted-foreground truncate">{fileName}</span>
               <button
                 type="button"

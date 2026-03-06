@@ -157,7 +157,7 @@ export async function exportCards(opts?: { includeScheduling?: boolean; includeR
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "daily-review-export.json";
+  a.download = "amber-cards-export.json";
   a.click();
   URL.revokeObjectURL(url);
 }

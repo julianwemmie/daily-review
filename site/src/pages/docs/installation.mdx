@@ -9,18 +9,18 @@ title: Installation
 
 - Node.js 18 or later
 - A Claude Code installation (for the `/flashcards` skill)
-- A Daily Review account
+- A Amber account
 
 ## Install the CLI
 
 ```bash
-npm install -g daily-review
+npm install -g amber-cards
 ```
 
 Or use it directly with npx:
 
 ```bash
-npx daily-review upload
+npx amber-cards upload
 ```
 
 ## Authenticate
@@ -28,13 +28,13 @@ npx daily-review upload
 Log in from your terminal. This opens a browser window for authentication:
 
 ```bash
-daily-review login
+amber-cards login
 ```
 
-You can also authenticate with an API key. Generate one from the Daily Review web app under your profile settings, then:
+You can also authenticate with an API key. Generate one from the Amber web app under your profile settings, then:
 
 ```bash
-daily-review login --api-key YOUR_KEY
+amber-cards login --api-key YOUR_KEY
 ```
 
 ## Verify
@@ -42,7 +42,7 @@ daily-review login --api-key YOUR_KEY
 Check that everything is connected:
 
 ```bash
-daily-review status
+amber-cards status
 ```
 
 You should see your account info and card count.

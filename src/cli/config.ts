@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 
-const CONFIG_DIR = path.join(os.homedir(), ".daily-review");
+const CONFIG_DIR = path.join(os.homedir(), ".amber-cards");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 
 export interface CliConfig {
@@ -42,7 +42,7 @@ export function getAuth(optionKey?: string): AuthCredentials {
   // 1. Explicit API key flag
   if (optionKey) return { type: "api-key", token: optionKey };
   // 2. API key env var
-  if (process.env.DAILY_REVIEW_API_KEY) return { type: "api-key", token: process.env.DAILY_REVIEW_API_KEY };
+  if (process.env.AMBER_CARDS_API_KEY) return { type: "api-key", token: process.env.AMBER_CARDS_API_KEY };
 
   const config = loadConfig();
   // 3. Saved session token (from OAuth device flow)
@@ -52,15 +52,15 @@ export function getAuth(optionKey?: string): AuthCredentials {
 
   console.error(
     "Not authenticated. Log in via:\n" +
-    "  daily-review login          (browser OAuth)\n" +
-    "  daily-review login --api-key (API key)\n" +
-    "  DAILY_REVIEW_API_KEY env var"
+    "  amber-cards login          (browser OAuth)\n" +
+    "  amber-cards login --api-key (API key)\n" +
+    "  AMBER_CARDS_API_KEY env var"
   );
   process.exit(1);
 }
 
 export function getServerUrl(optionUrl?: string): string {
   if (optionUrl) return optionUrl;
-  if (process.env.DAILY_REVIEW_URL) return process.env.DAILY_REVIEW_URL;
+  if (process.env.AMBER_CARDS_URL) return process.env.AMBER_CARDS_URL;
   return loadConfig().serverUrl;
 }

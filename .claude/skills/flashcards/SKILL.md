@@ -1,5 +1,5 @@
 ---
-description: Generate flashcards from today's conversations and upload them to Daily Review
+description: Generate flashcards from today's conversations and upload them to Amber
 context: fork
 ---
 
@@ -63,14 +63,14 @@ cd "<project-root>" && bun run cli upload "$TMPFILE"
 rm "$TMPFILE"
 ```
 
-The CLI handles authentication automatically (env var `DAILY_REVIEW_API_KEY`, config file, or session token from `bun run cli login`).
+The CLI handles authentication automatically (env var `AMBER_CARDS_API_KEY`, config file, or session token from `bun run cli login`).
 
 If the upload fails because the user is not authenticated, **stop and tell the user** to either:
 
 1. Run `bun run cli login` to authenticate via the browser, or
 2. Add an API key to their shell profile (`~/.zshrc` or `~/.bashrc`):
    ```bash
-   export DAILY_REVIEW_API_KEY="their-key-here"
+   export AMBER_CARDS_API_KEY="their-key-here"
    ```
 
 ## Output

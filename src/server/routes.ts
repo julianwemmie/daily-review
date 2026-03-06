@@ -162,7 +162,7 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
         cards: exportCards,
       };
 
-      res.setHeader("Content-Disposition", `attachment; filename="daily-review-export.json"`);
+      res.setHeader("Content-Disposition", `attachment; filename="amber-cards-export.json"`);
       res.json(payload);
     } catch (err) {
       console.error("GET /api/cards/export error:", err);

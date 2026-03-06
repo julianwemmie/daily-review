@@ -10,8 +10,8 @@ import { loginCommand } from "./commands/login.js";
 import { statusCommand } from "./commands/status.js";
 
 program
-  .name("daily-review")
-  .description("Daily Review CLI — spaced repetition flashcards")
+  .name("amber-cards")
+  .description("Amber CLI — spaced repetition flashcards")
   .version("0.0.1");
 
 program.addCommand(uploadCommand);

@@ -13,7 +13,7 @@ interface ExportPayload {
 }
 
 /**
- * Parse a Daily Review JSON export file back into ImportedCards.
+ * Parse an Amber JSON export file back into ImportedCards.
  * Accepts either a string or ArrayBuffer.
  */
 export function parseJsonFile(input: ArrayBuffer | string): ParseResult {

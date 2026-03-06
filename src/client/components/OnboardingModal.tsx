@@ -16,7 +16,7 @@ interface OnboardingModalProps {
 
 const STEPS = [
   {
-    title: "Welcome to Daily Review",
+    title: "Welcome to Amber",
     content: (
       <p className="text-sm text-muted-foreground">
         Turn your Claude Code conversations into flashcards and retain what you learn through spaced repetition.

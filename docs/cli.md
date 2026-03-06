@@ -3,17 +3,17 @@
 Command-line tool for managing flashcards and running review sessions outside the web UI.
 
 ```
-daily-review <command> [options]
+amber-cards <command> [options]
 ```
 
 ## Authentication
 
-Run `daily-review login` before using other commands. Two methods are available:
+Run `amber-cards login` before using other commands. Two methods are available:
 
-- **Browser login (default)**: `daily-review login` — opens a browser window using the OAuth device flow. Approve the code shown in the terminal and the session token is saved automatically.
-- **API key**: `daily-review login --api-key` — prompts for an API key (generate one in the web app). Useful for headless environments.
+- **Browser login (default)**: `amber-cards login` — opens a browser window using the OAuth device flow. Approve the code shown in the terminal and the session token is saved automatically.
+- **API key**: `amber-cards login --api-key` — prompts for an API key (generate one in the web app). Useful for headless environments.
 
-You can also set the `DAILY_REVIEW_API_KEY` env var to skip login entirely. See [Authentication](auth.md) for full details on auth resolution order.
+You can also set the `AMBER_CARDS_API_KEY` env var to skip login entirely. See [Authentication](auth.md) for full details on auth resolution order.
 
 ## Commands
 
@@ -31,15 +31,15 @@ You can also set the `DAILY_REVIEW_API_KEY` env var to skip login entirely. See 
 
 Accepts cards three ways:
 
-1. **JSON file** — `daily-review upload cards.json` (array of `{front, back?, tags?}`)
-2. **Inline** — `daily-review upload --front "Question" --back "Answer" --tags "js,async"`
-3. **Interactive** — `daily-review upload` with no arguments prompts for front, back, and tags
+1. **JSON file** — `amber-cards upload cards.json` (array of `{front, back?, tags?}`)
+2. **Inline** — `amber-cards upload --front "Question" --back "Answer" --tags "js,async"`
+3. **Interactive** — `amber-cards upload` with no arguments prompts for front, back, and tags
 
 ### import
 
 ```
-daily-review import deck.apkg
-daily-review import deck.mochi --tags "imported,history" --preserve-scheduling
+amber-cards import deck.apkg
+amber-cards import deck.mochi --tags "imported,history" --preserve-scheduling
 ```
 
 `--tags <tags>` adds extra comma-separated tags to all imported cards. `--preserve-scheduling` attempts to map source scheduling data to FSRS parameters.
@@ -54,7 +54,7 @@ Both support `--json` for machine-readable output.
 
 ## Configuration
 
-Config is stored at `~/.daily-review/config.json` with these fields:
+Config is stored at `~/.amber-cards/config.json` with these fields:
 
 | Field | Description |
 |-------|-------------|
@@ -62,7 +62,7 @@ Config is stored at `~/.daily-review/config.json` with these fields:
 | `apiKey` | Saved API key |
 | `sessionToken` | Saved OAuth session token |
 
-Override the server URL per-command with `--server <url>` or the `DAILY_REVIEW_URL` env var.
+Override the server URL per-command with `--server <url>` or the `AMBER_CARDS_URL` env var.
 
 ## Global Options
 
