@@ -306,6 +306,9 @@ export default function TriageView() {
                   >
                     <Card className="w-full">
                       <CardContent className="space-y-4">
+                        {isFront && !editingFront && !editingBack && (
+                          <p className="text-xs text-muted-foreground/60 text-center">click card text to edit</p>
+                        )}
                         {isFront && editingFront ? (
                           <div>
                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
