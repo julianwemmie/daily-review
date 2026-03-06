@@ -1,5 +1,5 @@
 ---
-status: open
+status: done
 type: feature
 created: 2026-03-06
 ---

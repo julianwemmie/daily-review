@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { z } from "zod";
 import { CardStatus, CardState, Rating as AppRating, type DbProvider, type Card, type CardEdit, type CardListFilters } from "./db/db-provider.js";
 import { type LlmGrader } from "./grader/llm.js";
+import { type SttProvider } from "./stt/stt.js";
 import { newCardSchedule, reschedule } from "./scheduling.js";
 import { validate } from "./middleware/validate.js";
 
@@ -38,7 +39,7 @@ const BatchIdsBody = z.object({
   ids: z.array(z.string().uuid()).min(1).max(500),
 });
 
-export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): void {
+export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader, stt?: SttProvider): void {
   // -------------------------------------------------------
   // POST /api/cards -- Create a single card
   // -------------------------------------------------------
@@ -412,6 +413,33 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader): v
     } catch (err) {
       console.error("POST /api/onboarding/complete error:", err);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // -------------------------------------------------------
+  // POST /api/transcribe -- Speech-to-text via Whisper
+  // Accepts raw audio body with Content-Type header
+  // -------------------------------------------------------
+  app.post("/api/transcribe", async (req: Request, res: Response) => {
+    try {
+      if (!stt) {
+        res.status(501).json({ error: "Speech-to-text not configured (set OPENAI_API_KEY)" });
+        return;
+      }
+
+      const contentType = req.headers["content-type"] || "audio/webm";
+      const audio = req.body as Buffer;
+
+      if (audio.length === 0) {
+        res.status(400).json({ error: "No audio data received" });
+        return;
+      }
+
+      const result = await stt.transcribe(audio, contentType);
+      res.json({ text: result.text });
+    } catch (err) {
+      console.error("POST /api/transcribe error:", err);
+      res.status(502).json({ error: "Transcription failed" });
     }
   });
 }

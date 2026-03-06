@@ -122,3 +122,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes voice-wave {
+  0%, 100% { height: 8px; y: 8px; }
+  50% { height: 16px; y: 4px; }
+}

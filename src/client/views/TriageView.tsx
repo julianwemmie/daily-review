@@ -10,7 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Kbd } from "@/components/Kbd.js";
 import { useTriageCards, useInvalidateCards, useBatchAcceptCards, useBatchDeleteCards } from "@/hooks/useCards.js";
-import { acceptCard, deleteCard } from "@/lib/api.js";
+import { acceptCard, deleteCard, updateCard } from "@/lib/api.js";
 import { useHotkey } from "@/lib/useHotkey.js";
 
 const STACK_SIZE = 3;
@@ -23,9 +23,9 @@ const stackStyles = [
 
 const springTransition = {
   type: "spring" as const,
-  stiffness: 500,
-  damping: 35,
-  mass: 0.8,
+  stiffness: 350,
+  damping: 30,
+  mass: 1,
 };
 
 export default function TriageView() {
@@ -33,7 +33,13 @@ export default function TriageView() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [showBack, setShowBack] = useState(false);
+  const [direction, setDirection] = useState<1 | -1>(1);
+
+  // Inline editing state
+  const [editingFront, setEditingFront] = useState(false);
+  const [editingBack, setEditingBack] = useState(false);
+  const [editedFront, setEditedFront] = useState<string | null>(null);
+  const [editedBack, setEditedBack] = useState<string | null>(null);
 
   // Local removals to allow optimistic card-by-card dismissal
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
@@ -50,11 +56,18 @@ export default function TriageView() {
 
   const error = actionError ?? (queryError ? queryError.message : null);
 
+  const resetEditState = useCallback(() => {
+    setEditingFront(false);
+    setEditingBack(false);
+    setEditedFront(null);
+    setEditedBack(null);
+  }, []);
+
   const removeCard = useCallback((id: string) => {
     setRemovedIds((prev) => new Set(prev).add(id));
     setCurrentIndex((idx) => Math.min(idx, Math.max(0, visibleCards.length - 2)));
-    setShowBack(false);
-  }, [visibleCards.length]);
+    resetEditState();
+  }, [visibleCards.length, resetEditState]);
 
   const restoreCard = useCallback((id: string) => {
     setRemovedIds((prev) => {
@@ -68,12 +81,23 @@ export default function TriageView() {
   const batchAccept = useBatchAcceptCards();
   const batchDelete = useBatchDeleteCards();
 
+  const hasEdits = editedFront !== null || editedBack !== null;
+
+  const saveEdits = useCallback(async (cardId: string) => {
+    if (!hasEdits) return;
+    const patch: { front?: string; back?: string } = {};
+    if (editedFront !== null) patch.front = editedFront;
+    if (editedBack !== null) patch.back = editedBack;
+    await updateCard(cardId, patch);
+  }, [hasEdits, editedFront, editedBack]);
+
   const handleAccept = useCallback(async () => {
     const card = visibleCards[currentIndex];
     if (!card || actionLoading) return;
     try {
       setActionLoading(true);
       setActionError(null);
+      if (hasEdits) await saveEdits(card.id);
       removeCard(card.id);
       await acceptCard(card.id);
       invalidate();
@@ -83,7 +107,7 @@ export default function TriageView() {
     } finally {
       setActionLoading(false);
     }
-  }, [visibleCards, currentIndex, actionLoading, invalidate, removeCard, restoreCard]);
+  }, [visibleCards, currentIndex, actionLoading, invalidate, removeCard, restoreCard, hasEdits, saveEdits]);
 
   const handleDiscard = useCallback(async () => {
     const card = visibleCards[currentIndex];
@@ -115,13 +139,14 @@ export default function TriageView() {
       });
       await batchAccept.mutateAsync(ids);
       setCurrentIndex(0);
+      resetEditState();
     } catch (err) {
       setRemovedIds(new Set());
       setActionError(err instanceof Error ? err.message : "Failed to accept all");
     } finally {
       setActionLoading(false);
     }
-  }, [visibleCards, actionLoading, batchAccept]);
+  }, [visibleCards, actionLoading, batchAccept, resetEditState]);
 
   const handleDiscardAll = useCallback(async () => {
     if (actionLoading || visibleCards.length === 0) return;
@@ -136,29 +161,37 @@ export default function TriageView() {
       });
       await batchDelete.mutateAsync(ids);
       setCurrentIndex(0);
+      resetEditState();
     } catch (err) {
       setRemovedIds(new Set());
       setActionError(err instanceof Error ? err.message : "Failed to discard all");
     } finally {
       setActionLoading(false);
     }
-  }, [visibleCards, actionLoading, batchDelete]);
+  }, [visibleCards, actionLoading, batchDelete, resetEditState]);
 
   const goNext = useCallback(() => {
+    setDirection(1);
     setCurrentIndex((i) => (i + 1) % visibleCards.length);
-    setShowBack(false);
-  }, [visibleCards.length]);
+    resetEditState();
+  }, [visibleCards.length, resetEditState]);
 
   const goPrev = useCallback(() => {
+    setDirection(-1);
     setCurrentIndex((i) => (i - 1 + visibleCards.length) % visibleCards.length);
-    setShowBack(false);
-  }, [visibleCards.length]);
+    resetEditState();
+  }, [visibleCards.length, resetEditState]);
 
   const hasCard = visibleCards.length > 0;
   useHotkey({ key: "1", onPress: handleAccept, enabled: hasCard });
   useHotkey({ key: "2", onPress: handleDiscard, enabled: hasCard });
   useHotkey({ key: "ArrowDown", onPress: goNext, enabled: hasCard });
   useHotkey({ key: "ArrowUp", onPress: goPrev, enabled: hasCard });
+  useHotkey({
+    key: "Escape",
+    allowInInput: true,
+    onPress: () => (document.activeElement as HTMLElement)?.blur(),
+  });
 
   if (loading) {
     return (
@@ -192,6 +225,10 @@ export default function TriageView() {
   for (let offset = 0; offset < Math.min(STACK_SIZE, visibleCards.length); offset++) {
     stackIndices.push((currentIndex + offset) % visibleCards.length);
   }
+
+  const currentCard = visibleCards[currentIndex];
+  const displayFront = editedFront ?? currentCard?.front ?? "";
+  const displayBack = editedBack ?? currentCard?.back ?? "";
 
   return (
     <LazyMotion features={domAnimation}>
@@ -231,7 +268,7 @@ export default function TriageView() {
 
         {/* Animated card stack */}
         <div className="relative w-full max-w-2xl" style={{ minHeight: 200 }}>
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence mode="popLayout" custom={direction}>
             {stackIndices
               .slice()
               .reverse()
@@ -244,16 +281,17 @@ export default function TriageView() {
                 return (
                   <m.div
                     key={card.id}
-                    initial={false}
+                    custom={direction}
+                    initial={{ y: direction * 20, scale: 0.97, opacity: 0 }}
                     animate={{
                       y: style.y,
                       scale: style.scale,
                       opacity: style.opacity,
                     }}
                     exit={{
-                      x: 300,
+                      y: -40,
                       opacity: 0,
-                      transition: { duration: 0.25 },
+                      transition: { duration: 0.35 },
                     }}
                     transition={springTransition}
                     style={{
@@ -267,30 +305,62 @@ export default function TriageView() {
                   >
                     <Card className="w-full">
                       <CardContent className="space-y-4">
-                        <div className="whitespace-pre-wrap text-base font-semibold leading-relaxed">
-                          {card.front}
-                        </div>
+                        {isFront && editingFront ? (
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                              Front
+                            </p>
+                            <textarea
+                              className="w-full resize-none rounded border border-input bg-background p-2 text-base font-semibold leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
+                              value={displayFront}
+                              onChange={(e) => setEditedFront(e.target.value)}
+
+                              onBlur={() => setEditingFront(false)}
+                              autoFocus
+                              rows={3}
+                            />
+                          </div>
+                        ) : (
+                          <div
+                            className={isFront ? "cursor-text rounded p-1 -m-1 hover:bg-muted/50 transition-colors" : ""}
+                            onClick={isFront ? () => setEditingFront(true) : undefined}
+                          >
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                              Front
+                            </p>
+                            <div className="whitespace-pre-wrap text-base font-semibold leading-relaxed">
+                              {isFront ? displayFront : card.front}
+                            </div>
+                          </div>
+                        )}
                         {isFront && card.back && (
-                          showBack ? (
+                          editingBack ? (
+                            <div className="pt-6">
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                                Back
+                              </p>
+                              <textarea
+                                className="w-full resize-none rounded border border-input bg-background p-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
+                                value={displayBack}
+                                onChange={(e) => setEditedBack(e.target.value)}
+  
+                                onBlur={() => setEditingBack(false)}
+                                autoFocus
+                                rows={3}
+                              />
+                            </div>
+                          ) : (
                             <div
-                              className="rounded border border-dashed p-3 cursor-pointer"
-                              onClick={() => setShowBack(false)}
+                              className="pt-6 cursor-text rounded p-1 -m-1 hover:bg-muted/50 transition-colors"
+                              onClick={() => setEditingBack(true)}
                             >
                               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
                                 Back
                               </p>
                               <p className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
-                                {card.back}
+                                {displayBack}
                               </p>
                             </div>
-                          ) : (
-                            <button
-                              type="button"
-                              className="w-full rounded border border-dashed p-3 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:bg-muted/50 transition-colors cursor-pointer"
-                              onClick={() => setShowBack(true)}
-                            >
-                              Show answer
-                            </button>
                           )
                         )}
                         {isFront && card.tags && card.tags.length > 0 && (
