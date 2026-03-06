@@ -58,10 +58,7 @@ Determine the worktree path and branch name from `git worktree list`.
 
 **This must happen before committing so the task change is included in the PR.**
 
-Look in `<worktree-path>/tasks/` for any open task file whose slug matches or closely relates to the branch name. If the user specified or heavily implied a task, or if there's an obvious match, move it to done:
-- `mkdir -p <worktree-path>/tasks/done/`
-- Move the file from `<worktree-path>/tasks/` to `<worktree-path>/tasks/done/`
-- Update the frontmatter status to `done`
+Look in `<worktree-path>/tasks/` for any open task file whose slug matches or closely relates to the branch name. If the user specified or heavily implied a task, or if there's an obvious match, move it to done following the **"Moving tasks to done"** section of the task skill (`.claude/skills/task/SKILL.md`). Read that skill file for the current conventions on where done tasks go and how to update them.
 
 If no matching task is found, skip this step silently.
 
