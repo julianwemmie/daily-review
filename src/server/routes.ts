@@ -1,11 +1,27 @@
 import { type Express, type Request, type Response } from "express";
 import crypto from "crypto";
 import { z } from "zod";
+import Anthropic from "@anthropic-ai/sdk";
 import { CardStatus, CardState, Rating as AppRating, type DbProvider, type Card, type CardEdit, type CardListFilters } from "./db/db-provider.js";
 import { type LlmGrader } from "./grader/llm.js";
 import { type SttProvider } from "./stt/stt.js";
 import { newCardSchedule, reschedule } from "./scheduling.js";
 import { validate } from "./middleware/validate.js";
+
+// Per-user rate limiter for expensive AI endpoints
+const analyzeRateLimit = new Map<string, number[]>();
+const ANALYZE_WINDOW_MS = 60_000;
+const ANALYZE_MAX_PER_WINDOW = 5;
+
+function isRateLimited(userId: string): boolean {
+  const now = Date.now();
+  const timestamps = analyzeRateLimit.get(userId) ?? [];
+  const recent = timestamps.filter((t) => now - t < ANALYZE_WINDOW_MS);
+  analyzeRateLimit.set(userId, recent);
+  if (recent.length >= ANALYZE_MAX_PER_WINDOW) return true;
+  recent.push(now);
+  return false;
+}
 
 const CreateCardBody = z.object({
   front: z.string().min(1),
@@ -40,6 +56,7 @@ const BatchIdsBody = z.object({
 });
 
 export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader, stt?: SttProvider): void {
+  const anthropic = process.env.ANTHROPIC_API_KEY ? new Anthropic() : null;
   // -------------------------------------------------------
   // POST /api/cards -- Create a single card
   // -------------------------------------------------------
@@ -361,6 +378,93 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader, st
     } catch (err) {
       console.error("POST /api/cards/:id/review error:", err);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // -------------------------------------------------------
+  // GET /api/stats -- Home tab aggregate stats
+  // -------------------------------------------------------
+  app.get("/api/stats", async (req: Request, res: Response) => {
+    try {
+      const stats = await db.getStats(req.user!.id);
+      res.json(stats);
+    } catch (err) {
+      console.error("GET /api/stats error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // -------------------------------------------------------
+  // GET /api/cards/:id/review-logs -- Review history for a card
+  // -------------------------------------------------------
+  app.get("/api/cards/:id/review-logs", async (req: Request<{ id: string }>, res: Response) => {
+    try {
+      const logs = await db.getReviewLogsForCard(req.params.id, req.user!.id);
+      res.json(logs);
+    } catch (err) {
+      console.error("GET /api/cards/:id/review-logs error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // -------------------------------------------------------
+  // POST /api/cards/:id/analyze -- AI quality/consistency analysis
+  // -------------------------------------------------------
+  app.post("/api/cards/:id/analyze", async (req: Request<{ id: string }>, res: Response) => {
+    try {
+      if (!anthropic) {
+        res.status(501).json({ error: "AI analysis not configured" });
+        return;
+      }
+
+      if (isRateLimited(req.user!.id)) {
+        res.status(429).json({ error: "Too many analysis requests. Try again in a minute." });
+        return;
+      }
+
+      const card = await db.getCardById(req.params.id, req.user!.id);
+      if (!card) {
+        res.status(404).json({ error: "Card not found" });
+        return;
+      }
+
+      const logs = await db.getReviewLogsForCard(req.params.id, req.user!.id);
+      if (logs.length === 0) {
+        res.status(400).json({ error: "No review history to analyze" });
+        return;
+      }
+
+      const reviewHistory = logs
+        .map((l, i) => {
+          const score = l.llm_score != null ? ` (score: ${l.llm_score.toFixed(2)})` : "";
+          return `Review ${i + 1} [${l.reviewed_at.slice(0, 10)}, rated ${l.rating}${score}]:\n${l.answer ?? "(no answer recorded)"}`;
+        })
+        .join("\n\n");
+
+      let prompt = `FLASHCARD FRONT:\n${card.front}\n\n`;
+      if (card.back) prompt += `FLASHCARD BACK:\n${card.back}\n\n`;
+      prompt += `REVIEW HISTORY (${logs.length} reviews, oldest first):\n${reviewHistory}`;
+
+      const response = await anthropic.messages.create({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 512,
+        system: `You are a learning analytics assistant for a spaced repetition app. Analyze the learner's review history for a single flashcard and assess the quality and depth of their answers over time.
+
+Focus on:
+- Are answers getting lazier, shorter, or more formulaic over time?
+- Is the learner showing genuine understanding or just pattern-matching keywords?
+- Are there concerning trends (declining quality, copy-paste-like answers)?
+- What's the overall trajectory: improving, stable, or declining?
+
+Be direct and specific. Use 2-4 sentences. If answers are strong and consistent, say so briefly. If there are concerns, explain what you see.`,
+        messages: [{ role: "user", content: prompt }],
+      });
+
+      const textBlock = response.content.find((b) => b.type === "text");
+      res.json({ analysis: textBlock?.type === "text" ? textBlock.text : "Unable to generate analysis." });
+    } catch (err) {
+      console.error("POST /api/cards/:id/analyze error:", err);
+      res.status(502).json({ error: "AI analysis failed" });
     }
   });
 

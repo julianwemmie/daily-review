@@ -1,7 +1,7 @@
 // Database provider interface — program to this, swap implementations freely.
 
-export { CardStatus, CardState, Rating, type Card } from "../../shared/types.js";
-import type { CardStatus, CardState, Card } from "../../shared/types.js";
+export { CardStatus, CardState, Rating, type Card, type ReviewLog, type UserStats } from "../../shared/types.js";
+import type { CardStatus, CardState, Card, ReviewLog, UserStats } from "../../shared/types.js";
 
 export interface CardEdit {
   front?: string;
@@ -67,4 +67,6 @@ export interface DbProvider {
   getOnboardingCompleted(userId: string): Promise<boolean>;
   setOnboardingCompleted(userId: string): Promise<void>;
   getReviewLogsForCards(cardIds: string[]): Promise<ReviewLogInsert[]>;
+  getStats(userId: string): Promise<UserStats>;
+  getReviewLogsForCard(cardId: string, userId: string): Promise<ReviewLog[]>;
 }

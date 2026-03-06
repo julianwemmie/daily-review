@@ -1,1 +1,1 @@
-export { CardStatus, CardState, Rating, type Card } from "../../shared/types.js";
+export { CardStatus, CardState, Rating, type Card, type ReviewLog, type UserStats } from "../../shared/types.js";

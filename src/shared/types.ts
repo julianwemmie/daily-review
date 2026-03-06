@@ -44,3 +44,22 @@ export interface Card {
   last_review: string | null;
   status: CardStatus;
 }
+
+export interface ReviewLog {
+  id: string;
+  card_id: string;
+  rating: string;
+  answer: string | null;
+  llm_score: number | null;
+  llm_feedback: string | null;
+  reviewed_at: string;
+}
+
+export interface UserStats {
+  totalActiveCards: number;
+  totalReviews: number;
+  averageLlmScore: number | null;
+  currentStreak: number;
+  longestStreak: number;
+  contributionGrid: { date: string; count: number }[];
+}

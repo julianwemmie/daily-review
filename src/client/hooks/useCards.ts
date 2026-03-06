@@ -13,9 +13,11 @@ import {
   updateCard,
   createCard,
   reviewCard,
+  fetchStats,
+  fetchCardReviewLogs,
   type DueCardsResponse,
 } from "@/lib/api.js";
-import { type Card, type CardStatus, type Rating } from "@/lib/types.js";
+import { type Card, type CardStatus, type Rating, type UserStats, type ReviewLog } from "@/lib/types.js";
 
 // ---- Query key factories ----
 
@@ -26,6 +28,8 @@ export const cardKeys = {
   list: (filters?: { status?: string; q?: string }) =>
     [...cardKeys.all, "list", filters ?? {}] as const,
   counts: () => [...cardKeys.all, "counts"] as const,
+  stats: () => ["stats"] as const,
+  reviewLogs: (cardId: string) => ["reviewLogs", cardId] as const,
 };
 
 // ---- Query hooks ----
@@ -55,6 +59,22 @@ export function useCounts() {
   return useQuery<{ new: number; due: number }>({
     queryKey: cardKeys.counts(),
     queryFn: fetchCounts,
+  });
+}
+
+export function useStats() {
+  return useQuery<UserStats>({
+    queryKey: cardKeys.stats(),
+    queryFn: fetchStats,
+    staleTime: 60_000,
+  });
+}
+
+export function useCardReviewLogs(cardId: string | null) {
+  return useQuery<ReviewLog[]>({
+    queryKey: cardKeys.reviewLogs(cardId!),
+    queryFn: () => fetchCardReviewLogs(cardId!),
+    enabled: !!cardId,
   });
 }
 

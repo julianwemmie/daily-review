@@ -15,6 +15,7 @@ import ReviewView from "@/views/ReviewView.js";
 import CreateView from "@/views/CreateView.js";
 import ExploreView from "@/views/ExploreView.js";
 import DeviceView from "@/views/DeviceView.js";
+import HomeView from "@/views/HomeView.js";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,6 +27,7 @@ const queryClient = new QueryClient({
 });
 
 const ALL_TAB_ROUTES = [
+  { value: ROUTES.home, label: "Home", countKey: null, hideWhenZero: false },
   { value: ROUTES.review, label: "Review", countKey: "due", hideWhenZero: false },
   { value: ROUTES.explore, label: "Explore", countKey: null, hideWhenZero: false },
   { value: ROUTES.triage, label: "New", countKey: "new", hideWhenZero: true },
@@ -88,7 +90,7 @@ function AppLayout() {
 
   const currentTab = visibleTabs.some((r) => r.value === location.pathname)
     ? location.pathname
-    : ROUTES.review;
+    : ROUTES.home;
 
   return (
     <div className="min-h-screen bg-background">
@@ -125,11 +127,12 @@ function AppLayout() {
         </Tabs>
 
         <Routes>
+          <Route path={ROUTES.home} element={<HomeView />} />
           <Route path={ROUTES.review} element={<ReviewView />} />
           <Route path={ROUTES.triage} element={<TriageView />} />
           <Route path={ROUTES.explore} element={<ExploreView />} />
           <Route path={ROUTES.create} element={<CreateView />} />
-          <Route path="*" element={<Navigate to={ROUTES.review} replace />} />
+          <Route path="*" element={<Navigate to={ROUTES.home} replace />} />
         </Routes>
       </div>
 
