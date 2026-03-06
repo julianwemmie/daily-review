@@ -1,6 +1,6 @@
 # Task Dependency Analysis
 
-_Generated 2026-03-06 — 16 open tasks_
+_Generated 2026-03-06 — 14 open tasks_
 
 ## Groups by Topic
 
@@ -12,14 +12,12 @@ _Generated 2026-03-06 — 16 open tasks_
 | Publish CLI to npm & update Claude skill | chore | `cli-distribution/2026-03-05-chore-cli-npm-publish.md` |
 | Auto flashcard generation (plugin) | feature | `cli-distribution/2026-03-05-feature-auto-flashcard-generation.md` |
 
-### 2. Branding & Navigation (5 tasks)
+### 2. Branding & Navigation (3 tasks)
 
 | Task | Type | File |
 |------|------|------|
 | Rebrand to Amber | chore | `branding-navigation/2026-03-06-chore-rebrand-to-amber.md` |
-| Rename List to Explore | chore | `branding-navigation/2026-03-06-chore-rename-list-to-explore.md` |
-| Swap default route to review | chore | `branding-navigation/2026-03-05-chore-swap-default-route-to-review.md` |
-| Conditional New tab | feature | `branding-navigation/2026-03-06-feature-conditional-new-tab.md` |
+| Navigation restructure | chore | `branding-navigation/2026-03-06-chore-navigation-restructure.md` |
 | Add favicon | feature | `branding-navigation/2026-03-04-feature-add-favicon.md` |
 
 ### 3. Card Review UX (3 tasks)
@@ -54,10 +52,8 @@ rebrand-to-amber
 │    ├──► auto-flashcard-generation  (plugin uses CLI for upload)
 │    └── unit-tests-cli  (tests should pass before publish)
 │
-rename-list-to-explore
+navigation-restructure  (rename List→Explore, default route→Review, conditional New tab)
 └──► explore-card-clusters  (builds on the renamed Explore tab)
-
-swap-default-route-to-review ─── conditional-new-tab  (both change nav; do together or sequentially)
 
 stats-dashboard ◄─── ai-answer-consistency-analysis  (consistency data feeds into stats)
 
@@ -72,7 +68,7 @@ stats-dashboard ◄─── ai-answer-consistency-analysis  (consistency data f
 ## Recommended Execution Order
 
 1. **`rebrand-to-amber`** — Do first. Touches app name, routes, package name. Doing it later means redoing work.
-2. **`rename-list-to-explore`** + **`swap-default-route-to-review`** + **`conditional-new-tab`** — Quick nav/UI chores, batch together.
+2. **`navigation-restructure`** — Rename List→Explore, default to Review, conditional New tab (consolidated).
 3. **`add-favicon`** — After rebrand, since it should use the Amber identity.
 4. **`unit-tests-cli`** → **`cli-npm-publish`** → **`auto-flashcard-generation`** — CLI pipeline in order.
 5. **Card UX fixes** (`carousel-animation`, `front-back-view-edit`) — Independent, do anytime.
