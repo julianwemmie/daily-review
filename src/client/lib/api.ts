@@ -177,3 +177,13 @@ export async function setNotificationPreference(enabled: boolean): Promise<void>
   });
   if (!res.ok) throw new Error(`Failed to update notification preference: ${res.statusText}`);
 }
+
+export async function transcribeAudio(audioBlob: Blob): Promise<{ text: string }> {
+  const res = await fetch("/api/transcribe", {
+    method: "POST",
+    headers: { "Content-Type": audioBlob.type || "audio/webm" },
+    body: audioBlob,
+  });
+  if (!res.ok) throw new Error(`Failed to transcribe audio: ${res.statusText}`);
+  return res.json();
+}

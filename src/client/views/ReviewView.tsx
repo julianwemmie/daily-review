@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Mic } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +13,7 @@ import { evaluateCard } from "@/lib/api.js";
 import { Rating } from "@/lib/types.js";
 import { useDueCards, useReviewCard } from "@/hooks/useCards.js";
 import { useHotkey } from "@/lib/useHotkey.js";
+import { useVoiceInput } from "@/hooks/useVoiceInput.js";
 
 function formatTimeUntil(isoDate: string): string {
   const diff = new Date(isoDate).getTime() - Date.now();
@@ -63,6 +65,12 @@ export default function ReviewView() {
   }
 
   const showingResult = !!evaluation || selfGraded;
+
+  const voice = useVoiceInput(
+    useCallback((text: string) => {
+      setAnswer((prev) => (prev ? prev + " " + text : text));
+    }, [])
+  );
 
   const handleEvaluate = useCallback(async () => {
     const card = cards[currentIndex];
@@ -129,6 +137,7 @@ export default function ReviewView() {
   useHotkey({ key: "2", onPress: () => handleRate(RATING_ORDER[1]), enabled: hasCard && showingResult });
   useHotkey({ key: "3", onPress: () => handleRate(RATING_ORDER[2]), enabled: hasCard && showingResult });
   useHotkey({ key: "4", onPress: () => handleRate(RATING_ORDER[3]), enabled: hasCard && showingResult });
+  useHotkey({ key: "m", onPress: voice.toggle, enabled: hasCard && !showingResult });
 
   if (loading) {
     return (
@@ -202,13 +211,44 @@ export default function ReviewView() {
             {currentCard.front}
           </div>
 
-          <Textarea
-            placeholder="Type your answer..."
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            rows={4}
-            disabled={evaluating || showingResult}
-          />
+          {voice.error && (
+            <p className="text-sm text-destructive">{voice.error}</p>
+          )}
+
+          <div className="relative">
+            <Textarea
+              placeholder="Type your answer..."
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              rows={4}
+              disabled={evaluating || showingResult}
+            />
+            <button
+              type="button"
+              onClick={voice.toggle}
+              disabled={evaluating || showingResult}
+              className={`absolute right-2 bottom-2 flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
+                voice.recording
+                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/80"
+                  : voice.transcribing
+                    ? "bg-muted text-muted-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              } disabled:opacity-50 disabled:pointer-events-none`}
+              title={voice.recording ? "Stop recording" : voice.transcribing ? "Transcribing..." : "Record answer (M)"}
+            >
+              {voice.recording ? (
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none">
+                  <rect x="4" y="8" width="2" rx="1" className="fill-red-300 animate-[voice-wave_0.8s_ease-in-out_infinite]" />
+                  <rect x="11" y="5" width="2" rx="1" className="fill-red-300 animate-[voice-wave_0.8s_ease-in-out_0.15s_infinite]" />
+                  <rect x="18" y="8" width="2" rx="1" className="fill-red-300 animate-[voice-wave_0.8s_ease-in-out_0.3s_infinite]" />
+                </svg>
+              ) : voice.transcribing ? (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              ) : (
+                <Mic className="h-4 w-4" />
+              )}
+            </button>
+          </div>
 
           {evaluation && (
             <div className="rounded-lg border p-4 space-y-2">
