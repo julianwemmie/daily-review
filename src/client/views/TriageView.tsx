@@ -181,8 +181,9 @@ export default function TriageView() {
 
   if (visibleCards.length === 0) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-muted-foreground">No new cards to review</p>
+      <div className="flex flex-col items-center justify-center py-12 gap-2">
+        <p className="text-lg font-medium">All caught up!</p>
+        <p className="text-sm text-muted-foreground">No new cards to triage</p>
       </div>
     );
   }

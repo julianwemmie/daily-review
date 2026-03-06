@@ -73,7 +73,7 @@ export default function CreateView() {
       <p className="w-full max-w-2xl mb-3 text-sm text-muted-foreground">
         Looking to import from Anki or Mochi?{" "}
         <Link
-          to={`${ROUTES.list}?action=import`}
+          to={`${ROUTES.explore}?action=import`}
           className="underline hover:text-foreground transition-colors"
         >
           Import here

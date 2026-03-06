@@ -72,7 +72,7 @@ type SortDirection = "asc" | "desc";
 
 type StatusFilter = "all" | CardType["status"];
 
-export default function ListView() {
+export default function ExploreView() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
