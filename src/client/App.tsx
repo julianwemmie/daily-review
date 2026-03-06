@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +13,7 @@ import AuthView from "@/views/AuthView.js";
 import TriageView from "@/views/TriageView.js";
 import ReviewView from "@/views/ReviewView.js";
 import CreateView from "@/views/CreateView.js";
-import ListView from "@/views/ListView.js";
+import ExploreView from "@/views/ExploreView.js";
 import DeviceView from "@/views/DeviceView.js";
 
 const queryClient = new QueryClient({
@@ -25,11 +25,11 @@ const queryClient = new QueryClient({
   },
 });
 
-const TAB_ROUTES = [
-  { value: ROUTES.triage, label: "New", countKey: "new" },
-  { value: ROUTES.review, label: "Review", countKey: "due" },
-  { value: ROUTES.list, label: "List", countKey: null },
-  { value: ROUTES.create, label: "Create", countKey: null },
+const ALL_TAB_ROUTES = [
+  { value: ROUTES.review, label: "Review", countKey: "due", hideWhenZero: false },
+  { value: ROUTES.explore, label: "Explore", countKey: null, hideWhenZero: false },
+  { value: ROUTES.triage, label: "New", countKey: "new", hideWhenZero: true },
+  { value: ROUTES.create, label: "Create", countKey: null, hideWhenZero: false },
 ] as const;
 
 function AppLayout() {
@@ -63,24 +63,32 @@ function AppLayout() {
     }
   }
 
-  const currentTabIndex = TAB_ROUTES.findIndex((r) => r.value === location.pathname);
+  const visibleTabs = useMemo(() => {
+    return ALL_TAB_ROUTES.filter((route) => {
+      if (!route.hideWhenZero) return true;
+      if (route.value === location.pathname) return true;
+      return counts && route.countKey && counts[route.countKey] > 0;
+    });
+  }, [counts, location.pathname]);
+
+  const currentTabIndex = visibleTabs.findIndex((r) => r.value === location.pathname);
 
   const goLeft = useCallback(() => {
-    const prev = currentTabIndex > 0 ? currentTabIndex - 1 : TAB_ROUTES.length - 1;
-    navigate(TAB_ROUTES[prev].value);
-  }, [currentTabIndex, navigate]);
+    const prev = currentTabIndex > 0 ? currentTabIndex - 1 : visibleTabs.length - 1;
+    navigate(visibleTabs[prev].value);
+  }, [currentTabIndex, visibleTabs, navigate]);
 
   const goRight = useCallback(() => {
-    const next = currentTabIndex < TAB_ROUTES.length - 1 ? currentTabIndex + 1 : 0;
-    navigate(TAB_ROUTES[next].value);
-  }, [currentTabIndex, navigate]);
+    const next = currentTabIndex < visibleTabs.length - 1 ? currentTabIndex + 1 : 0;
+    navigate(visibleTabs[next].value);
+  }, [currentTabIndex, visibleTabs, navigate]);
 
   useHotkey({ key: "ArrowLeft", onPress: goLeft });
   useHotkey({ key: "ArrowRight", onPress: goRight });
 
-  const currentTab = TAB_ROUTES.some((r) => r.value === location.pathname)
+  const currentTab = visibleTabs.some((r) => r.value === location.pathname)
     ? location.pathname
-    : "/";
+    : ROUTES.review;
 
   return (
     <div className="min-h-screen bg-background">
@@ -97,7 +105,7 @@ function AppLayout() {
         <Tabs value={currentTab} onValueChange={(val) => navigate(val)} className="mb-8">
           <div className="flex items-center gap-3">
             <TabsList>
-              {TAB_ROUTES.map((route) => (
+              {visibleTabs.map((route) => (
                 <TabsTrigger key={route.value} value={route.value} className="gap-1.5">
                   {route.label}
                   {route.countKey && counts && counts[route.countKey] > 0 && (
@@ -117,11 +125,11 @@ function AppLayout() {
         </Tabs>
 
         <Routes>
-          <Route path={ROUTES.triage} element={<TriageView />} />
           <Route path={ROUTES.review} element={<ReviewView />} />
-          <Route path={ROUTES.list} element={<ListView />} />
+          <Route path={ROUTES.triage} element={<TriageView />} />
+          <Route path={ROUTES.explore} element={<ExploreView />} />
           <Route path={ROUTES.create} element={<CreateView />} />
-          <Route path="*" element={<Navigate to={ROUTES.triage} replace />} />
+          <Route path="*" element={<Navigate to={ROUTES.review} replace />} />
         </Routes>
       </div>
 
