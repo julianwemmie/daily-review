@@ -30,8 +30,8 @@ const ALL_TAB_ROUTES = [
   { value: ROUTES.home, label: "Home", countKey: null, hideWhenZero: false },
   { value: ROUTES.review, label: "Review", countKey: "due", hideWhenZero: false },
   { value: ROUTES.explore, label: "Explore", countKey: null, hideWhenZero: false },
-  { value: ROUTES.triage, label: "New", countKey: "new", hideWhenZero: true },
   { value: ROUTES.create, label: "Create", countKey: null, hideWhenZero: false },
+  { value: ROUTES.triage, label: "New", countKey: "new", hideWhenZero: true },
 ] as const;
 
 function AppLayout() {
