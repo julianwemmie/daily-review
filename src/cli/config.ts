@@ -52,8 +52,8 @@ export function getAuth(optionKey?: string): AuthCredentials {
 
   console.error(
     "Not authenticated. Log in via:\n" +
-    "  amber-cards login          (browser OAuth)\n" +
-    "  amber-cards login --api-key (API key)\n" +
+    "  amber login          (browser OAuth)\n" +
+    "  amber login --api-key (API key)\n" +
     "  AMBER_CARDS_API_KEY env var"
   );
   process.exit(1);
