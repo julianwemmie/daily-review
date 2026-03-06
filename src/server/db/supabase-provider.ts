@@ -8,7 +8,7 @@ import type {
   DueCardsResult,
   CardCounts,
 } from "./db-provider.js";
-import type { Card } from "../../shared/types.js";
+import type { Card, UserStats, ReviewLog } from "../../shared/types.js";
 
 function rowToCard(row: Record<string, unknown>): Card {
   return {
@@ -233,6 +233,142 @@ function makeProvider(client: SupabaseClient): DbProvider {
         .order("reviewed_at", { ascending: true });
       if (error) throw error;
       return (data ?? []) as ReviewLogInsert[];
+    },
+
+    async getStats(userId: string): Promise<UserStats> {
+      // Run independent queries in parallel
+      const gridCutoff = new Date();
+      gridCutoff.setUTCDate(gridCutoff.getUTCDate() - 365);
+      const cutoffStr = gridCutoff.toISOString();
+
+      const cardIdsPromise = client
+        .from("cards")
+        .select("id")
+        .eq("user_id", userId);
+
+      const activeCountPromise = client
+        .from("cards")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("status", "active");
+
+      const [cardIdsResult, activeCountResult] = await Promise.all([cardIdsPromise, activeCountPromise]);
+
+      if (cardIdsResult.error) throw cardIdsResult.error;
+      if (activeCountResult.error) throw activeCountResult.error;
+
+      const cardIds = (cardIdsResult.data ?? []).map((r) => r.id);
+
+      if (cardIds.length === 0) {
+        return {
+          totalActiveCards: 0,
+          totalReviews: 0,
+          averageLlmScore: null,
+          currentStreak: 0,
+          longestStreak: 0,
+          contributionGrid: [],
+        };
+      }
+
+      // Fetch total count (head-only) and recent logs for grid/streaks in parallel
+      const totalCountPromise = client
+        .from("review_logs")
+        .select("*", { count: "exact", head: true })
+        .in("card_id", cardIds);
+
+      const recentLogsPromise = client
+        .from("review_logs")
+        .select("reviewed_at, llm_score")
+        .in("card_id", cardIds)
+        .gte("reviewed_at", cutoffStr)
+        .order("reviewed_at", { ascending: true });
+
+      const [totalCountResult, recentLogsResult] = await Promise.all([totalCountPromise, recentLogsPromise]);
+
+      if (totalCountResult.error) throw totalCountResult.error;
+      if (recentLogsResult.error) throw recentLogsResult.error;
+
+      const totalReviews = totalCountResult.count ?? 0;
+      const recentLogs = recentLogsResult.data ?? [];
+
+      // Average llm_score (only scored reviews within recent window)
+      const scored = recentLogs.filter((l) => l.llm_score != null);
+      const averageLlmScore =
+        scored.length > 0
+          ? scored.reduce((sum, l) => sum + l.llm_score!, 0) / scored.length
+          : null;
+
+      // Group by UTC date for contribution grid and streak calculation
+      const dateCounts = new Map<string, number>();
+      for (const log of recentLogs) {
+        const day = log.reviewed_at.slice(0, 10); // YYYY-MM-DD (already UTC from DB)
+        dateCounts.set(day, (dateCounts.get(day) ?? 0) + 1);
+      }
+
+      const contributionGrid = Array.from(dateCounts.entries())
+        .map(([date, count]) => ({ date, count }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      // Streak calculation using UTC dates
+      const reviewDates = new Set(dateCounts.keys());
+      const todayUTC = new Date().toISOString().slice(0, 10);
+
+      // Helper: get previous UTC date string
+      function prevDay(dateStr: string): string {
+        const d = new Date(dateStr + "T00:00:00Z");
+        d.setUTCDate(d.getUTCDate() - 1);
+        return d.toISOString().slice(0, 10);
+      }
+
+      // Current streak: walk backwards from today (or yesterday if no reviews today)
+      let currentStreak = 0;
+      let cursor = reviewDates.has(todayUTC) ? todayUTC : prevDay(todayUTC);
+      while (reviewDates.has(cursor)) {
+        currentStreak++;
+        cursor = prevDay(cursor);
+      }
+
+      // Longest streak: walk through sorted dates
+      let longestStreak = 0;
+      let streak = 0;
+      const sortedDates = Array.from(reviewDates).sort();
+      for (let i = 0; i < sortedDates.length; i++) {
+        if (i === 0) {
+          streak = 1;
+        } else {
+          streak = prevDay(sortedDates[i]) === sortedDates[i - 1] ? streak + 1 : 1;
+        }
+        if (streak > longestStreak) longestStreak = streak;
+      }
+
+      return {
+        totalActiveCards: activeCountResult.count ?? 0,
+        totalReviews,
+        averageLlmScore,
+        currentStreak,
+        longestStreak,
+        contributionGrid,
+      };
+    },
+
+    async getReviewLogsForCard(cardId: string, userId: string): Promise<ReviewLog[]> {
+      // Verify card belongs to user
+      const { data: card, error: cardErr } = await client
+        .from("cards")
+        .select("id")
+        .eq("id", cardId)
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (cardErr) throw cardErr;
+      if (!card) return [];
+
+      const { data, error } = await client
+        .from("review_logs")
+        .select("*")
+        .eq("card_id", cardId)
+        .order("reviewed_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as ReviewLog[];
     },
   };
 }

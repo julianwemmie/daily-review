@@ -1,5 +1,6 @@
 export const ROUTES = {
-  review: "/",
+  home: "/",
+  review: "/review",
   triage: "/new",
   explore: "/explore",
   create: "/create",

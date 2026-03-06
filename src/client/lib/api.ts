@@ -1,4 +1,4 @@
-import { CardStatus, type Card, type Rating } from "./types.js";
+import { CardStatus, type Card, type Rating, type UserStats, type ReviewLog } from "./types.js";
 
 export async function fetchCounts(): Promise<{ new: number; due: number }> {
   const res = await fetch("/api/cards/counts");
@@ -160,6 +160,26 @@ export async function exportCards(opts?: { includeScheduling?: boolean; includeR
   a.download = "amber-cards-export.json";
   a.click();
   URL.revokeObjectURL(url);
+}
+
+export type { UserStats, ReviewLog } from "./types.js";
+
+export async function fetchStats(): Promise<UserStats> {
+  const res = await fetch("/api/stats");
+  if (!res.ok) throw new Error(`Failed to fetch stats: ${res.statusText}`);
+  return res.json();
+}
+
+export async function fetchCardReviewLogs(cardId: string): Promise<ReviewLog[]> {
+  const res = await fetch(`/api/cards/${cardId}/review-logs`);
+  if (!res.ok) throw new Error(`Failed to fetch review logs: ${res.statusText}`);
+  return res.json();
+}
+
+export async function analyzeCard(cardId: string): Promise<{ analysis: string }> {
+  const res = await fetch(`/api/cards/${cardId}/analyze`, { method: "POST" });
+  if (!res.ok) throw new Error(`Failed to analyze card: ${res.statusText}`);
+  return res.json();
 }
 
 export async function getNotificationPreference(): Promise<boolean> {

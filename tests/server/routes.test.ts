@@ -51,6 +51,16 @@ function createMockDb(): DbProvider {
     setEmailNotificationsEnabled: vi.fn(async () => {}),
     getOnboardingCompleted: vi.fn(async () => false),
     setOnboardingCompleted: vi.fn(async () => {}),
+    getReviewLogsForCards: vi.fn(async () => []),
+    getStats: vi.fn(async () => ({
+      totalActiveCards: 0,
+      totalReviews: 0,
+      averageLlmScore: null,
+      currentStreak: 0,
+      longestStreak: 0,
+      contributionGrid: [],
+    })),
+    getReviewLogsForCard: vi.fn(async () => []),
   };
 }
 

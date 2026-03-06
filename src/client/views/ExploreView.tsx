@@ -30,6 +30,7 @@ import { useListCards, useDeleteCard, useUpdateCard, useBatchDeleteCards } from 
 import { exportCards } from "@/lib/api.js";
 import ImportModal from "@/components/ImportModal.js";
 import BulkDeleteModal from "@/components/BulkDeleteModal.js";
+import CardStatsModal from "@/components/CardStatsModal.js";
 import { CardStatus, type Card as CardType } from "@/lib/types.js";
 
 type ViewMode = "list" | "grid";
@@ -219,6 +220,9 @@ export default function ExploreView() {
       }, { replace: true });
     }
   }, [actionParam, setSearchParams]);
+
+  // Card stats modal state
+  const [statsCard, setStatsCard] = useState<CardType | null>(null);
 
   // Delete confirmation state
   const [deletingCard, setDeletingCard] = useState<CardType | null>(null);
@@ -682,7 +686,7 @@ export default function ExploreView() {
                       <tr
                         key={card.id}
                         className="border-b last:border-b-0 hover:bg-muted/50 cursor-pointer transition-colors"
-                        onClick={() => openEdit(card)}
+                        onClick={() => setStatsCard(card)}
                       >
                         <td className="px-4 py-2.5 max-w-0">
                           <p className="truncate font-medium">{card.front}</p>
@@ -756,7 +760,7 @@ export default function ExploreView() {
             {/* ── Mobile card list fallback ── */}
             <div className="flex sm:hidden flex-col gap-4">
               {cards.map((card) => (
-                <Card key={card.id} className="w-full gap-1 cursor-pointer" onClick={() => openEdit(card)}>
+                <Card key={card.id} className="w-full gap-1 cursor-pointer" onClick={() => setStatsCard(card)}>
                   <CardHeader className="pb-2">
                     <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                       <Badge variant={statusVariants[card.status]}>
@@ -779,6 +783,13 @@ export default function ExploreView() {
           )}
         </>
       )}
+
+      {/* Card stats modal */}
+      <CardStatsModal
+        card={statsCard}
+        open={!!statsCard}
+        onOpenChange={(open) => !open && setStatsCard(null)}
+      />
 
       {/* Bulk delete modal */}
       <BulkDeleteModal
