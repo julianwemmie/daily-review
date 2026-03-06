@@ -2,7 +2,61 @@
 
 A spaced repetition app that turns Claude Code conversations into flashcards.
 
-## Tech Stack
+## CLI
+
+Install the CLI to manage flashcards from your terminal:
+
+```bash
+npm install -g amber-cards
+```
+
+### Authenticate
+
+```bash
+amber login            # browser OAuth
+amber login --api-key  # paste an API key instead
+```
+
+Or set the `AMBER_CARDS_API_KEY` environment variable.
+
+### Commands
+
+| Command | Description |
+| --- | --- |
+| `amber upload [file]` | Create cards from a JSON file or inline |
+| `amber list` | List cards (supports `--status`, `--query`, `--json`) |
+| `amber review` | Interactive spaced repetition session |
+| `amber delete <ids...>` | Delete cards by ID |
+| `amber import <file>` | Import from Anki (.apkg), Mochi (.mochi), or Amber (.json) |
+| `amber export` | Export all cards to JSON |
+| `amber status` | Show card counts and review status |
+| `amber login` | Authenticate with the Amber server |
+
+### Auto-flashcard plugin
+
+Install the Claude Code plugin to automatically generate flashcards from your conversations:
+
+```bash
+amber install-plugin
+```
+
+Configure at the plugin directory (path shown after install):
+
+```json
+{
+  "debounce_minutes": 10,
+  "included_directories": [],
+  "excluded_directories": []
+}
+```
+
+Requires `claude` CLI or `ANTHROPIC_API_KEY`. See `amber uninstall-plugin` to remove.
+
+---
+
+## Web App Development
+
+### Tech Stack
 
 - React 19, Vite, Tailwind CSS, shadcn/ui
 - Express 5, TypeScript
@@ -11,54 +65,13 @@ A spaced repetition app that turns Claude Code conversations into flashcards.
 - better-auth (authentication)
 - Anthropic SDK (LLM grading)
 
-## Getting Started
+### Getting Started
 
-### 1. Install dependencies
+1. Install dependencies: `npm install`
+2. Copy `.env.example` to `.env` and fill in the values
+3. Start Supabase: `supabase start && supabase migration up`
+4. Run the dev server: `npm run dev`
 
-```sh
-npm install
-```
-
-### 2. Set up environment variables
-
-```sh
-cp .env.example .env
-```
-
-Fill in the values:
-
-| Variable | Description |
-| --- | --- |
-| `SUPABASE_URL` | Supabase API URL (default `http://127.0.0.1:54321` for local) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key |
-| `ANTHROPIC_API_KEY` | Anthropic API key for LLM grading |
-| `BETTER_AUTH_SECRET` | Secret for better-auth session signing |
-| `BETTER_AUTH_URL` | Public URL for auth callbacks |
-| `DATABASE_URL` | Postgres connection string |
-| `PORT` | Server port |
-| `VITE_APP_URL` | Public app URL (used client-side) |
-
-### 3. Set up Supabase locally
-
-```sh
-supabase start
-supabase migration up
-```
-
-### 4. Run the dev server
-
-```sh
-npm run dev
-```
-
-## Scripts
-
-| Script | Command | Description |
-| --- | --- | --- |
-| `dev` | `nodemon -w src/server -x tsx src/server/main.ts` | Start dev server with auto-reload |
-| `start` | `NODE_ENV=production tsx src/server/main.ts` | Start production server |
-| `build` | `vite build` | Build client bundle |
-
-## Docs
+### Docs
 
 See [`docs/`](docs/) for a project overview.

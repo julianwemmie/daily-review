@@ -10,11 +10,17 @@ async function deviceFlow(serverUrl: string): Promise<void> {
   const spinner = p.spinner();
   spinner.start("Requesting device code");
 
-  const res = await fetch(`${serverUrl}/auth/device/code`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: CLIENT_ID }),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${serverUrl}/auth/device/code`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ client_id: CLIENT_ID }),
+    });
+  } catch {
+    spinner.stop("Connection failed");
+    throw new Error(`Could not reach server at ${serverUrl}. Is it running?`);
+  }
 
   if (!res.ok) {
     spinner.stop("Failed to request device code");
@@ -116,9 +122,14 @@ export const loginCommand = new Command("login")
   .action(async (opts) => {
     const serverUrl = getServerUrl(opts.server).replace(/\/$/, "");
 
-    if (opts.apiKey) {
-      await apiKeyFlow(serverUrl);
-    } else {
-      await deviceFlow(serverUrl);
+    try {
+      if (opts.apiKey) {
+        await apiKeyFlow(serverUrl);
+      } else {
+        await deviceFlow(serverUrl);
+      }
+    } catch (err: any) {
+      p.log.error(err.message);
+      process.exit(1);
     }
   });

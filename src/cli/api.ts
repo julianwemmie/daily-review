@@ -28,14 +28,19 @@ export class ApiClient {
   }
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
-    const res = await fetch(`${this.baseUrl}${path}`, {
-      ...init,
-      headers: {
-        "Content-Type": "application/json",
-        ...this.authHeader(),
-        ...init?.headers,
-      },
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${this.baseUrl}${path}`, {
+        ...init,
+        headers: {
+          "Content-Type": "application/json",
+          ...this.authHeader(),
+          ...init?.headers,
+        },
+      });
+    } catch {
+      throw new Error(`Could not reach server at ${this.baseUrl}. Is it running?`);
+    }
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
