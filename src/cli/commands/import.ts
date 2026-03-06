@@ -10,7 +10,7 @@ import { parseJsonFile } from "../../shared/parsers/json-parser.js";
 import { mapImportedCards, IMPORT_BATCH_SIZE, MAX_IMPORT_FILE_SIZE } from "../../shared/parsers/card-mapper.js";
 
 export const importCommand = new Command("import")
-  .description("Import flashcards from Anki (.apkg), Mochi (.mochi), or Daily Review (.json) files")
+  .description("Import flashcards from Anki (.apkg), Mochi (.mochi), or Amber (.json) files")
   .argument("<file>", "Path to .apkg, .mochi, or .json file")
   .option("--preserve-scheduling", "Attempt to map source scheduling data to FSRS parameters")
   .option("--tags <tags>", "Extra comma-separated tags to add to all imported cards")
@@ -32,7 +32,7 @@ export const importCommand = new Command("import")
     // Detect format from extension
     const ext = path.extname(filePath).toLowerCase();
     if (ext !== ".apkg" && ext !== ".mochi" && ext !== ".json") {
-      p.log.error("Unsupported file format. Please use .apkg (Anki), .mochi, or .json (Daily Review export) files.");
+      p.log.error("Unsupported file format. Please use .apkg (Anki), .mochi, or .json (Amber export) files.");
       process.exit(1);
     }
 
@@ -59,7 +59,7 @@ export const importCommand = new Command("import")
           ? await parseAnkiFile(arrayBuffer)
           : await parseMochiFile(arrayBuffer);
 
-      const formatLabel = result.format === "anki" ? "Anki" : result.format === "mochi" ? "Mochi" : "Daily Review";
+      const formatLabel = result.format === "anki" ? "Anki" : result.format === "mochi" ? "Mochi" : "Amber";
       spinner.stop(`Parsed ${result.cards.length} card${result.cards.length !== 1 ? "s" : ""} from ${formatLabel} file`);
 
       // Show warnings

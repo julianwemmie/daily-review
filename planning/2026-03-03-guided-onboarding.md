@@ -30,7 +30,7 @@ New component. A multi-step Dialog with 3 pages and Next/Back/Done navigation.
 
 | Step | Title | Content |
 |------|-------|---------|
-| 0 | Welcome to Daily Review | Brief explanation: spaced repetition app that turns your Claude Code conversations into flashcards. Cards surface at optimal intervals so you retain what you learn. |
+| 0 | Welcome to Amber | Brief explanation: spaced repetition app that turns your Claude Code conversations into flashcards. Cards surface at optimal intervals so you retain what you learn. |
 | 1 | The Core Loop | Three-phase explanation: **Generate** (use `/flashcards` in Claude Code after a conversation) → **Triage** (review generated cards in the New tab — accept or discard) → **Review** (answer cards when they're due, get AI feedback) |
 | 2 | Setting Up Claude Code | Explain: 1) Generate an API key from the profile menu, 2) The `/flashcards` skill in Claude Code will use this key to upload cards, 3) After a coding session run `/flashcards` to generate cards from your conversation |
 

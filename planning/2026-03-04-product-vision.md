@@ -1,8 +1,8 @@
-# Product Vision — Daily Review
+# Product Vision — Amber
 
 _2026-03-04_
 
-## What is Daily Review?
+## What is Amber?
 
 A beautiful, opinionated spaced repetition app that just works. No decks, no config, no multiple choice — just cards, active recall, and a smart algorithm. Built for people who value craft in their tools. AI is deeply integrated but never required.
 
@@ -36,7 +36,7 @@ Easy and fun simultaneously.
 
 - Anki is ugly and overwhelming with configuration
 - Mochi is nice but has no AI integration
-- Daily Review sits in between: beautiful and minimal like Mochi, with deep AI integration that no one else has
+- Amber sits in between: beautiful and minimal like Mochi, with deep AI integration that no one else has
 
 ## AI integration
 
@@ -47,13 +47,13 @@ Easy and fun simultaneously.
 
 ## CLI vision
 
-Standalone CLI tool (`daily-review`), not tied to any specific AI tool. Any AI agent (Claude, Cursor, Copilot, Windsurf) can use it. Paired with a Claude Code skill for the best experience, but the CLI itself is AI-agnostic.
+Standalone CLI tool (`amber-cards`), not tied to any specific AI tool. Any AI agent (Claude, Cursor, Copilot, Windsurf) can use it. Paired with a Claude Code skill for the best experience, but the CLI itself is AI-agnostic.
 
 Commands:
-- `daily-review login` — authenticate
-- `daily-review add "question" "answer"` — create a card
-- `daily-review review` — interactive review session in the terminal
-- `daily-review status` — how many cards are due
+- `amber-cards login` — authenticate
+- `amber-cards add "question" "answer"` — create a card
+- `amber-cards review` — interactive review session in the terminal
+- `amber-cards status` — how many cards are due
 
 ## Import / export
 

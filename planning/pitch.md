@@ -1,8 +1,8 @@
-# Daily Review, Week 5 Pitch
+# Amber, Week 5 Pitch
 
 ## What's Being Built
 
-Daily Review is a spaced repetition app that turns Claude Code conversations into flashcards. A Claude Code skill (`/flashcards`) parses coding sessions, extracts key concepts, and generates cards. Users review them through a web UI where they answer in free-form text. An LLM grader scores the response instead of comparing against a rigid answer. FSRS handles the scheduling.
+Amber is a spaced repetition app that turns Claude Code conversations into flashcards. A Claude Code skill (`/flashcards`) parses coding sessions, extracts key concepts, and generates cards. Users review them through a web UI where they answer in free-form text. An LLM grader scores the response instead of comparing against a rigid answer. FSRS handles the scheduling.
 
 **Stack:** React, Express, Postgres (Supabase), BetterAuth, Tailwind/shadcn, ts-fsrs, deployed on Railway.
 

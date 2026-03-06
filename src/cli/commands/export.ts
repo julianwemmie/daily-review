@@ -7,7 +7,7 @@ import { getAuth, getServerUrl } from "../config.js";
 
 export const exportCommand = new Command("export")
   .description("Export all flashcards to a JSON file")
-  .option("-o, --output <file>", "Output file path (default: daily-review-export.json)")
+  .option("-o, --output <file>", "Output file path (default: amber-cards-export.json)")
   .option("--include-scheduling", "Include FSRS scheduling data (default: true)")
   .option("--no-include-scheduling", "Exclude FSRS scheduling data")
   .option("--include-review-history", "Include review history (default: true)")
@@ -29,7 +29,7 @@ export const exportCommand = new Command("export")
         includeReviewHistory: opts.includeReviewHistory,
       });
 
-      const outputPath = path.resolve(opts.output ?? "daily-review-export.json");
+      const outputPath = path.resolve(opts.output ?? "amber-cards-export.json");
       fs.writeFileSync(outputPath, JSON.stringify(data, null, 2));
 
       spinner.stop(

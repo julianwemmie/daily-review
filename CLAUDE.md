@@ -1,4 +1,4 @@
-# Daily Review
+# Amber
 
 A spaced repetition app that turns Claude Code conversations into flashcards.
 

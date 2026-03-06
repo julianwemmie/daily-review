@@ -2,7 +2,7 @@ import { Command } from "commander";
 import * as p from "@clack/prompts";
 import { saveConfig, loadConfig, getServerUrl } from "../config.js";
 
-const CLIENT_ID = "daily-review-cli";
+const CLIENT_ID = "amber-cards-cli";
 const POLL_INTERVAL_MS = 5000;
 const TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -67,7 +67,7 @@ async function deviceFlow(serverUrl: string): Promise<void> {
     if (data.access_token && typeof data.access_token === "string") {
       saveConfig({ sessionToken: data.access_token, serverUrl });
       pollSpinner.stop("Logged in!");
-      p.log.success("Session saved to ~/.daily-review/config.json");
+      p.log.success("Session saved to ~/.amber-cards/config.json");
       return;
     }
 
@@ -106,11 +106,11 @@ async function apiKeyFlow(serverUrl: string): Promise<void> {
   if (key) config.apiKey = key as string;
 
   saveConfig(config);
-  p.log.success("API key saved to ~/.daily-review/config.json");
+  p.log.success("API key saved to ~/.amber-cards/config.json");
 }
 
 export const loginCommand = new Command("login")
-  .description("Authenticate with Daily Review (browser OAuth by default)")
+  .description("Authenticate with Amber (browser OAuth by default)")
   .option("--api-key", "Use API key instead of browser login")
   .option("--server <url>", "Server URL")
   .action(async (opts) => {
