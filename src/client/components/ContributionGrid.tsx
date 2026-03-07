@@ -13,13 +13,21 @@ const LABEL_W = 28; // day-label column width
 const DAYS = ["", "Mon", "", "Wed", "", "Fri", ""];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+const INTENSITY_LEVELS = [
+  "bg-muted",
+  "bg-[oklch(0.750_0.060_110)] dark:bg-[oklch(0.400_0.050_110)]",
+  "bg-[oklch(0.650_0.080_115)] dark:bg-[oklch(0.450_0.060_115)]",
+  "bg-[oklch(0.565_0.097_123)] dark:bg-[oklch(0.520_0.075_120)]",
+  "bg-[oklch(0.480_0.097_123)] dark:bg-[oklch(0.580_0.090_123)]",
+] as const;
+
 function getIntensity(count: number, max: number): string {
-  if (count === 0) return "bg-muted";
+  if (count === 0) return INTENSITY_LEVELS[0];
   const ratio = count / max;
-  if (ratio <= 0.25) return "bg-emerald-300/60 dark:bg-emerald-900/60";
-  if (ratio <= 0.5) return "bg-emerald-400/70 dark:bg-emerald-700/70";
-  if (ratio <= 0.75) return "bg-emerald-500/80 dark:bg-emerald-600/80";
-  return "bg-emerald-600 dark:bg-emerald-500";
+  if (ratio <= 0.25) return INTENSITY_LEVELS[1];
+  if (ratio <= 0.5) return INTENSITY_LEVELS[2];
+  if (ratio <= 0.75) return INTENSITY_LEVELS[3];
+  return INTENSITY_LEVELS[4];
 }
 
 export default function ContributionGrid({ data }: Props) {
@@ -135,11 +143,9 @@ export default function ContributionGrid({ data }: Props) {
         {/* Legend */}
         <div className="flex items-center gap-1 mt-1 ml-8">
           <span className="text-[10px] text-muted-foreground mr-0.5">Less</span>
-          <div className="h-[11px] w-[11px] rounded-[2px] bg-muted" />
-          <div className="h-[11px] w-[11px] rounded-[2px] bg-emerald-300/60 dark:bg-emerald-900/60" />
-          <div className="h-[11px] w-[11px] rounded-[2px] bg-emerald-400/70 dark:bg-emerald-700/70" />
-          <div className="h-[11px] w-[11px] rounded-[2px] bg-emerald-500/80 dark:bg-emerald-600/80" />
-          <div className="h-[11px] w-[11px] rounded-[2px] bg-emerald-600 dark:bg-emerald-500" />
+          {INTENSITY_LEVELS.map((cls, i) => (
+            <div key={i} className={`h-[11px] w-[11px] rounded-[2px] ${cls}`} />
+          ))}
           <span className="text-[10px] text-muted-foreground ml-0.5">More</span>
         </div>
       </div>

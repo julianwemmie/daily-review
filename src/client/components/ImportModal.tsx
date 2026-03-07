@@ -332,8 +332,8 @@ export default function ImportModal({
         {/* ── Step: Done ── */}
         {step === "done" && (
           <div className="flex flex-col items-center gap-4 py-8">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
-              <Check className="h-6 w-6 text-emerald-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-olive/10">
+              <Check className="h-6 w-6 text-olive" />
             </div>
             <div className="text-center">
               <p className="font-medium">

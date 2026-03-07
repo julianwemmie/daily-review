@@ -21,7 +21,7 @@ interface Props {
 const ratingColors: Record<string, string> = {
   Again: "text-red-500",
   Hard: "text-orange-500",
-  Good: "text-emerald-500",
+  Good: "text-olive",
   Easy: "text-blue-500",
 };
 

@@ -364,7 +364,7 @@ export default function ExploreView() {
   return (
     <div className="flex flex-col gap-4">
       {/* Category filters – pulled up to align with nav tabs */}
-      <div className="flex md:-mt-[4.3rem] md:justify-end">
+      <div className="flex md:-mt-[3.7rem] md:justify-end">
         <Tabs
           value={statusFilter}
           onValueChange={(v) => setStatusFilter(v as StatusFilter)}
@@ -646,7 +646,7 @@ export default function ExploreView() {
           ) : (
             <>
             {/* ── Table View (desktop) ── */}
-            <div className="hidden sm:block rounded-md border overflow-hidden">
+            <div className="hidden sm:block rounded-md border overflow-hidden bg-card">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">

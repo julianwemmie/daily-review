@@ -12,9 +12,9 @@ function StatCard({
   icon: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="rounded-lg border bg-card px-4 py-4 flex items-start gap-3">
-      <div className="rounded-md bg-muted p-2">
-        <Icon className="h-4 w-4 text-muted-foreground" />
+    <div className="rounded-lg border border-border/60 bg-card px-4 py-4 flex items-start gap-3">
+      <div className="rounded-md bg-terracotta/10 p-2">
+        <Icon className="h-4 w-4 text-terracotta" />
       </div>
       <div>
         <p className="text-2xl font-bold tabular-nums leading-tight">{value}</p>
@@ -56,7 +56,7 @@ export default function HomeView() {
       </div>
 
       {/* Contribution grid */}
-      <div className="rounded-lg border bg-card p-4">
+      <div className="rounded-lg border border-border/60 bg-card p-4">
         <p className="text-sm font-medium mb-3">Review Activity</p>
         <ContributionGrid data={stats.contributionGrid} />
       </div>
