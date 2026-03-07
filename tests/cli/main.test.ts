@@ -15,7 +15,7 @@ describe("CLI main program", () => {
     prog
       .name("amber")
       .description("Amber CLI — spaced repetition flashcards")
-      .version("0.6.0");
+      .version("0.7.0");
 
     // Add commands the same way main.ts does
     const { uploadCommand } = await import("../../src/cli/commands/upload.js");
