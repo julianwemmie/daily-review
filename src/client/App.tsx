@@ -96,7 +96,7 @@ function AppLayout() {
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight text-terracotta">Amber</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-terracotta">Amber</h1>
           <UserMenu onHelpClick={() => setOnboardingOpen(true)} />
         </div>
 
@@ -104,7 +104,7 @@ function AppLayout() {
           <p className="mb-4 text-sm text-destructive">{countsError.message}</p>
         )}
 
-        <Tabs value={currentTab} onValueChange={(val) => navigate(val)} className="mb-8">
+        <Tabs value={currentTab} onValueChange={(val) => navigate(val)} className="mb-6">
           <div className="flex items-center gap-3">
             <TabsList>
               {visibleTabs.map((route) => (
