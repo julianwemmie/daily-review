@@ -15,7 +15,7 @@ describe("CLI main program", () => {
     prog
       .name("amber")
       .description("Amber CLI — spaced repetition flashcards")
-      .version("0.5.0");
+      .version("0.6.0");
 
     // Add commands the same way main.ts does
     const { uploadCommand } = await import("../../src/cli/commands/upload.js");
@@ -26,8 +26,6 @@ describe("CLI main program", () => {
     const { reviewCommand } = await import("../../src/cli/commands/review.js");
     const { loginCommand } = await import("../../src/cli/commands/login.js");
     const { statusCommand } = await import("../../src/cli/commands/status.js");
-    const { installPluginCommand } = await import("../../src/cli/commands/install-plugin.js");
-    const { uninstallPluginCommand } = await import("../../src/cli/commands/uninstall-plugin.js");
 
     prog.addCommand(uploadCommand);
     prog.addCommand(importCommand);
@@ -37,11 +35,9 @@ describe("CLI main program", () => {
     prog.addCommand(reviewCommand);
     prog.addCommand(loginCommand);
     prog.addCommand(statusCommand);
-    prog.addCommand(installPluginCommand);
-    prog.addCommand(uninstallPluginCommand);
   });
 
-  it("registers all 10 commands", () => {
+  it("registers all 8 commands", () => {
     const names = prog.commands.map((c) => c.name());
     expect(names).toEqual(
       expect.arrayContaining([
@@ -53,11 +49,9 @@ describe("CLI main program", () => {
         "review",
         "login",
         "status",
-        "install-plugin",
-        "uninstall-plugin",
       ]),
     );
-    expect(names).toHaveLength(10);
+    expect(names).toHaveLength(8);
   });
 
   it("has program name and description", () => {
@@ -144,20 +138,4 @@ describe("CLI main program", () => {
     });
   });
 
-  describe("install-plugin command", () => {
-    it("is registered with a description", () => {
-      const cmd = prog.commands.find((c) => c.name() === "install-plugin")!;
-      expect(cmd).toBeDefined();
-      expect(cmd.description()).toContain("plugin");
-    });
-  });
-
-  describe("uninstall-plugin command", () => {
-    it("has --yes option", () => {
-      const cmd = prog.commands.find((c) => c.name() === "uninstall-plugin")!;
-      expect(cmd).toBeDefined();
-      const optNames = cmd.options.map((o) => o.long);
-      expect(optNames).toContain("--yes");
-    });
-  });
 });

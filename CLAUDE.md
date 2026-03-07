@@ -13,6 +13,12 @@ See `docs/` for a project overview.
 - `bun start` — Start production server
 - `bun run cli` — Run the CLI tool directly
 
+## Deployment
+
+- **App** (`app.amber.cards`): Deployed on Railway
+- **Site** (`amber.cards`): Deployed on Netlify — auto-deploys from `site/` on push to main
+- **Claude Code plugin**: Published via a custom marketplace in a GitHub repo
+
 ## Conventions
 
 - **Database migrations**: Always create migrations through the Supabase CLI, never by hand:
