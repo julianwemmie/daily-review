@@ -1,5 +1,5 @@
 ---
-status: open
+status: done
 type: chore
 created: 2026-03-06
 ---

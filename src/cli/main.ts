@@ -13,7 +13,7 @@ import { uninstallPluginCommand } from "./commands/uninstall-plugin.js";
 program
   .name("amber")
   .description("Amber CLI — spaced repetition flashcards")
-  .version("0.1.0");
+  .version("0.5.0");
 
 program.addCommand(uploadCommand);
 program.addCommand(importCommand);
