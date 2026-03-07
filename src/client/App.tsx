@@ -96,7 +96,7 @@ function AppLayout() {
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Amber</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-terracotta">Amber</h1>
           <UserMenu onHelpClick={() => setOnboardingOpen(true)} />
         </div>
 
@@ -111,7 +111,7 @@ function AppLayout() {
                 <TabsTrigger key={route.value} value={route.value} className="gap-1.5">
                   {route.label}
                   {route.countKey && counts && counts[route.countKey] > 0 && (
-                    <Badge className="ml-1 px-1.5 py-0 text-[10px] leading-4 min-w-[1.25rem] bg-emerald-600/70 text-white">
+                    <Badge className="ml-1 px-1.5 py-0 text-[10px] leading-4 min-w-[1.25rem] bg-olive text-olive-foreground">
                       {counts[route.countKey]}
                     </Badge>
                   )}

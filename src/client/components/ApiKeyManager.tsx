@@ -188,7 +188,7 @@ export default function ApiKeyManager({
               </code>
               <Button variant="ghost" size="icon" onClick={handleCopy}>
                 {copied ? (
-                  <Check className="h-4 w-4 text-green-500" />
+                  <Check className="h-4 w-4 text-olive" />
                 ) : (
                   <Copy className="h-4 w-4" />
                 )}
