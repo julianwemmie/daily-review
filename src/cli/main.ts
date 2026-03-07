@@ -11,7 +11,7 @@ import { statusCommand } from "./commands/status.js";
 program
   .name("amber")
   .description("Amber CLI — spaced repetition flashcards")
-  .version("0.6.0");
+  .version("0.7.0");
 
 program.addCommand(uploadCommand);
 program.addCommand(importCommand);
