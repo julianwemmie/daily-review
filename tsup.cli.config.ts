@@ -16,6 +16,9 @@ export default defineConfig({
     "sql.js",
     "transit-js",
   ],
+  env: {
+    VITE_APP_URL: process.env.VITE_APP_URL || "http://localhost:3000",
+  },
   banner: {
     js: '#!/usr/bin/env node',
   },

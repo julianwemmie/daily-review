@@ -1,6 +1,6 @@
 {
   "name": "amber-cards",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "type": "module",
   "bin": {
     "amber": "./dist/cli/main.js"
@@ -16,7 +16,8 @@
     "build:cli": "tsup --config tsup.cli.config.ts",
     "cli": "tsx src/cli/main.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "preuninstall": "rm -rf ~/.amber-cards"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
