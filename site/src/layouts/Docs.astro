@@ -41,11 +41,11 @@ const sidebar = [
 
   <div class="pt-16 min-h-screen flex">
     <!-- Sidebar -->
-    <aside class="hidden md:block w-64 shrink-0 border-r border-border/50 px-6 py-10 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+    <aside class="hidden md:block w-64 shrink-0 border-r border-earth-border/50 px-6 py-10 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
       <nav class="space-y-8">
         {sidebar.map(group => (
           <div>
-            <h4 class="font-mono text-[10px] uppercase tracking-widest text-neutral-600 mb-3">{group.section}</h4>
+            <h4 class="font-mono text-[10px] uppercase tracking-widest text-earth-muted mb-3">{group.section}</h4>
             <ul class="space-y-1">
               {group.items.map(item => (
                 <li>
@@ -54,8 +54,8 @@ const sidebar = [
                     class:list={[
                       'block px-3 py-1.5 rounded-md text-sm transition-colors',
                       currentPath === item.href || currentPath === item.href + '/'
-                        ? 'text-accent bg-accent/5 border-l-2 border-accent'
-                        : 'text-neutral-400 hover:text-neutral-200 hover:bg-surface/50',
+                        ? 'text-terracotta bg-terracotta/5 border-l-2 border-terracotta'
+                        : 'text-earth-medium hover:text-earth hover:bg-cream-light',
                     ]}
                   >
                     {item.title}
@@ -73,16 +73,16 @@ const sidebar = [
       <!-- Mobile nav -->
       <div class="md:hidden mb-8">
         <details class="group">
-          <summary class="flex items-center gap-2 cursor-pointer text-sm text-neutral-400 font-mono">
+          <summary class="flex items-center gap-2 cursor-pointer text-sm text-earth-medium font-mono">
             <svg class="w-4 h-4 group-open:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
             Navigation
           </summary>
-          <nav class="mt-4 space-y-4 pl-2 border-l border-border">
+          <nav class="mt-4 space-y-4 pl-2 border-l border-earth-border">
             {sidebar.map(group => (
               <div>
-                <h4 class="font-mono text-[10px] uppercase tracking-widest text-neutral-600 mb-2">{group.section}</h4>
+                <h4 class="font-mono text-[10px] uppercase tracking-widest text-earth-muted mb-2">{group.section}</h4>
                 <ul class="space-y-1">
                   {group.items.map(item => (
                     <li>
@@ -91,8 +91,8 @@ const sidebar = [
                         class:list={[
                           'block px-3 py-1 text-sm transition-colors',
                           currentPath === item.href || currentPath === item.href + '/'
-                            ? 'text-accent'
-                            : 'text-neutral-400 hover:text-neutral-200',
+                            ? 'text-terracotta'
+                            : 'text-earth-medium hover:text-earth',
                         ]}
                       >
                         {item.title}

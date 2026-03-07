@@ -5,13 +5,11 @@ interface Props {
 const { active = 'home' } = Astro.props;
 ---
 
-<nav class="fixed top-0 left-0 right-0 z-50 border-b border-border/50 backdrop-blur-xl bg-[#0a0a0a]/80">
+<nav class="fixed top-0 left-0 right-0 z-50 border-b border-earth-border/50 backdrop-blur-xl bg-cream/80">
   <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
     <a href="/" class="flex items-center gap-3 group">
-      <div class="w-7 h-7 rounded-md bg-accent/10 border border-accent/20 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-        <span class="text-accent font-mono text-xs font-bold">A</span>
-      </div>
-      <span class="font-display font-bold text-sm tracking-tight text-neutral-200">Amber</span>
+      <img src="/amber_logo.png" alt="Amber logo" class="w-8 h-8" />
+      <span class="font-bold text-sm tracking-tight text-terracotta">Amber</span>
     </a>
 
     <div class="flex items-center gap-1">
@@ -19,7 +17,7 @@ const { active = 'home' } = Astro.props;
         href="/"
         class:list={[
           'px-3 py-1.5 rounded-md text-sm transition-colors',
-          active === 'home' ? 'text-accent bg-accent/5' : 'text-neutral-400 hover:text-neutral-200',
+          active === 'home' ? 'text-terracotta bg-terracotta/5' : 'text-earth-medium hover:text-earth',
         ]}
       >
         Home
@@ -28,17 +26,17 @@ const { active = 'home' } = Astro.props;
         href="/docs/getting-started"
         class:list={[
           'px-3 py-1.5 rounded-md text-sm transition-colors',
-          active === 'docs' ? 'text-accent bg-accent/5' : 'text-neutral-400 hover:text-neutral-200',
+          active === 'docs' ? 'text-terracotta bg-terracotta/5' : 'text-earth-medium hover:text-earth',
         ]}
       >
         Docs
       </a>
-      <div class="w-px h-4 bg-border mx-2"></div>
+      <div class="w-px h-4 bg-earth-border mx-2"></div>
       <a
         href="https://github.com/julianwemmie/amber-cards"
         target="_blank"
         rel="noopener noreferrer"
-        class="text-neutral-400 hover:text-neutral-200 transition-colors p-1.5"
+        class="text-earth-medium hover:text-earth transition-colors p-1.5"
         aria-label="GitHub"
       >
         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
