@@ -315,7 +315,7 @@ export default function TriageView() {
                               Front
                             </p>
                             <textarea
-                              className="w-full resize-none rounded border border-input bg-background p-2 text-base font-semibold leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
+                              className="w-full resize-none rounded-xl border border-input bg-background p-3 text-base font-semibold leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
                               value={displayFront}
                               onChange={(e) => setEditedFront(e.target.value)}
 
@@ -344,7 +344,7 @@ export default function TriageView() {
                                 Back
                               </p>
                               <textarea
-                                className="w-full resize-none rounded border border-input bg-background p-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
+                                className="w-full resize-none rounded-xl border border-input bg-background p-3 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
                                 value={displayBack}
                                 onChange={(e) => setEditedBack(e.target.value)}
   

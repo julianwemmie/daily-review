@@ -183,12 +183,12 @@ export default function ApiKeyManager({
               </DialogDescription>
             </DialogHeader>
             <div className="flex items-center gap-2">
-              <code className="flex-1 rounded bg-muted px-3 py-2 text-sm font-mono break-all">
+              <code className="flex-1 rounded-xl bg-muted px-3 py-2 text-sm font-mono break-all">
                 {generatedKey}
               </code>
               <Button variant="ghost" size="icon" onClick={handleCopy}>
                 {copied ? (
-                  <Check className="h-4 w-4 text-green-500" />
+                  <Check className="h-4 w-4 text-[oklch(0.55_0.12_155)]" />
                 ) : (
                   <Copy className="h-4 w-4" />
                 )}
@@ -226,7 +226,7 @@ export default function ApiKeyManager({
                 keys.map((key) => (
                   <div
                     key={key.id}
-                    className="flex items-center justify-between rounded-md border px-3 py-2"
+                    className="flex items-center justify-between rounded-xl border px-3 py-2"
                   >
                     <div className="min-w-0">
                       <p className="text-sm font-medium truncate">

@@ -28,7 +28,7 @@ const STEPS = [
     content: (
       <div className="flex items-center justify-center gap-3 text-sm py-2">
         <div className="flex flex-col items-center gap-1.5 flex-1">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-base">1</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-pastel-lavender text-[oklch(0.45_0.10_300)] font-bold dark:bg-pastel-lavender dark:text-[oklch(0.80_0.08_300)]">1</div>
           <span className="font-medium text-foreground">Generate</span>
           <span className="text-xs text-muted-foreground text-center">
             Run <code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">/flashcards</code>
@@ -36,13 +36,13 @@ const STEPS = [
         </div>
         <span className="text-muted-foreground/50 text-lg mt-[-1rem]">&rarr;</span>
         <div className="flex flex-col items-center gap-1.5 flex-1">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-base">2</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-pastel-lavender text-[oklch(0.45_0.10_300)] font-bold dark:bg-pastel-lavender dark:text-[oklch(0.80_0.08_300)]">2</div>
           <span className="font-medium text-foreground">Triage</span>
           <span className="text-xs text-muted-foreground text-center">Keep or discard cards</span>
         </div>
         <span className="text-muted-foreground/50 text-lg mt-[-1rem]">&rarr;</span>
         <div className="flex flex-col items-center gap-1.5 flex-1">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-base">3</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-pastel-lavender text-[oklch(0.45_0.10_300)] font-bold dark:bg-pastel-lavender dark:text-[oklch(0.80_0.08_300)]">3</div>
           <span className="font-medium text-foreground">Review</span>
           <span className="text-xs text-muted-foreground text-center">Answer when due</span>
         </div>
@@ -116,7 +116,7 @@ export default function OnboardingModal({ open, onOpenChange }: OnboardingModalP
               <span
                 key={i}
                 className={`h-1.5 w-1.5 rounded-full transition-colors ${
-                  i === step ? "bg-foreground" : "bg-muted-foreground/30"
+                  i === step ? "bg-primary" : "bg-muted-foreground/30"
                 }`}
               />
             ))}

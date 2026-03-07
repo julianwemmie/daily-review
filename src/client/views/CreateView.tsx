@@ -126,7 +126,7 @@ export default function CreateView() {
 
             {error && <p className="text-sm text-destructive">{error}</p>}
             {success && (
-              <p className="text-sm text-green-600">Card created successfully.</p>
+              <p className="text-sm text-[oklch(0.55_0.12_155)]">Card created successfully.</p>
             )}
           </CardContent>
           <CardFooter className="pt-4">

@@ -13,13 +13,21 @@ const LABEL_W = 28; // day-label column width
 const DAYS = ["", "Mon", "", "Wed", "", "Fri", ""];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+const INTENSITY_CLASSES = [
+  "bg-muted",
+  "bg-[oklch(0.90_0.04_300)] dark:bg-[oklch(0.32_0.05_300)]",
+  "bg-[oklch(0.83_0.07_300)] dark:bg-[oklch(0.40_0.07_300)]",
+  "bg-[oklch(0.75_0.10_300)] dark:bg-[oklch(0.50_0.09_300)]",
+  "bg-[oklch(0.65_0.13_300)] dark:bg-[oklch(0.60_0.11_300)]",
+] as const;
+
 function getIntensity(count: number, max: number): string {
-  if (count === 0) return "bg-muted";
+  if (count === 0) return INTENSITY_CLASSES[0];
   const ratio = count / max;
-  if (ratio <= 0.25) return "bg-emerald-300/60 dark:bg-emerald-900/60";
-  if (ratio <= 0.5) return "bg-emerald-400/70 dark:bg-emerald-700/70";
-  if (ratio <= 0.75) return "bg-emerald-500/80 dark:bg-emerald-600/80";
-  return "bg-emerald-600 dark:bg-emerald-500";
+  if (ratio <= 0.25) return INTENSITY_CLASSES[1];
+  if (ratio <= 0.5) return INTENSITY_CLASSES[2];
+  if (ratio <= 0.75) return INTENSITY_CLASSES[3];
+  return INTENSITY_CLASSES[4];
 }
 
 export default function ContributionGrid({ data }: Props) {
@@ -111,7 +119,7 @@ export default function ContributionGrid({ data }: Props) {
               {week.map((day, di) => (
                 <div
                   key={di}
-                  className={`h-[11px] w-[11px] rounded-[2px] ${getIntensity(day.count, maxCount)} cursor-default`}
+                  className={`h-[11px] w-[11px] rounded-[3px] ${getIntensity(day.count, maxCount)} cursor-default`}
                   onMouseEnter={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
                     const dateStr = day.date.toLocaleDateString("en-US", {
@@ -135,11 +143,9 @@ export default function ContributionGrid({ data }: Props) {
         {/* Legend */}
         <div className="flex items-center gap-1 mt-1 ml-8">
           <span className="text-[10px] text-muted-foreground mr-0.5">Less</span>
-          <div className="h-[11px] w-[11px] rounded-[2px] bg-muted" />
-          <div className="h-[11px] w-[11px] rounded-[2px] bg-emerald-300/60 dark:bg-emerald-900/60" />
-          <div className="h-[11px] w-[11px] rounded-[2px] bg-emerald-400/70 dark:bg-emerald-700/70" />
-          <div className="h-[11px] w-[11px] rounded-[2px] bg-emerald-500/80 dark:bg-emerald-600/80" />
-          <div className="h-[11px] w-[11px] rounded-[2px] bg-emerald-600 dark:bg-emerald-500" />
+          {INTENSITY_CLASSES.map((cls, i) => (
+            <div key={i} className={`h-[11px] w-[11px] rounded-[3px] ${cls}`} />
+          ))}
           <span className="text-[10px] text-muted-foreground ml-0.5">More</span>
         </div>
       </div>

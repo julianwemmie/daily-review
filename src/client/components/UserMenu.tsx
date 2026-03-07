@@ -51,7 +51,7 @@ export default function UserMenu({ onHelpClick }: { onHelpClick?: () => void }) 
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="h-8 w-8 rounded-full bg-muted text-sm font-medium hover:bg-muted/80 hover:ring-2 hover:ring-ring/20 transition-all"
+            className="h-8 w-8 rounded-full bg-pastel-lavender text-[oklch(0.45_0.10_300)] text-sm font-bold hover:bg-pastel-lavender/80 hover:shadow-[0_0_12px_oklch(0.72_0.10_300/0.3)] transition-all dark:bg-pastel-lavender dark:text-[oklch(0.80_0.08_300)] dark:hover:bg-pastel-lavender/80"
           >
             {initial}
           </Button>
@@ -73,7 +73,7 @@ export default function UserMenu({ onHelpClick }: { onHelpClick?: () => void }) 
                 role="switch"
                 aria-checked={notificationsEnabled}
                 className={`relative ml-2 inline-flex h-4 w-7 shrink-0 rounded-full border-2 border-transparent transition-colors ${
-                  notificationsEnabled ? "bg-emerald-600" : "bg-muted-foreground/30"
+                  notificationsEnabled ? "bg-[oklch(0.70_0.10_155)]" : "bg-muted-foreground/30"
                 }`}
               >
                 <span

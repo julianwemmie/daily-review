@@ -188,7 +188,7 @@ export default function ReviewView() {
             type="button"
             role="switch"
             aria-checked={gradeMode === "ai"}
-            className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-pastel-lavender/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:bg-pastel-lavender/20"
             onClick={() => setGradeMode((m) => {
               const next = m === "self" ? "ai" : "self";
               localStorage.setItem("gradeMode", next);
@@ -227,12 +227,12 @@ export default function ReviewView() {
               type="button"
               onClick={voice.toggle}
               disabled={evaluating || showingResult}
-              className={`absolute right-2 bottom-2 flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
+              className={`absolute right-2 bottom-2 flex h-8 w-8 items-center justify-center rounded-full transition-all ${
                 voice.recording
-                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/80"
+                  ? "bg-pastel-rose text-[oklch(0.45_0.12_10)] shadow-[0_0_12px_oklch(0.75_0.08_10/0.4)] hover:bg-pastel-rose/80 dark:bg-pastel-rose dark:text-[oklch(0.85_0.06_10)]"
                   : voice.transcribing
                     ? "bg-muted text-muted-foreground"
-                    : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    : "bg-pastel-lavender/50 text-muted-foreground hover:bg-pastel-lavender hover:text-[oklch(0.45_0.10_300)] dark:bg-pastel-lavender/30 dark:hover:bg-pastel-lavender/50"
               } disabled:opacity-50 disabled:pointer-events-none`}
               title={voice.recording ? "Stop recording" : voice.transcribing ? "Transcribing..." : "Record answer (M)"}
             >
@@ -251,7 +251,7 @@ export default function ReviewView() {
           </div>
 
           {evaluation && (
-            <div className="rounded-lg border p-4 space-y-2">
+            <div className="rounded-2xl border border-pastel-lavender/50 bg-pastel-lavender/20 p-4 space-y-2 dark:border-pastel-lavender/30 dark:bg-pastel-lavender/10">
               <p className="text-sm font-medium">
                 Accuracy: {Math.round(evaluation.score * 100)}%
               </p>
@@ -262,7 +262,7 @@ export default function ReviewView() {
           )}
 
           {showingResult && currentCard.back && (
-            <div className="rounded-lg border border-dashed p-4 space-y-1">
+            <div className="rounded-2xl border border-dashed border-pastel-mint/60 bg-pastel-mint/15 p-4 space-y-1 dark:border-pastel-mint/30 dark:bg-pastel-mint/10">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Reference Answer
               </p>

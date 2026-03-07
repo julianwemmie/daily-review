@@ -382,13 +382,13 @@ export default function ExploreView() {
       <div className="flex gap-2">
         <div className="relative flex-1">
           <div
-            className="flex flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 h-9 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 cursor-text"
+            className="flex flex-wrap items-center gap-1.5 rounded-xl border border-input bg-background px-4 h-9 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 cursor-text"
             onClick={() => searchInputRef.current?.focus()}
           >
             {tagPills.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+                className="inline-flex items-center gap-0.5 rounded-full bg-pastel-lavender/50 px-2.5 py-0.5 text-xs font-semibold text-[oklch(0.45_0.10_300)] dark:bg-pastel-lavender/30 dark:text-[oklch(0.80_0.08_300)]"
               >
                 {tag}
                 <button
@@ -422,7 +422,7 @@ export default function ExploreView() {
           </div>
           {/* Tag suggestions dropdown */}
           {showTagSuggestions && visibleSuggestions.length > 0 && (
-            <div className="absolute z-50 top-full left-0 right-0 mt-1 rounded-md border bg-popover shadow-md py-1">
+            <div className="absolute z-50 top-full left-0 right-0 mt-1 rounded-xl border bg-popover shadow-[0_4px_16px_oklch(0.62_0.12_300/0.10)] dark:shadow-[0_4px_16px_oklch(0.78_0.10_300/0.06)] py-1 overflow-hidden">
               <p className="px-3 py-1 text-xs font-medium text-muted-foreground">Tags</p>
               {visibleSuggestions.map((tag, i) => (
                 <button
@@ -522,7 +522,7 @@ export default function ExploreView() {
                       >
                         {/* Front face */}
                         <Card
-                          className="absolute inset-0 flex flex-col gap-0 hover:ring-2 hover:ring-ring/30 transition-shadow"
+                          className="absolute inset-0 flex flex-col gap-0 hover:shadow-[0_4px_20px_oklch(0.62_0.12_300/0.15)] dark:hover:shadow-[0_4px_20px_oklch(0.78_0.10_300/0.10)] transition-shadow"
                           style={{ backfaceVisibility: "hidden" }}
                         >
                           <CardHeader className="pb-2">
@@ -587,7 +587,7 @@ export default function ExploreView() {
 
                         {/* Back face */}
                         <Card
-                          className="absolute inset-0 flex flex-col gap-0 hover:ring-2 hover:ring-ring/30 transition-shadow"
+                          className="absolute inset-0 flex flex-col gap-0 hover:shadow-[0_4px_20px_oklch(0.62_0.12_300/0.15)] dark:hover:shadow-[0_4px_20px_oklch(0.78_0.10_300/0.10)] transition-shadow"
                           style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
                         >
                           <CardHeader className="pb-2">
@@ -646,7 +646,7 @@ export default function ExploreView() {
           ) : (
             <>
             {/* ── Table View (desktop) ── */}
-            <div className="hidden sm:block rounded-md border overflow-hidden">
+            <div className="hidden sm:block rounded-2xl border overflow-hidden shadow-[0_2px_12px_oklch(0.62_0.12_300/0.06)] dark:shadow-[0_2px_12px_oklch(0.78_0.10_300/0.04)]">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
@@ -877,11 +877,11 @@ export default function ExploreView() {
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium">Tags</label>
-              <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+              <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-input bg-background px-4 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                 {editTags.map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+                    className="inline-flex items-center gap-0.5 rounded-full bg-pastel-lavender/50 px-2.5 py-0.5 text-xs font-semibold text-[oklch(0.45_0.10_300)] dark:bg-pastel-lavender/30 dark:text-[oklch(0.80_0.08_300)]"
                   >
                     {tag}
                     <button
@@ -935,7 +935,7 @@ export default function ExploreView() {
             Are you sure you want to delete this card? This action cannot be undone.
           </p>
           {deletingCard && (
-            <div className="rounded border p-3">
+            <div className="rounded-xl border p-3">
               <p className="text-sm font-medium line-clamp-3">{deletingCard.front}</p>
             </div>
           )}

@@ -175,7 +175,7 @@ export default function ImportModal({
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onClick={() => fileInputRef.current?.click()}
-              className="flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-border p-8 cursor-pointer transition-colors hover:border-foreground/30 hover:bg-muted/30"
+              className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-border p-8 cursor-pointer transition-colors hover:border-primary/40 hover:bg-pastel-lavender/10"
             >
               <FileUp className="h-8 w-8 text-muted-foreground" />
               <div className="text-center">
@@ -245,7 +245,7 @@ export default function ImportModal({
             </p>
 
             {/* Preview table */}
-            <div className="overflow-auto rounded border max-h-64">
+            <div className="overflow-auto rounded-xl border max-h-64">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 sticky top-0">
                   <tr>
@@ -332,8 +332,8 @@ export default function ImportModal({
         {/* ── Step: Done ── */}
         {step === "done" && (
           <div className="flex flex-col items-center gap-4 py-8">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
-              <Check className="h-6 w-6 text-emerald-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-pastel-mint">
+              <Check className="h-6 w-6 text-[oklch(0.45_0.12_155)]" />
             </div>
             <div className="text-center">
               <p className="font-medium">

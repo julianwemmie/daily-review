@@ -19,10 +19,10 @@ interface Props {
 }
 
 const ratingColors: Record<string, string> = {
-  Again: "text-red-500",
-  Hard: "text-orange-500",
-  Good: "text-emerald-500",
-  Easy: "text-blue-500",
+  Again: "text-[oklch(0.62_0.18_20)]",
+  Hard: "text-[oklch(0.70_0.12_55)]",
+  Good: "text-[oklch(0.65_0.12_155)]",
+  Easy: "text-[oklch(0.62_0.12_300)]",
 };
 
 const stateLabels: Record<string, string> = {
@@ -85,7 +85,7 @@ export default function CardStatsModal({ card, open, onOpenChange }: Props) {
           <StatBox label="FSRS State" value={stateLabels[card.state] ?? card.state} />
         </div>
 
-        <div className="rounded-md border px-3 py-2">
+        <div className="rounded-xl border px-3 py-2">
           <p className="text-[11px] text-muted-foreground mb-0.5">Next Due</p>
           <p className="text-sm font-medium">
             {new Date(card.due).toLocaleDateString("en-US", {
@@ -97,7 +97,7 @@ export default function CardStatsModal({ card, open, onOpenChange }: Props) {
         </div>
 
         {/* AI Analysis */}
-        <div className="rounded-md border px-4 py-3">
+        <div className="rounded-xl border px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-medium flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5" />
@@ -138,7 +138,7 @@ export default function CardStatsModal({ card, open, onOpenChange }: Props) {
           ) : (
             <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto">
               {logs.map((log) => (
-                <div key={log.id} className="rounded-md border px-3 py-2 text-sm">
+                <div key={log.id} className="rounded-xl border px-3 py-2 text-sm">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">
@@ -174,9 +174,9 @@ export default function CardStatsModal({ card, open, onOpenChange }: Props) {
 
 function StatBox({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border px-3 py-2 text-center">
+    <div className="rounded-xl border px-3 py-2 text-center">
       <p className="text-[11px] text-muted-foreground mb-0.5">{label}</p>
-      <p className="text-lg font-semibold tabular-nums">{value}</p>
+      <p className="text-lg font-bold tabular-nums">{value}</p>
     </div>
   );
 }
