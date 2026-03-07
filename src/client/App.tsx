@@ -44,24 +44,34 @@ function AppLayout() {
   usePrefetchCards();
 
   const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [isPendingOnboarding, setIsPendingOnboarding] = useState(false);
 
   useEffect(() => {
     if (!session?.user?.id) return;
     fetch("/api/onboarding/status", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
-        if (!data.completed) setOnboardingOpen(true);
+        if (!data.completed) {
+          setIsPendingOnboarding(true);
+          setOnboardingOpen(true);
+        }
       })
       .catch(() => {});
   }, [session?.user?.id]);
 
   function handleOnboardingOpenChange(open: boolean) {
     setOnboardingOpen(open);
-    if (!open) {
+    if (!open && isPendingOnboarding) {
+      setIsPendingOnboarding(false);
       fetch("/api/onboarding/complete", {
         method: "POST",
         credentials: "include",
-      }).catch(() => {});
+      })
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ["cards"] });
+          navigate(ROUTES.triage);
+        })
+        .catch(() => {});
     }
   }
 
