@@ -40,7 +40,9 @@ export default function AuthView() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
-      <h1 className="text-3xl font-bold mb-6">Amber</h1>
+      <h1 className="font-serif text-4xl font-bold mb-2 italic">Amber</h1>
+      <p className="text-sm text-muted-foreground mb-6 tracking-wider uppercase">Spaced Repetition</p>
+      <div className="double-rule w-full max-w-sm mb-6" />
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>{isSignUp ? "Create account" : "Sign in"}</CardTitle>
@@ -65,10 +67,10 @@ export default function AuthView() {
           </Button>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+              <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">or</span>
+              <span className="bg-card px-2 text-muted-foreground tracking-widest">or</span>
             </div>
           </div>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">

@@ -70,11 +70,11 @@ export default function CreateView() {
 
   return (
     <div className="flex flex-col items-center">
-      <p className="w-full max-w-2xl mb-3 text-sm text-muted-foreground">
+      <p className="w-full max-w-2xl mb-3 text-sm text-muted-foreground italic">
         Looking to import from Anki or Mochi?{" "}
         <Link
           to={`${ROUTES.explore}?action=import`}
-          className="underline hover:text-foreground transition-colors"
+          className="underline hover:text-foreground transition-colors not-italic"
         >
           Import here
         </Link>

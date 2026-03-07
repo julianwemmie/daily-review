@@ -579,7 +579,7 @@ export default function ExploreView() {
                             </div>
                           </CardHeader>
                           <CardContent className="flex-1 overflow-hidden">
-                            <p className="whitespace-pre-wrap text-sm font-semibold leading-snug line-clamp-4">
+                            <p className="whitespace-pre-wrap text-sm font-serif font-semibold leading-snug line-clamp-4">
                               {card.front?.trim() || <span className="text-muted-foreground font-normal italic">No content</span>}
                             </p>
                           </CardContent>
@@ -592,7 +592,7 @@ export default function ExploreView() {
                         >
                           <CardHeader className="pb-2">
                             <div className="flex items-start justify-between gap-1.5">
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                              <p className="text-xs font-serif font-semibold text-muted-foreground uppercase tracking-widest">
                                 Back
                               </p>
                               <DropdownMenu onOpenChange={(open) => { suppressFlipRef.current = open; }}>
@@ -646,10 +646,10 @@ export default function ExploreView() {
           ) : (
             <>
             {/* ── Table View (desktop) ── */}
-            <div className="hidden sm:block rounded-md border overflow-hidden">
+            <div className="hidden sm:block rounded-sm border border-border overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b bg-muted/50">
+                  <tr className="border-b border-border bg-muted/40">
                     {([
                       ["front", "Front"],
                       ["status", "Status"],
@@ -689,7 +689,7 @@ export default function ExploreView() {
                         onClick={() => setStatsCard(card)}
                       >
                         <td className="px-4 py-2.5 max-w-0">
-                          <p className="truncate font-medium">{card.front}</p>
+                          <p className="truncate font-serif font-semibold">{card.front}</p>
                         </td>
                         <td className="px-4 py-2.5">
                           <Badge variant={statusVariants[card.status]} className="text-[10px]">
@@ -774,7 +774,7 @@ export default function ExploreView() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm font-medium line-clamp-2">{card.front}</p>
+                    <p className="text-sm font-serif font-semibold line-clamp-2">{card.front}</p>
                   </CardContent>
                 </Card>
               ))}

@@ -179,7 +179,7 @@ export default function ReviewView() {
   return (
     <div className="flex flex-col items-center gap-6">
       <div className="flex w-full max-w-2xl items-center justify-between">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground italic">
           {remaining} card{remaining !== 1 ? "s" : ""} due
         </p>
         <div className="flex items-center gap-2">
@@ -207,7 +207,7 @@ export default function ReviewView() {
 
       <Card className="w-full max-w-2xl">
         <CardContent className="flex flex-col gap-4">
-          <div className="whitespace-pre-wrap text-base font-semibold leading-relaxed">
+          <div className="drop-cap whitespace-pre-wrap text-base font-semibold leading-relaxed font-serif">
             {currentCard.front}
           </div>
 
@@ -251,19 +251,19 @@ export default function ReviewView() {
           </div>
 
           {evaluation && (
-            <div className="rounded-lg border p-4 space-y-2">
-              <p className="text-sm font-medium">
+            <div className="rounded-sm border border-border p-4 space-y-2">
+              <p className="text-sm font-serif font-semibold">
                 Accuracy: {Math.round(evaluation.score * 100)}%
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 {evaluation.feedback}
               </p>
             </div>
           )}
 
           {showingResult && currentCard.back && (
-            <div className="rounded-lg border border-dashed p-4 space-y-1">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            <div className="border-t border-border pt-4 space-y-1">
+              <p className="text-xs font-serif font-semibold text-muted-foreground uppercase tracking-widest">
                 Reference Answer
               </p>
               <div className="whitespace-pre-wrap text-sm leading-relaxed">

@@ -95,10 +95,13 @@ function AppLayout() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-4 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Amber</h1>
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="font-serif text-3xl font-bold tracking-tight italic">Amber</h1>
           <UserMenu onHelpClick={() => setOnboardingOpen(true)} />
         </div>
+
+        {/* Editorial double rule */}
+        <div className="double-rule mb-5" />
 
         {countsError && (
           <p className="mb-4 text-sm text-destructive">{countsError.message}</p>
@@ -108,10 +111,10 @@ function AppLayout() {
           <div className="flex items-center gap-3">
             <TabsList>
               {visibleTabs.map((route) => (
-                <TabsTrigger key={route.value} value={route.value} className="gap-1.5">
+                <TabsTrigger key={route.value} value={route.value} className="gap-1.5 font-serif text-sm tracking-wide">
                   {route.label}
                   {route.countKey && counts && counts[route.countKey] > 0 && (
-                    <Badge className="ml-1 px-1.5 py-0 text-[10px] leading-4 min-w-[1.25rem] bg-emerald-600/70 text-white">
+                    <Badge className="ml-1 px-1.5 py-0 text-[10px] leading-4 min-w-[1.25rem] bg-sepia-4 text-primary-foreground">
                       {counts[route.countKey]}
                     </Badge>
                   )}

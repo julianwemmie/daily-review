@@ -174,9 +174,9 @@ export default function CardStatsModal({ card, open, onOpenChange }: Props) {
 
 function StatBox({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border px-3 py-2 text-center">
-      <p className="text-[11px] text-muted-foreground mb-0.5">{label}</p>
-      <p className="text-lg font-semibold tabular-nums">{value}</p>
+    <div className="rounded-sm border border-border px-3 py-2 text-center">
+      <p className="text-[11px] text-muted-foreground mb-0.5 uppercase tracking-wider">{label}</p>
+      <p className="text-lg font-serif font-semibold tabular-nums">{value}</p>
     </div>
   );
 }

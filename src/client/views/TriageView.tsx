@@ -215,7 +215,7 @@ export default function TriageView() {
   if (visibleCards.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-2">
-        <p className="text-lg font-medium">All caught up!</p>
+        <p className="font-serif text-lg font-semibold italic">All caught up!</p>
         <p className="text-sm text-muted-foreground">No new cards to triage</p>
       </div>
     );
@@ -307,15 +307,15 @@ export default function TriageView() {
                     <Card className="w-full">
                       <CardContent className="space-y-4">
                         {isFront && !editingFront && !editingBack && (
-                          <p className="text-xs text-muted-foreground/60 text-center">click card text to edit</p>
+                          <p className="text-xs text-muted-foreground/60 text-center italic">click card text to edit</p>
                         )}
                         {isFront && editingFront ? (
                           <div>
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                            <p className="text-xs font-serif font-semibold text-muted-foreground uppercase tracking-widest mb-1">
                               Front
                             </p>
                             <textarea
-                              className="w-full resize-none rounded border border-input bg-background p-2 text-base font-semibold leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
+                              className="w-full resize-none rounded-sm border border-input bg-background p-2 text-base font-serif font-semibold leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
                               value={displayFront}
                               onChange={(e) => setEditedFront(e.target.value)}
 
@@ -326,28 +326,28 @@ export default function TriageView() {
                           </div>
                         ) : (
                           <div
-                            className={isFront ? "cursor-text rounded p-1 -m-1 hover:bg-muted/50 transition-colors" : ""}
+                            className={isFront ? "cursor-text rounded-sm p-1 -m-1 hover:bg-muted/50 transition-colors" : ""}
                             onClick={isFront ? () => setEditingFront(true) : undefined}
                           >
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                            <p className="text-xs font-serif font-semibold text-muted-foreground uppercase tracking-widest mb-1">
                               Front
                             </p>
-                            <div className="whitespace-pre-wrap text-base font-semibold leading-relaxed">
+                            <div className="drop-cap whitespace-pre-wrap text-base font-serif font-semibold leading-relaxed">
                               {isFront ? displayFront : card.front}
                             </div>
                           </div>
                         )}
                         {isFront && card.back && (
                           editingBack ? (
-                            <div className="pt-6">
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                            <div className="border-t border-border pt-4 mt-4">
+                              <p className="text-xs font-serif font-semibold text-muted-foreground uppercase tracking-widest mb-1">
                                 Back
                               </p>
                               <textarea
-                                className="w-full resize-none rounded border border-input bg-background p-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
+                                className="w-full resize-none rounded-sm border border-input bg-background p-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
                                 value={displayBack}
                                 onChange={(e) => setEditedBack(e.target.value)}
-  
+
                                 onBlur={() => setEditingBack(false)}
                                 autoFocus
                                 rows={3}
@@ -355,10 +355,10 @@ export default function TriageView() {
                             </div>
                           ) : (
                             <div
-                              className="pt-6 cursor-text rounded p-1 -m-1 hover:bg-muted/50 transition-colors"
+                              className="border-t border-border pt-4 mt-4 cursor-text rounded-sm p-1 -m-1 hover:bg-muted/50 transition-colors"
                               onClick={() => setEditingBack(true)}
                             >
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                              <p className="text-xs font-serif font-semibold text-muted-foreground uppercase tracking-widest mb-1">
                                 Back
                               </p>
                               <p className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">

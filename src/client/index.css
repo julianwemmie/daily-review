@@ -43,75 +43,97 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Editorial typography */
+  --font-serif: "Playfair Display", "Georgia", serif;
+  --font-sans: "Source Serif 4", "Georgia", serif;
+
+  /* Sepia contribution grid colors */
+  --color-sepia-1: var(--sepia-1);
+  --color-sepia-2: var(--sepia-2);
+  --color-sepia-3: var(--sepia-3);
+  --color-sepia-4: var(--sepia-4);
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --radius: 0.25rem;
+  /* Cream/ivory editorial palette */
+  --background: oklch(0.98 0.008 85);
+  --foreground: oklch(0.18 0.02 50);
+  --card: oklch(0.985 0.006 85);
+  --card-foreground: oklch(0.18 0.02 50);
+  --popover: oklch(0.985 0.006 85);
+  --popover-foreground: oklch(0.18 0.02 50);
+  --primary: oklch(0.25 0.03 50);
+  --primary-foreground: oklch(0.97 0.006 85);
+  --secondary: oklch(0.95 0.01 80);
+  --secondary-foreground: oklch(0.25 0.03 50);
+  --muted: oklch(0.94 0.012 80);
+  --muted-foreground: oklch(0.48 0.02 55);
+  --accent: oklch(0.93 0.015 75);
+  --accent-foreground: oklch(0.25 0.03 50);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --border: oklch(0.82 0.02 75);
+  --input: oklch(0.86 0.015 78);
+  --ring: oklch(0.55 0.03 55);
+  --chart-1: oklch(0.55 0.1 45);
+  --chart-2: oklch(0.6 0.08 70);
+  --chart-3: oklch(0.5 0.06 30);
+  --chart-4: oklch(0.65 0.09 80);
+  --chart-5: oklch(0.58 0.07 55);
+  --sidebar: oklch(0.96 0.01 82);
+  --sidebar-foreground: oklch(0.18 0.02 50);
+  --sidebar-primary: oklch(0.25 0.03 50);
+  --sidebar-primary-foreground: oklch(0.97 0.006 85);
+  --sidebar-accent: oklch(0.93 0.015 75);
+  --sidebar-accent-foreground: oklch(0.25 0.03 50);
+  --sidebar-border: oklch(0.82 0.02 75);
+  --sidebar-ring: oklch(0.55 0.03 55);
+  /* Warm sepia contribution grid */
+  --sepia-1: oklch(0.78 0.06 65);
+  --sepia-2: oklch(0.65 0.08 55);
+  --sepia-3: oklch(0.52 0.1 45);
+  --sepia-4: oklch(0.40 0.1 38);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* Dark charcoal with cream text */
+  --background: oklch(0.17 0.01 50);
+  --foreground: oklch(0.92 0.01 80);
+  --card: oklch(0.21 0.012 50);
+  --card-foreground: oklch(0.92 0.01 80);
+  --popover: oklch(0.21 0.012 50);
+  --popover-foreground: oklch(0.92 0.01 80);
+  --primary: oklch(0.88 0.015 78);
+  --primary-foreground: oklch(0.17 0.01 50);
+  --secondary: oklch(0.26 0.015 50);
+  --secondary-foreground: oklch(0.92 0.01 80);
+  --muted: oklch(0.26 0.015 50);
+  --muted-foreground: oklch(0.62 0.02 65);
+  --accent: oklch(0.26 0.015 50);
+  --accent-foreground: oklch(0.92 0.01 80);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --border: oklch(0.35 0.02 55);
+  --input: oklch(0.32 0.015 52);
+  --ring: oklch(0.55 0.03 55);
+  --chart-1: oklch(0.55 0.1 45);
+  --chart-2: oklch(0.6 0.08 70);
+  --chart-3: oklch(0.5 0.06 30);
+  --chart-4: oklch(0.65 0.09 80);
+  --chart-5: oklch(0.58 0.07 55);
+  --sidebar: oklch(0.21 0.012 50);
+  --sidebar-foreground: oklch(0.92 0.01 80);
+  --sidebar-primary: oklch(0.55 0.1 45);
+  --sidebar-primary-foreground: oklch(0.92 0.01 80);
+  --sidebar-accent: oklch(0.26 0.015 50);
+  --sidebar-accent-foreground: oklch(0.92 0.01 80);
+  --sidebar-border: oklch(0.35 0.02 55);
+  --sidebar-ring: oklch(0.55 0.03 55);
+  /* Dark mode sepia grid */
+  --sepia-1: oklch(0.35 0.05 55);
+  --sepia-2: oklch(0.42 0.07 50);
+  --sepia-3: oklch(0.52 0.09 45);
+  --sepia-4: oklch(0.62 0.1 42);
 }
 
 @layer base {
@@ -120,7 +142,33 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: "Source Serif 4", "Georgia", serif;
+    font-optical-sizing: auto;
   }
+}
+
+/* Editorial drop cap for card fronts */
+.drop-cap::first-letter {
+  float: left;
+  font-family: "Playfair Display", "Georgia", serif;
+  font-size: 3.2em;
+  line-height: 0.8;
+  padding-right: 0.08em;
+  padding-top: 0.05em;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+/* Thin ruled lines */
+.ruled-line {
+  border-bottom: 1px solid var(--border);
+}
+
+/* Double rule — classic newspaper section divider */
+.double-rule {
+  border-top: 2px solid var(--foreground);
+  border-bottom: 1px solid var(--foreground);
+  height: 4px;
 }
 
 @keyframes voice-wave {
