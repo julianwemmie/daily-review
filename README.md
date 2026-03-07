@@ -37,20 +37,18 @@ Or set the `AMBER_CARDS_API_KEY` environment variable.
 Install the Claude Code plugin to automatically generate flashcards from your conversations:
 
 ```bash
-amber install-plugin
+# Add the marketplace and install the plugin
+claude plugin marketplace add julianwemmie/amber-claude-plugin
+claude plugin install amber-flashcards@amber
 ```
 
-Configure at the plugin directory (path shown after install):
+To uninstall:
 
-```json
-{
-  "debounce_minutes": 10,
-  "included_directories": [],
-  "excluded_directories": []
-}
+```bash
+claude plugin uninstall amber-flashcards@amber
 ```
 
-Requires `claude` CLI or `ANTHROPIC_API_KEY`. See `amber uninstall-plugin` to remove.
+Requires `claude` CLI or `ANTHROPIC_API_KEY`.
 
 ---
 
