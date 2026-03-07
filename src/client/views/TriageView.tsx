@@ -368,7 +368,7 @@ export default function TriageView() {
                           )
                         )}
                         {isFront && card.tags && card.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-wrap gap-2 pt-4">
                             {card.tags.map((tag) => (
                               <Badge key={tag} variant="secondary">
                                 {tag}
