@@ -27,6 +27,15 @@ You can also set the `AMBER_CARDS_API_KEY` env var to skip login entirely. See [
 | `review` | Interactive review session for due cards |
 | `delete <ids...>` | Delete cards by ID (`--yes` to skip confirmation) |
 
+### Claude Code Plugin
+
+The auto-flashcard plugin is distributed as a Claude Code marketplace plugin. Install it with:
+
+```bash
+claude plugin marketplace add julianwemmie/amber-claude-plugin
+claude plugin install amber-flashcards@amber
+```
+
 ### upload
 
 Accepts cards three ways:

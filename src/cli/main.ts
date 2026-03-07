@@ -7,13 +7,11 @@ import { deleteCommand } from "./commands/delete.js";
 import { reviewCommand } from "./commands/review.js";
 import { loginCommand } from "./commands/login.js";
 import { statusCommand } from "./commands/status.js";
-import { installPluginCommand } from "./commands/install-plugin.js";
-import { uninstallPluginCommand } from "./commands/uninstall-plugin.js";
 
 program
   .name("amber")
   .description("Amber CLI — spaced repetition flashcards")
-  .version("0.5.0");
+  .version("0.6.0");
 
 program.addCommand(uploadCommand);
 program.addCommand(importCommand);
@@ -23,7 +21,5 @@ program.addCommand(deleteCommand);
 program.addCommand(reviewCommand);
 program.addCommand(loginCommand);
 program.addCommand(statusCommand);
-program.addCommand(installPluginCommand);
-program.addCommand(uninstallPluginCommand);
 
 program.parse();
