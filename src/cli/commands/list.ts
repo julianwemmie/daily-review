@@ -24,12 +24,15 @@ export const listCommand = new Command("list")
       serverUrl: getServerUrl(opts.server),
     });
 
-    const spinner = p.spinner();
-    spinner.start("Fetching cards");
-
-    const cards = await api.listCards({ status: opts.status, q: opts.query });
-
-    spinner.stop(`Found ${cards.length} card${cards.length === 1 ? "" : "s"}`);
+    let cards: Card[];
+    if (opts.json) {
+      cards = await api.listCards({ status: opts.status, q: opts.query });
+    } else {
+      const spinner = p.spinner();
+      spinner.start("Fetching cards");
+      cards = await api.listCards({ status: opts.status, q: opts.query });
+      spinner.stop(`Found ${cards.length} card${cards.length === 1 ? "" : "s"}`);
+    }
 
     if (cards.length === 0) return;
 
