@@ -12,9 +12,9 @@ function StatCard({
   icon: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="rounded-lg border bg-card px-4 py-4 flex items-start gap-3">
-      <div className="rounded-md bg-muted p-2">
-        <Icon className="h-4 w-4 text-muted-foreground" />
+    <div className="rounded-lg border bg-card px-4 py-4 flex items-start gap-3 amber-glow">
+      <div className="rounded-md bg-amber-100/60 dark:bg-amber-900/30 p-2">
+        <Icon className="h-4 w-4 text-amber-700 dark:text-amber-400" />
       </div>
       <div>
         <p className="text-2xl font-bold tabular-nums leading-tight">{value}</p>

@@ -73,7 +73,7 @@ export default function UserMenu({ onHelpClick }: { onHelpClick?: () => void }) 
                 role="switch"
                 aria-checked={notificationsEnabled}
                 className={`relative ml-2 inline-flex h-4 w-7 shrink-0 rounded-full border-2 border-transparent transition-colors ${
-                  notificationsEnabled ? "bg-emerald-600" : "bg-muted-foreground/30"
+                  notificationsEnabled ? "bg-amber-600 dark:bg-amber-500" : "bg-muted-foreground/30"
                 }`}
               >
                 <span

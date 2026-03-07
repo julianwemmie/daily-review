@@ -16,10 +16,10 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 function getIntensity(count: number, max: number): string {
   if (count === 0) return "bg-muted";
   const ratio = count / max;
-  if (ratio <= 0.25) return "bg-emerald-300/60 dark:bg-emerald-900/60";
-  if (ratio <= 0.5) return "bg-emerald-400/70 dark:bg-emerald-700/70";
-  if (ratio <= 0.75) return "bg-emerald-500/80 dark:bg-emerald-600/80";
-  return "bg-emerald-600 dark:bg-emerald-500";
+  if (ratio <= 0.25) return "bg-amber-200/70 dark:bg-amber-900/60";
+  if (ratio <= 0.5) return "bg-amber-300/80 dark:bg-amber-700/70";
+  if (ratio <= 0.75) return "bg-amber-400/85 dark:bg-amber-600/80";
+  return "bg-amber-500 dark:bg-amber-500";
 }
 
 export default function ContributionGrid({ data }: Props) {
@@ -136,10 +136,10 @@ export default function ContributionGrid({ data }: Props) {
         <div className="flex items-center gap-1 mt-1 ml-8">
           <span className="text-[10px] text-muted-foreground mr-0.5">Less</span>
           <div className="h-[11px] w-[11px] rounded-[2px] bg-muted" />
-          <div className="h-[11px] w-[11px] rounded-[2px] bg-emerald-300/60 dark:bg-emerald-900/60" />
-          <div className="h-[11px] w-[11px] rounded-[2px] bg-emerald-400/70 dark:bg-emerald-700/70" />
-          <div className="h-[11px] w-[11px] rounded-[2px] bg-emerald-500/80 dark:bg-emerald-600/80" />
-          <div className="h-[11px] w-[11px] rounded-[2px] bg-emerald-600 dark:bg-emerald-500" />
+          <div className="h-[11px] w-[11px] rounded-[2px] bg-amber-200/70 dark:bg-amber-900/60" />
+          <div className="h-[11px] w-[11px] rounded-[2px] bg-amber-300/80 dark:bg-amber-700/70" />
+          <div className="h-[11px] w-[11px] rounded-[2px] bg-amber-400/85 dark:bg-amber-600/80" />
+          <div className="h-[11px] w-[11px] rounded-[2px] bg-amber-500 dark:bg-amber-500" />
           <span className="text-[10px] text-muted-foreground ml-0.5">More</span>
         </div>
       </div>
