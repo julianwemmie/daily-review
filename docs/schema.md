@@ -21,7 +21,7 @@ The core table. Each row is a flashcard owned by a user.
 | `id` | UUID primary key |
 | `user_id` | FK to `user` |
 | `front` | Question text (plain text) |
-| `back` | Answer / context (plain text, nullable) |
+| `back` | Answer / context (plain text, NOT NULL, defaults to `''`) |
 | `source_conversation` | Path to the Claude conversation that generated the card |
 | `tags` | JSONB array of tag strings |
 | `status` | App-level lifecycle: `triaging`, `active`, `suspended` |

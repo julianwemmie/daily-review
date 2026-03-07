@@ -155,7 +155,7 @@ export function useDeleteCard() {
 export function useCreateCard() {
   const invalidate = useInvalidateCards();
   return useMutation({
-    mutationFn: (data: { front: string; back?: string; tags?: string[] }) =>
+    mutationFn: (data: { front: string; back: string; tags?: string[] }) =>
       createCard(data),
     onSuccess: invalidate,
   });
@@ -169,7 +169,7 @@ export function useUpdateCard() {
       data,
     }: {
       id: string;
-      data: { front?: string; back?: string | null; tags?: string[] | null; status?: CardStatus };
+      data: { front?: string; back?: string; tags?: string[] | null; status?: CardStatus };
     }) => updateCard(id, data),
     onSuccess: invalidate,
   });
@@ -206,7 +206,7 @@ export function useBatchAcceptCards() {
 export function useBatchCreateCards() {
   const invalidate = useInvalidateCards();
   return useMutation({
-    mutationFn: (cards: { front: string; back?: string; tags?: string[] }[]) =>
+    mutationFn: (cards: { front: string; back: string; tags?: string[] }[]) =>
       batchCreateCards(cards),
     onSuccess: invalidate,
   });

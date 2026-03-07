@@ -40,7 +40,7 @@ claude plugin install amber-flashcards@amber
 
 Accepts cards three ways:
 
-1. **JSON file** — `amber-cards upload cards.json` (array of `{front, back?, tags?}`)
+1. **JSON file** — `amber-cards upload cards.json` (array of `{front, back, tags?}`)
 2. **Inline** — `amber-cards upload --front "Question" --back "Answer" --tags "js,async"`
 3. **Interactive** — `amber-cards upload` with no arguments prompts for front, back, and tags
 

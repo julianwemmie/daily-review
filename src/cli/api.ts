@@ -50,14 +50,14 @@ export class ApiClient {
     return res.json() as Promise<T>;
   }
 
-  async createCard(data: { front: string; back?: string; tags?: string[] }): Promise<Card> {
+  async createCard(data: { front: string; back: string; tags?: string[] }): Promise<Card> {
     return this.request<Card>("/api/cards", {
       method: "POST",
       body: JSON.stringify(data),
     });
   }
 
-  async batchCreateCards(cards: { front: string; back?: string; tags?: string[] }[]): Promise<{ created: number; cards: Card[] }> {
+  async batchCreateCards(cards: { front: string; back: string; tags?: string[] }[]): Promise<{ created: number; cards: Card[] }> {
     return this.request("/api/cards/batch-create", {
       method: "POST",
       body: JSON.stringify({ cards }),
@@ -94,7 +94,7 @@ export class ApiClient {
     });
   }
 
-  async updateCard(id: string, data: { front?: string; back?: string | null; tags?: string[] | null; status?: string }): Promise<Card> {
+  async updateCard(id: string, data: { front?: string; back?: string; tags?: string[] | null; status?: string }): Promise<Card> {
     return this.request(`/api/cards/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),

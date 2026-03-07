@@ -5,7 +5,7 @@ import type { CardStatus, CardState, Card, ReviewLog, UserStats } from "../../sh
 
 export interface CardEdit {
   front?: string;
-  back?: string | null;
+  back?: string;
   source_conversation?: string | null;
   tags?: string[] | null;
   status?: CardStatus;

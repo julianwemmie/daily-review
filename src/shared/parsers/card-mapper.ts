@@ -9,7 +9,7 @@ export const MAX_IMPORT_FILE_SIZE = 500 * 1024 * 1024;
 /** Shape expected by POST /api/cards/batch-create */
 export interface CardCreatePayload {
   front: string;
-  back?: string;
+  back: string;
   tags?: string[];
 }
 
@@ -31,7 +31,7 @@ export function mapImportedCards(
     const tags = [...card.tags, ...extra].filter(Boolean);
     return {
       front: card.front,
-      back: card.back || undefined,
+      back: card.back,
       tags: tags.length > 0 ? tags : undefined,
     };
   });
