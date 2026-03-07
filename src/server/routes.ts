@@ -25,13 +25,13 @@ function isRateLimited(userId: string): boolean {
 
 const CreateCardBody = z.object({
   front: z.string().min(1),
-  back: z.string().optional(),
+  back: z.string().min(1),
   tags: z.array(z.string()).optional(),
 });
 
 const UpdateCardBody = z.object({
   front: z.string().min(1).optional(),
-  back: z.string().nullable().optional(),
+  back: z.string().min(1).optional(),
   tags: z.array(z.string()).nullable().optional(),
   status: z.enum([CardStatus.Triaging, CardStatus.Active, CardStatus.Suspended]).optional(),
 });
@@ -70,7 +70,7 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader, st
         id: crypto.randomUUID(),
         user_id: req.user!.id,
         front,
-        back: back ?? null,
+        back,
         source_conversation: null,
         tags: tags ?? null,
         created_at: now.toISOString(),
@@ -95,11 +95,11 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader, st
       const now = new Date();
       const fsrsFields = newCardSchedule(now);
 
-      const cards: Card[] = req.body.cards.map((c: { front: string; back?: string; tags?: string[] }) => ({
+      const cards: Card[] = req.body.cards.map((c: { front: string; back: string; tags?: string[] }) => ({
         id: crypto.randomUUID(),
         user_id: req.user!.id,
         front: c.front,
-        back: c.back ?? null,
+        back: c.back,
         source_conversation: null,
         tags: c.tags ?? null,
         created_at: now.toISOString(),
@@ -442,7 +442,7 @@ export function mountRoutes(app: Express, db: DbProvider, grader?: LlmGrader, st
         .join("\n\n");
 
       let prompt = `FLASHCARD FRONT:\n${card.front}\n\n`;
-      if (card.back) prompt += `FLASHCARD BACK:\n${card.back}\n\n`;
+      if (card.back.length > 0) prompt += `FLASHCARD BACK:\n${card.back}\n\n`;
       prompt += `REVIEW HISTORY (${logs.length} reviews, oldest first):\n${reviewHistory}`;
 
       const response = await anthropic.messages.create({

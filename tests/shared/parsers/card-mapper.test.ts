@@ -30,12 +30,12 @@ describe("mapImportedCards", () => {
     expect(result[0].tags).toBeUndefined();
   });
 
-  it("omits back when empty string", () => {
+  it("preserves empty string back", () => {
     const noBackCards: ImportedCard[] = [
       { front: "Q", back: "", tags: [] },
     ];
     const result = mapImportedCards(noBackCards);
-    expect(result[0].back).toBeUndefined();
+    expect(result[0].back).toBe("");
   });
 
   it("filters falsy tag values", () => {

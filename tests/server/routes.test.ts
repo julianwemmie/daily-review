@@ -91,7 +91,7 @@ describe("API routes", () => {
     it("creates a card and returns 201", async () => {
       const res = await request(app)
         .post("/api/cards")
-        .send({ front: "Hello" });
+        .send({ front: "Hello", back: "World" });
 
       expect(res.status).toBe(201);
       expect(db.createCards).toHaveBeenCalledTimes(1);
@@ -124,7 +124,7 @@ describe("API routes", () => {
     it("creates multiple cards", async () => {
       const res = await request(app)
         .post("/api/cards/batch-create")
-        .send({ cards: [{ front: "Q1" }, { front: "Q2" }] });
+        .send({ cards: [{ front: "Q1", back: "A1" }, { front: "Q2", back: "A2" }] });
 
       expect(res.status).toBe(201);
       expect(res.body.created).toBe(2);

@@ -154,7 +154,7 @@ export default function ExploreView() {
     if (debouncedQuery) {
       const q = debouncedQuery.toLowerCase();
       const inFront = card.front.toLowerCase().includes(q);
-      const inBack = card.back?.toLowerCase().includes(q);
+      const inBack = card.back.toLowerCase().includes(q);
       const inTags = card.tags?.some((t) => t.toLowerCase().includes(q));
       if (!inFront && !inBack && !inTags) return false;
     }
@@ -325,7 +325,7 @@ export default function ExploreView() {
   function openEdit(card: CardType) {
     setEditingCard(card);
     setEditFront(card.front);
-    setEditBack(card.back ?? "");
+    setEditBack(card.back);
     setEditTags(card.tags ?? []);
     setNewTagInput("");
   }
@@ -340,7 +340,7 @@ export default function ExploreView() {
         id: editingCard.id,
         data: {
           front: editFront.trim(),
-          back: editBack.trim() || null,
+          back: editBack.trim(),
           tags: editTags.length > 0 ? editTags : null,
         },
       });

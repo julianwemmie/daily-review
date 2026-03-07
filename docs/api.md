@@ -12,8 +12,8 @@ The one exception is `GET /api/unsubscribe`, which is unauthenticated (token-bas
 
 | Method | Path | Description | Input |
 |--------|------|-------------|-------|
-| `POST` | `/api/cards` | Create a single card | Body: `{ front, back?, tags? }` |
-| `POST` | `/api/cards/batch-create` | Create up to 500 cards. Returns `{ created: number, cards: Card[] }` | Body: `{ cards: [{ front, back?, tags? }] }` |
+| `POST` | `/api/cards` | Create a single card | Body: `{ front, back, tags? }` |
+| `POST` | `/api/cards/batch-create` | Create up to 500 cards. Returns `{ created: number, cards: Card[] }` | Body: `{ cards: [{ front, back, tags? }] }` |
 | `GET` | `/api/cards` | List cards (see views below) | Query params |
 | `GET` | `/api/cards/counts` | Badge counts. Returns `{ new: number, due: number }` | -- |
 | `PATCH` | `/api/cards/:id` | Update a card's content or status | Body: `{ front?, back?, tags?, status? }` |

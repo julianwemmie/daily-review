@@ -27,7 +27,7 @@ export default function CreateView() {
 
   const doSubmit = useCallback(async () => {
     if (loading) return;
-    if (!front.trim()) return;
+    if (!front.trim() || !back.trim()) return;
 
     try {
       setError(null);
@@ -40,7 +40,7 @@ export default function CreateView() {
 
       await createMutation.mutateAsync({
         front: front.trim(),
-        back: back.trim() || undefined,
+        back: back.trim(),
         tags: tagList.length > 0 ? tagList : undefined,
       });
 
@@ -101,7 +101,7 @@ export default function CreateView() {
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="back" className="text-sm font-medium">
-                Back (optional)
+                Back (answer) *
               </label>
               <Textarea
                 id="back"
@@ -109,6 +109,7 @@ export default function CreateView() {
                 value={back}
                 onChange={(e) => setBack(e.target.value)}
                 rows={3}
+                required
               />
             </div>
 
@@ -130,7 +131,7 @@ export default function CreateView() {
             )}
           </CardContent>
           <CardFooter className="pt-4">
-            <Button type="submit" disabled={loading || !front.trim()}>
+            <Button type="submit" disabled={loading || !front.trim() || !back.trim()}>
               {loading ? "Creating..." : <>Create Card<Kbd>&#8984;&#9166;</Kbd></>}
             </Button>
           </CardFooter>

@@ -35,7 +35,7 @@ export async function fetchListCards(options?: { status?: CardStatus; q?: string
 
 export async function updateCard(id: string, data: {
   front?: string;
-  back?: string | null;
+  back?: string;
   tags?: string[] | null;
   status?: CardStatus;
 }): Promise<Card> {
@@ -50,7 +50,7 @@ export async function updateCard(id: string, data: {
 
 export async function createCard(data: {
   front: string;
-  back?: string;
+  back: string;
   tags?: string[];
 }): Promise<Card> {
   const res = await fetch("/api/cards", {
@@ -136,7 +136,7 @@ export async function reviewCard(
 }
 
 export async function batchCreateCards(
-  cards: { front: string; back?: string; tags?: string[] }[],
+  cards: { front: string; back: string; tags?: string[] }[],
 ): Promise<{ created: number; cards: Card[] }> {
   const res = await fetch("/api/cards/batch-create", {
     method: "POST",

@@ -6,7 +6,7 @@ import { getAuth, getServerUrl } from "../config.js";
 
 export const uploadCommand = new Command("upload")
   .description("Create flashcards from a JSON file or inline")
-  .argument("[file]", "JSON file with cards (array of {front, back?, tags?})")
+  .argument("[file]", "JSON file with cards (array of {front, back, tags?})")
   .option("--front <text>", "Card front (for single card)")
   .option("--back <text>", "Card back (for single card)")
   .option("--tags <tags>", "Comma-separated tags")
@@ -18,7 +18,7 @@ export const uploadCommand = new Command("upload")
       serverUrl: getServerUrl(opts.server),
     });
 
-    const cards: { front: string; back?: string; tags?: string[] }[] = [];
+    const cards: { front: string; back: string; tags?: string[] }[] = [];
 
     if (file) {
       const raw = fs.readFileSync(file, "utf-8");
@@ -26,6 +26,10 @@ export const uploadCommand = new Command("upload")
       const arr = Array.isArray(parsed) ? parsed : [parsed];
       cards.push(...arr);
     } else if (opts.front) {
+      if (!opts.back) {
+        p.log.error("--back is required when using --front");
+        return process.exit(1);
+      }
       cards.push({
         front: opts.front,
         back: opts.back,
@@ -35,14 +39,14 @@ export const uploadCommand = new Command("upload")
       // Interactive mode
       const front = await p.text({ message: "Card front (question):", validate: (v) => v.length === 0 ? "Required" : undefined });
       if (p.isCancel(front)) return process.exit(0);
-      const back = await p.text({ message: "Card back (answer):", placeholder: "Optional" });
+      const back = await p.text({ message: "Card back (answer):", validate: (v) => v.length === 0 ? "Required" : undefined });
       if (p.isCancel(back)) return process.exit(0);
       const tags = await p.text({ message: "Tags (comma-separated):", placeholder: "Optional" });
       if (p.isCancel(tags)) return process.exit(0);
 
       cards.push({
         front: front as string,
-        back: (back as string) || undefined,
+        back: back as string,
         tags: (tags as string) ? (tags as string).split(",").map(t => t.trim()) : undefined,
       });
     }
