@@ -4,15 +4,37 @@ export default {
   theme: {
     extend: {
       colors: {
-        surface: '#141414',
-        border: '#1e1e1e',
-        accent: '#00ff88',
-        'accent-dim': '#00cc6a',
-        'accent-cyan': '#22d3ee',
+        cream: {
+          DEFAULT: '#FAF3E0',
+          light: '#FBF7EE',
+        },
+        earth: {
+          DEFAULT: '#3D2B1F',
+          light: '#4E3828',
+          medium: '#7A6241',
+          muted: '#A08B6E',
+          border: '#DAC9AB',
+          soft: '#E9E3CE',
+          pale: '#EFE4D0',
+        },
+        terracotta: {
+          DEFAULT: '#C2704E',
+          dim: '#A85D3E',
+          light: '#D4936F',
+        },
+        olive: {
+          DEFAULT: '#6B8E23',
+          light: '#7FA02D',
+        },
+        terminal: {
+          bg: '#3A2E24',
+          border: '#4E3E30',
+          header: '#342820',
+          text: '#ECE2D0',
+        },
       },
       fontFamily: {
-        display: ['Syne', 'sans-serif'],
-        body: ['Plus Jakarta Sans', 'sans-serif'],
+        sans: ['Merriweather Sans', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       animation: {
