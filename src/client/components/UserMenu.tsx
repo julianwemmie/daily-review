@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { LogOut, KeyRound, HelpCircle, Bell } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { signOut, useSession } from "@/lib/auth-client.js";
 import { Button } from "@/components/ui/button.js";
 import {
@@ -14,6 +15,7 @@ import { getNotificationPreference, setNotificationPreference } from "@/lib/api.
 
 export default function UserMenu({ onHelpClick }: { onHelpClick?: () => void }) {
   const { data: session } = useSession();
+  const queryClient = useQueryClient();
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [notificationsLoaded, setNotificationsLoaded] = useState(false);
@@ -89,7 +91,10 @@ export default function UserMenu({ onHelpClick }: { onHelpClick?: () => void }) 
             Help
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => signOut()}>
+          <DropdownMenuItem onSelect={() => {
+            signOut();
+            queryClient.clear();
+          }}>
             <LogOut className="mr-2 h-4 w-4" />
             Sign out
           </DropdownMenuItem>
