@@ -5,27 +5,28 @@ title: Generating Cards
 
 # Generating Cards
 
-Amber creates flashcards by analyzing your Claude Code conversations. There are two ways to generate cards.
+Amber creates flashcards by analyzing your Claude Code conversations.
 
-## Using the Claude Code skill
+## Automatic generation via the plugin
 
-In any Claude Code session, run:
+Once the Claude Code plugin is installed, flashcards are generated automatically. A stop hook fires after each Claude Code turn and starts a background timer (default: 10 minutes). When the timer fires, the plugin:
 
-```
-/flashcards
-```
+1. Reads the full conversation transcript
+2. Fetches your existing cards to avoid duplicates
+3. Generates new flashcards from key concepts
+4. Uploads them to your Amber account
 
-The skill scans your recent conversations (stored as JSONL in `~/.claude/projects/`), extracts key concepts, and generates flashcards. It then uploads them to your Amber account.
+Cards appear silently in the web app — no in-conversation interruption.
 
 ## Using the CLI
 
-If you prefer more control, use the CLI directly:
+You can also upload cards manually via the CLI:
 
 ```bash
-amber-cards upload
+amber upload [file]
 ```
 
-This does the same thing — scans conversations, generates cards, and uploads them.
+Pass a JSON file of cards, or use it inline.
 
 ## What gets extracted?
 

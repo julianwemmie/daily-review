@@ -7,9 +7,9 @@
     <div class="text-center mb-16">
       <span class="inline-block font-mono text-xs text-terracotta mb-4 tracking-widest uppercase">Get started</span>
       <h2 class="font-bold text-3xl md:text-4xl tracking-tight mb-4 text-earth">
-        Up and running in <span class="text-transparent bg-clip-text bg-gradient-to-r from-terracotta to-olive">two minutes</span>
+        Up and running in <span class="text-transparent bg-clip-text bg-gradient-to-r from-terracotta to-gold">two minutes</span>
       </h2>
-      <p class="text-earth-medium max-w-xl mx-auto">Install the CLI, authenticate, and start turning your coding sessions into retained knowledge.</p>
+      <p class="text-earth-medium max-w-xl mx-auto">Install the CLI, authenticate, and set up the Claude Code plugin. Flashcards are generated automatically.</p>
     </div>
 
     <!-- Install steps -->
@@ -20,22 +20,24 @@
           <div class="terminal-dot bg-[#ff5f57]"></div>
           <div class="terminal-dot bg-[#febc2e]"></div>
           <div class="terminal-dot bg-[#28c840]"></div>
-          <span class="ml-3 text-xs font-mono text-earth-muted">Install</span>
+          <span class="ml-3 text-xs font-mono text-earth-muted">Install CLI & Authenticate</span>
         </div>
-        <div class="p-4 flex items-center justify-between group">
-          <code class="font-mono text-sm">
-            <span class="text-terminal-text/50">$</span>
-            <span class="text-terminal-text ml-2">npm install -g amber-cards</span>
-          </code>
-          <button
-            class="copy-btn opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-terminal-text/50 hover:text-terracotta-light p-1"
-            data-copy="npm install -g amber-cards"
-            aria-label="Copy to clipboard"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
-            </svg>
-          </button>
+        <div class="p-4 flex flex-col gap-2 group">
+          <div class="flex items-center justify-between">
+            <code class="font-mono text-sm">
+              <span class="text-terminal-text/50">$</span>
+              <span class="text-terminal-text ml-2">npm install -g amber-cards && amber login</span>
+            </code>
+            <button
+              class="copy-btn opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-terminal-text/50 hover:text-terracotta-light p-1"
+              data-copy="npm install -g amber-cards && amber login"
+              aria-label="Copy to clipboard"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -45,16 +47,16 @@
           <div class="terminal-dot bg-[#ff5f57]"></div>
           <div class="terminal-dot bg-[#febc2e]"></div>
           <div class="terminal-dot bg-[#28c840]"></div>
-          <span class="ml-3 text-xs font-mono text-earth-muted">Authenticate</span>
+          <span class="ml-3 text-xs font-mono text-earth-muted">Add Marketplace</span>
         </div>
         <div class="p-4 flex items-center justify-between group">
           <code class="font-mono text-sm">
             <span class="text-terminal-text/50">$</span>
-            <span class="text-terminal-text ml-2">amber-cards login</span>
+            <span class="text-terminal-text ml-2">claude plugin marketplace add julianwemmie/amber-claude-plugin</span>
           </code>
           <button
             class="copy-btn opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-terminal-text/50 hover:text-terracotta-light p-1"
-            data-copy="amber-cards login"
+            data-copy="claude plugin marketplace add julianwemmie/amber-claude-plugin"
             aria-label="Copy to clipboard"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,16 +72,16 @@
           <div class="terminal-dot bg-[#ff5f57]"></div>
           <div class="terminal-dot bg-[#febc2e]"></div>
           <div class="terminal-dot bg-[#28c840]"></div>
-          <span class="ml-3 text-xs font-mono text-earth-muted">Generate & Upload</span>
+          <span class="ml-3 text-xs font-mono text-earth-muted">Install Plugin</span>
         </div>
         <div class="p-4 flex items-center justify-between group">
           <code class="font-mono text-sm">
             <span class="text-terminal-text/50">$</span>
-            <span class="text-terminal-text ml-2">amber-cards upload</span>
+            <span class="text-terminal-text ml-2">claude plugin install amber-flashcards@amber</span>
           </code>
           <button
             class="copy-btn opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-terminal-text/50 hover:text-terracotta-light p-1"
-            data-copy="amber-cards upload"
+            data-copy="claude plugin install amber-flashcards@amber"
             aria-label="Copy to clipboard"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,11 +96,7 @@
 
     <!-- CTA below -->
     <div class="text-center mt-12">
-      <p class="text-sm text-earth-medium mb-4">Or use the Claude Code skill directly:</p>
-      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-earth-border bg-cream-light/50 font-mono text-sm">
-        <span class="text-terracotta">/flashcards</span>
-        <span class="text-earth-muted">in any Claude Code session</span>
-      </div>
+      <p class="text-sm text-earth-medium mb-4">That's it. The plugin runs automatically after each Claude Code session.</p>
     </div>
   </div>
 </section>

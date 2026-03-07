@@ -26,6 +26,9 @@ export default {
           DEFAULT: '#6B8E23',
           light: '#7FA02D',
         },
+        gold: {
+          DEFAULT: '#D4A03C',
+        },
         terminal: {
           bg: '#3A2E24',
           border: '#4E3E30',

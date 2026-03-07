@@ -8,8 +8,8 @@ title: Installation
 ## Prerequisites
 
 - Node.js 18 or later
-- A Claude Code installation (for the `/flashcards` skill)
-- A Amber account
+- Claude Code installed
+- An Amber account
 
 ## Install the CLI
 
@@ -17,37 +17,42 @@ title: Installation
 npm install -g amber-cards
 ```
 
-Or use it directly with npx:
-
-```bash
-npx amber-cards upload
-```
-
 ## Authenticate
 
 Log in from your terminal. This opens a browser window for authentication:
 
 ```bash
-amber-cards login
+amber login
 ```
 
 You can also authenticate with an API key. Generate one from the Amber web app under your profile settings, then:
 
 ```bash
-amber-cards login --api-key YOUR_KEY
+amber login --api-key YOUR_KEY
 ```
+
+## Install the Claude Code plugin
+
+Add the Amber marketplace and install the plugin:
+
+```bash
+claude plugin marketplace add julianwemmie/amber-claude-plugin
+claude plugin install amber-flashcards@amber
+```
+
+The plugin automatically generates flashcards after each Claude Code session — no manual steps needed.
 
 ## Verify
 
 Check that everything is connected:
 
 ```bash
-amber-cards status
+amber status
 ```
 
 You should see your account info and card count.
 
 ## Next steps
 
-- [Generating Cards](/docs/generating-cards) — learn how to create flashcards from your sessions
+- [Generating Cards](/docs/generating-cards) — learn how cards are created from your sessions
 - [API Keys](/docs/api-keys) — manage authentication tokens

@@ -15,12 +15,12 @@
     <!-- Headline -->
     <h1 class="animate-fade-up-delay-1 font-extrabold text-5xl md:text-7xl tracking-tight leading-[1.05] mb-6 text-earth">
       Turn conversations into<br />
-      <span class="text-transparent bg-clip-text bg-gradient-to-r from-terracotta to-olive">lasting knowledge</span>
+      <span class="text-transparent bg-clip-text bg-gradient-to-r from-terracotta to-gold">lasting knowledge</span>
     </h1>
 
     <!-- Subtitle -->
     <p class="animate-fade-up-delay-2 text-lg md:text-xl text-earth-medium max-w-2xl mx-auto mb-10 leading-relaxed">
-      Amber extracts flashcards from your Claude Code sessions and schedules them with FSRS. An AI grader evaluates your recall so you actually retain what you learn.
+      Install the Claude Code plugin and Amber automatically generates flashcards from your sessions. An AI grader evaluates your recall with FSRS scheduling so you actually retain what you learn.
     </p>
 
     <!-- Terminal window -->
@@ -38,10 +38,10 @@
           <span id="cursor" class="text-terracotta-light animate-blink">_</span>
         </div>
         <div id="output-lines" class="mt-3 space-y-1 font-mono text-xs text-terminal-text/60 hidden">
-          <div><span class="text-terminal-text/40">></span> Scanning today's conversations...</div>
-          <div><span class="text-terminal-text/40">></span> Found <span class="text-terracotta-light">12 concepts</span> across 3 sessions</div>
-          <div><span class="text-terminal-text/40">></span> Generated <span class="text-terracotta-light">12 flashcards</span></div>
-          <div><span class="text-terminal-text/40">></span> Uploaded to Amber <span class="text-terracotta-light">&#10003;</span></div>
+          <div><span class="text-terminal-text/40">></span> Marketplace added <span class="text-terracotta-light">&#10003;</span></div>
+          <div><span class="text-terminal-text/40">></span> Installing amber-flashcards plugin...</div>
+          <div><span class="text-terminal-text/40">></span> Plugin installed <span class="text-terracotta-light">&#10003;</span></div>
+          <div><span class="text-terminal-text/40">></span> Flashcards will be <span class="text-terracotta-light">auto-generated</span> from your sessions</div>
         </div>
       </div>
     </div>
@@ -79,7 +79,7 @@
 </section>
 
 <script>
-  const command = 'amber-cards upload';
+  const command = 'claude plugin install amber-flashcards@amber';
   const typedEl = document.getElementById('typed-command');
   const cursorEl = document.getElementById('cursor');
   const outputEl = document.getElementById('output-lines');
