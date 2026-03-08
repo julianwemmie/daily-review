@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amber - Presentation</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Merriweather+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --cream: #FAF3E0;
+    --cream-light: #FBF7EE;
+    --earth: #3D2B1F;
+    --earth-light: #4E3828;
+    --earth-medium: #7A6241;
+    --earth-muted: #A08B6E;
+    --earth-border: #DAC9AB;
+    --earth-soft: #E9E3CE;
+    --earth-pale: #EFE4D0;
+    --terracotta: #C2704E;
+    --terracotta-dim: #A85D3E;
+    --terracotta-light: #D4936F;
+    --gold: #D4A03C;
+    --olive: #6B8E23;
+    --terminal-bg: #3A2E24;
+    --terminal-border: #4E3E30;
+    --terminal-header: #342820;
+    --terminal-text: #ECE2D0;
+  }
+
+  body {
+    background: var(--cream);
+    color: var(--earth);
+    font-family: 'Merriweather Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  ::selection {
+    background: rgba(194, 112, 78, 0.2);
+    color: var(--terracotta);
+  }
+
+  /* Slide container */
+  .slides {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 4rem 6rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    background-image: radial-gradient(circle, rgba(194, 112, 78, 0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .slide.active .fade-up {
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  .slide.active .fade-up-d1 { animation-delay: 0.1s; }
+  .slide.active .fade-up-d2 { animation-delay: 0.2s; }
+  .slide.active .fade-up-d3 { animation-delay: 0.3s; }
+  .slide.active .fade-up-d4 { animation-delay: 0.4s; }
+  .slide.active .fade-up-d5 { animation-delay: 0.5s; }
+  .slide.active .fade-up-d6 { animation-delay: 0.6s; }
+
+  .fade-up {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.7; }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* Typography */
+  h1 {
+    font-weight: 800;
+    font-size: 4.5rem;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    text-align: center;
+    max-width: 900px;
+  }
+
+  h2 {
+    font-weight: 700;
+    font-size: 3rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    text-align: center;
+    max-width: 800px;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, var(--terracotta), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    font-size: 1.35rem;
+    color: var(--earth-medium);
+    text-align: center;
+    max-width: 680px;
+    line-height: 1.7;
+    margin-top: 1.5rem;
+  }
+
+  .label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--earth-border);
+    background: rgba(251, 247, 238, 0.5);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--earth-medium);
+    margin-bottom: 2rem;
+  }
+
+  .label-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--terracotta);
+    animation: glowPulse 2s ease infinite;
+  }
+
+  /* Terminal */
+  .terminal {
+    background: var(--terminal-bg);
+    border: 1px solid var(--terminal-border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgba(194, 112, 78, 0.08),
+      0 20px 60px -10px rgba(61, 43, 31, 0.15),
+      0 0 100px -20px rgba(194, 112, 78, 0.05);
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .terminal-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 16px;
+    background: var(--terminal-header);
+    border-bottom: 1px solid var(--terminal-border);
+  }
+
+  .terminal-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .terminal-body {
+    padding: 1.25rem 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--terminal-text);
+    line-height: 1.8;
+  }
+
+  .terminal-body .prompt { color: var(--earth-muted); }
+  .terminal-body .cmd { color: var(--terracotta-light); }
+  .terminal-body .comment { color: rgba(236, 226, 208, 0.35); }
+  .terminal-body .success { color: var(--terracotta-light); }
+
+  /* Cards grid */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 960px;
+    margin-top: 2.5rem;
+  }
+
+  .card {
+    background: var(--cream-light);
+    border: 1px solid var(--earth-border);
+    border-radius: 12px;
+    padding: 2rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .card:hover {
+    border-color: rgba(194, 112, 78, 0.3);
+    box-shadow: 0 0 40px -10px rgba(194, 112, 78, 0.1);
+  }
+
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(194, 112, 78, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    color: var(--terracotta);
+  }
+
+  .card h3 {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--earth);
+  }
+
+  .card p {
+    font-size: 0.9rem;
+    color: var(--earth-medium);
+    line-height: 1.6;
+  }
+
+  /* Numbered list */
+  .num-list {
+    list-style: none;
+    max-width: 700px;
+    width: 100%;
+    margin-top: 2rem;
+  }
+
+  .num-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .num-list .num {
+    flex-shrink: 0;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 8px;
+    background: rgba(194, 112, 78, 0.1);
+    color: var(--terracotta);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .num-list .text h3 {
+    font-weight: 700;
+    font-size: 1.15rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .num-list .text p {
+    font-size: 1rem;
+    color: var(--earth-medium);
+    line-height: 1.6;
+  }
+
+  /* Architecture diagram */
+  .arch-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 2.5rem;
+    max-width: 900px;
+  }
+
+  .arch-step {
+    text-align: center;
+    flex: 1;
+    padding: 1.25rem;
+    background: var(--cream-light);
+    border: 1px solid var(--earth-border);
+    border-radius: 12px;
+    position: relative;
+  }
+
+  .arch-step .icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .arch-step h4 {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .arch-step p {
+    font-size: 0.8rem;
+    color: var(--earth-medium);
+    line-height: 1.4;
+  }
+
+  .arch-arrow {
+    flex-shrink: 0;
+    width: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--terracotta);
+  }
+
+  .arch-arrow svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Progress bar */
+  .progress {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--terracotta), var(--gold));
+    transition: width 0.4s ease;
+    z-index: 100;
+  }
+
+  /* Slide counter */
+  .counter {
+    position: fixed;
+    bottom: 1.25rem;
+    right: 2rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--earth-muted);
+    z-index: 100;
+  }
+
+  /* Nav hint */
+  .nav-hint {
+    position: fixed;
+    bottom: 1.25rem;
+    left: 2rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--earth-border);
+    z-index: 100;
+  }
+
+  /* Glow accent */
+  .glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    animation: glowPulse 4s ease infinite;
+  }
+
+  /* Logo */
+  .logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+  }
+
+  .logo-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  /* Big number */
+  .big-quote {
+    font-size: 1.5rem;
+    color: var(--earth-medium);
+    max-width: 700px;
+    text-align: center;
+    line-height: 1.7;
+    font-style: italic;
+    position: relative;
+  }
+
+  .big-quote::before {
+    content: '"';
+    font-size: 5rem;
+    color: var(--terracotta);
+    opacity: 0.2;
+    position: absolute;
+    top: -2.5rem;
+    left: -1.5rem;
+    font-style: normal;
+    line-height: 1;
+  }
+
+  /* Two column layout */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    width: 100%;
+    max-width: 960px;
+    align-items: start;
+    margin-top: 2rem;
+  }
+
+  .two-col .col h3 {
+    font-weight: 700;
+    font-size: 1.15rem;
+    margin-bottom: 0.75rem;
+    color: var(--earth);
+  }
+
+  .two-col .col p,
+  .two-col .col li {
+    font-size: 0.95rem;
+    color: var(--earth-medium);
+    line-height: 1.7;
+  }
+
+  .two-col .col ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .two-col .col ul li {
+    padding-left: 1.5rem;
+    position: relative;
+    margin-bottom: 0.5rem;
+  }
+
+  .two-col .col ul li::before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    color: var(--terracotta);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+  }
+
+  /* CTA button */
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.75rem;
+    background: var(--terracotta);
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 10px;
+    text-decoration: none;
+    margin-top: 2rem;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .cta:hover { background: var(--terracotta-dim); }
+</style>
+</head>
+<body>
+
+<div class="slides">
+
+  <!-- ==================== SLIDE 1: Title ==================== -->
+  <div class="slide active" data-slide="0">
+    <div class="glow" style="width:600px;height:400px;background:rgba(194,112,78,0.06);top:30%;left:40%;"></div>
+    <div class="fade-up" style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;">
+      <img src="public/amber_logo.png" alt="Amber" class="logo">
+    </div>
+    <h1 class="fade-up fade-up-d1">
+      <span class="gradient-text">Amber</span>
+    </h1>
+    <p class="subtitle fade-up fade-up-d2">AI-native spaced repetition that turns your Claude conversations into lasting knowledge.</p>
+    <div class="label fade-up fade-up-d3">
+      <span class="label-dot"></span>
+      amber.cards
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 2: The Problem ==================== -->
+  <div class="slide" data-slide="1">
+    <div class="glow" style="width:500px;height:300px;background:rgba(194,112,78,0.05);top:20%;right:10%;"></div>
+    <div class="label fade-up">
+      <span class="label-dot"></span>
+      the problem
+    </div>
+    <h2 class="fade-up fade-up-d1">Spaced repetition works.<br><span class="gradient-text">The tools don't.</span></h2>
+    <div class="card-grid fade-up fade-up-d2" style="margin-top:2.5rem; grid-template-columns: repeat(3, 1fr);">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:2rem;margin-bottom:0.75rem;">
+          <svg style="display:inline" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--earth-muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/></svg>
+        </div>
+        <h3>Anki</h3>
+        <p>The standard. Ugly, overwhelming, and you spend more time tweaking settings than studying.</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:2rem;margin-bottom:0.75rem;">
+          <svg style="display:inline" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--earth-muted)" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>
+        </div>
+        <h3>Mochi</h3>
+        <p>More modern and clean. But no integration with how we actually learn now: through AI.</p>
+      </div>
+      <div class="card" style="text-align:center;border-color:rgba(194,112,78,0.3);">
+        <div style="font-size:2rem;margin-bottom:0.75rem;">
+          <svg style="display:inline" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--terracotta)" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h3 style="color:var(--terracotta);">Amber</h3>
+        <p>Beautiful, opinionated, AI-native. Built for how developers learn today.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 3: The Product ==================== -->
+  <div class="slide" data-slide="2">
+    <div class="glow" style="width:600px;height:400px;background:rgba(212,160,60,0.05);bottom:10%;left:20%;"></div>
+    <div class="label fade-up">
+      <span class="label-dot"></span>
+      the product
+    </div>
+    <h2 class="fade-up fade-up-d1">The first <span class="gradient-text">AI-native</span><br>spaced repetition app</h2>
+    <p class="subtitle fade-up fade-up-d2" style="margin-bottom:0.5rem;">Petrify knowledge. Solidify it over time.</p>
+    <ol class="num-list fade-up fade-up-d3">
+      <li>
+        <span class="num">1</span>
+        <div class="text">
+          <h3>Beautiful and opinionated</h3>
+          <p>No configuration rabbit holes. Just open the app and start reviewing.</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">2</span>
+        <div class="text">
+          <h3>AI-native features</h3>
+          <p>LLM grader that keeps you honest, speech-to-text for hands-free review, and conversation analysis that tracks whether you're retaining knowledge.</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">3</span>
+        <div class="text">
+          <h3>Claude Code plugin</h3>
+          <p>The big one. A passive learning pipeline that generates flashcards from your daily coding sessions.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+
+  <!-- ==================== SLIDE 4: The Plugin ==================== -->
+  <div class="slide" data-slide="3">
+    <div class="glow" style="width:500px;height:400px;background:rgba(194,112,78,0.06);top:15%;left:50%;"></div>
+    <div class="label fade-up">
+      <span class="label-dot"></span>
+      the plugin
+    </div>
+    <h2 class="fade-up fade-up-d1">Passive learning<br><span class="gradient-text">pipeline</span></h2>
+    <div class="two-col fade-up fade-up-d2">
+      <div class="col">
+        <h3>How it works</h3>
+        <p>The Claude plugin continuously monitors your conversations and automatically extracts flashcard-worthy knowledge. You don't do anything.</p>
+        <p style="margin-top:1rem;">It looks for generalizable, flashcard-friendly insights and uploads them without you thinking about it.</p>
+      </div>
+      <div class="col">
+        <div class="terminal" style="max-width:100%;">
+          <div class="terminal-header">
+            <div class="terminal-dot" style="background:#ff5f57;"></div>
+            <div class="terminal-dot" style="background:#febc2e;"></div>
+            <div class="terminal-dot" style="background:#28c840;"></div>
+            <span style="margin-left:12px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--earth-muted);">~</span>
+          </div>
+          <div class="terminal-body">
+            <div><span class="prompt">$</span> <span class="cmd">claude</span></div>
+            <div style="margin-top:0.75rem;"><span class="comment">// You code normally...</span></div>
+            <div style="margin-top:1rem;"><span class="comment">// Behind the scenes:</span></div>
+            <div><span class="prompt">></span> Analyzing conversation... <span class="success">&#10003;</span></div>
+            <div><span class="prompt">></span> Found 3 flashcard-worthy insights</div>
+            <div><span class="prompt">></span> Uploaded to Amber <span class="success">&#10003;</span></div>
+          </div>
+        </div>
+        <p style="margin-top:1rem;font-size:0.95rem;color:var(--earth-medium);text-align:center;font-style:italic;">Learning happens in Claude.<br>Retention happens in Amber.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 5: Architecture ==================== -->
+  <div class="slide" data-slide="4">
+    <div class="glow" style="width:600px;height:300px;background:rgba(194,112,78,0.05);top:50%;left:30%;"></div>
+    <div class="label fade-up">
+      <span class="label-dot"></span>
+      technical deep dive
+    </div>
+    <h2 class="fade-up fade-up-d1">The <span class="gradient-text">architecture</span></h2>
+    <p class="subtitle fade-up fade-up-d2" style="max-width:700px;">How do you continuously monitor conversations without spending a ton on API calls, polluting the context window, or requiring manual triggers?</p>
+
+    <div class="arch-flow fade-up fade-up-d3">
+      <div class="arch-step">
+        <div class="icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--terracotta)" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>
+        </div>
+        <h4>Conversation pauses</h4>
+        <p>Claude Code stop hook fires</p>
+      </div>
+      <div class="arch-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </div>
+      <div class="arch-step">
+        <div class="icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--terracotta)" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        </div>
+        <h4>15-min debounce</h4>
+        <p>Batches conversation for efficiency</p>
+      </div>
+      <div class="arch-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </div>
+      <div class="arch-step">
+        <div class="icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--terracotta)" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h4>Extract insights</h4>
+        <p>AI identifies flashcard-worthy knowledge</p>
+      </div>
+      <div class="arch-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </div>
+      <div class="arch-step">
+        <div class="icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--terracotta)" stroke-width="1.5"><path d="M4 4h16v16H4z" rx="2"/><path d="M4 9h16"/><path d="M9 4v16"/></svg>
+        </div>
+        <h4>Dedupe & upload</h4>
+        <p>No duplicate cards, ever</p>
+      </div>
+    </div>
+
+    <div class="terminal fade-up fade-up-d4" style="margin-top:2rem;max-width:600px;">
+      <div class="terminal-header">
+        <div class="terminal-dot" style="background:#ff5f57;"></div>
+        <div class="terminal-dot" style="background:#febc2e;"></div>
+        <div class="terminal-dot" style="background:#28c840;"></div>
+        <span style="margin-left:12px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--earth-muted);">stop hook</span>
+      </div>
+      <div class="terminal-body" style="font-size:0.8rem;">
+        <div><span class="comment"># Claude Code stop hook (runs on every pause)</span></div>
+        <div><span class="cmd">on_stop</span> -> spawn extraction script</div>
+        <div><span class="cmd">debounce</span> -> skip if processed in last 15min</div>
+        <div><span class="cmd">extract</span> -> find generalizable insights</div>
+        <div><span class="cmd">dedupe</span>  -> compare against existing cards</div>
+        <div><span class="cmd">upload</span> -> push new cards to Amber <span class="success">&#10003;</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 6: Close ==================== -->
+  <div class="slide" data-slide="5">
+    <div class="glow" style="width:700px;height:500px;background:rgba(194,112,78,0.06);top:30%;left:35%;"></div>
+    <div class="fade-up" style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;">
+      <img src="public/amber_logo.png" alt="Amber" class="logo">
+    </div>
+    <h1 class="fade-up fade-up-d1" style="font-size:3.5rem;">
+      <span class="gradient-text">Amber</span>
+    </h1>
+    <p class="subtitle fade-up fade-up-d2" style="max-width:600px;">Beautiful spaced repetition, AI grading, and a Claude plugin that turns your daily conversations into long-term knowledge.</p>
+    <p class="fade-up fade-up-d3" style="font-size:1.2rem;color:var(--earth-medium);margin-top:0.5rem;font-weight:600;">No extra effort required.</p>
+    <div class="fade-up fade-up-d4" style="display:flex;gap:1.5rem;margin-top:2.5rem;align-items:center;">
+      <div style="text-align:center;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--earth-muted);margin-bottom:0.25rem;">app</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:1rem;color:var(--terracotta);font-weight:600;">app.amber.cards</div>
+      </div>
+      <div style="width:1px;height:2rem;background:var(--earth-border);"></div>
+      <div style="text-align:center;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--earth-muted);margin-bottom:0.25rem;">site</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:1rem;color:var(--terracotta);font-weight:600;">amber.cards</div>
+      </div>
+      <div style="width:1px;height:2rem;background:var(--earth-border);"></div>
+      <div style="text-align:center;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--earth-muted);margin-bottom:0.25rem;">source</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:1rem;color:var(--terracotta);font-weight:600;">github.com/julianwemmie</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Progress bar -->
+<div class="progress" id="progress"></div>
+
+<!-- Slide counter -->
+<div class="counter" id="counter">1 / 6</div>
+
+<!-- Nav hint -->
+<div class="nav-hint">arrow keys or click to navigate</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const progress = document.getElementById('progress');
+  const counter = document.getElementById('counter');
+  let current = 0;
+  const total = slides.length;
+
+  function goTo(n) {
+    if (n < 0 || n >= total) return;
+    slides[current].classList.remove('active');
+    // Reset animations by removing and re-adding fade-up classes
+    slides[n].querySelectorAll('.fade-up').forEach(el => {
+      el.style.animation = 'none';
+      el.offsetHeight; // trigger reflow
+      el.style.animation = '';
+    });
+    current = n;
+    slides[current].classList.add('active');
+    progress.style.width = ((current + 1) / total * 100) + '%';
+    counter.textContent = (current + 1) + ' / ' + total;
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault();
+      goTo(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      goTo(current - 1);
+    }
+  });
+
+  // Click navigation: left third = back, right two-thirds = forward
+  document.addEventListener('click', e => {
+    const x = e.clientX / window.innerWidth;
+    if (x < 0.33) goTo(current - 1);
+    else goTo(current + 1);
+  });
+
+  // Initialize
+  goTo(0);
+</script>
+
+</body>
+</html>

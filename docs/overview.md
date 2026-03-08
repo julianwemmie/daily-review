@@ -1,19 +1,18 @@
 # Amber
 
-A spaced repetition app that turns Claude Code conversations into flashcards, helping retain what you learned throughout the day.
+A beautiful, opinionated spaced repetition app with AI-powered grading and FSRS scheduling. Users can create cards manually, import from Anki or Mochi, or generate them automatically using the CLI and Claude Code plugin.
 
 ## How It Works
 
-1. **Card generation**: A local Claude Code skill analyzes conversations (stored as JSONL in `~/.claude/projects/`) and extracts key concepts into flashcards.
-2. **Upload**: Cards are sent to a cloud backend (API + Postgres).
-3. **Review**: A web UI presents due cards. The user answers in free-form text. An LLM grader scores the response instead of comparing against a rigid "correct answer".
-4. **Scheduling**: FSRS (Free Spaced Repetition Scheduler) manages when cards come back, based on the user's self-selected rating (Again / Hard / Good / Easy).
-5. **Notifications**: Inactive users receive escalating email nudges (1 → 3 → 7 → 14 days) via Resend, encouraging them to return.
+1. **Card creation**: Users add cards manually in the web app, import decks from Anki (.apkg) or Mochi (.mochi), or use the CLI/Claude Code plugin to auto-generate cards from conversations.
+2. **Review**: A web UI presents due cards. The user answers in free-form text. An LLM grader scores the response instead of comparing against a rigid "correct answer".
+3. **Scheduling**: FSRS (Free Spaced Repetition Scheduler) manages when cards come back, based on the user's self-selected rating (Again / Hard / Good / Easy).
+4. **Notifications**: Inactive users receive escalating email nudges (1 → 3 → 7 → 14 days) via Resend, encouraging them to return.
 
 ## Architecture
 
-- **Local** (Claude Code): Conversation parsing, card generation skill (`/flashcards`)
-- **Cloud**: Express API + Supabase Postgres, React review UI, LLM grader, email notifications
+- **Web app**: React review UI, LLM grader, Express API + Supabase Postgres, email notifications
+- **CLI** (optional): Card upload, authentication, Claude Code plugin for automatic card generation from conversations
 
 **ReviewLog** is an append-only history of every review event, enabling stats and retention analytics.
 
@@ -28,7 +27,7 @@ The score is informational only — it helps the user gauge their answer, but do
 ## Authentication
 
 - **User accounts**: Email/password and GitHub OAuth via [better-auth](https://www.better-auth.com/)
-- **API keys**: Users generate API keys in the app to authenticate the `/flashcards` CLI skill when uploading cards
+- **API keys**: Users generate API keys in the app to authenticate the CLI when uploading cards
 
 ## Email Notifications
 
