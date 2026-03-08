@@ -16,11 +16,15 @@ const { title, description = 'Beautiful, opinionated spaced repetition with AI-p
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="/amber_logo.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="/amber_logo.png" />
     <title>{title}</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/amber_logo.png" />
   </head>
   <body class="noise-bg">
     <slot />
