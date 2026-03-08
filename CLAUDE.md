@@ -1,6 +1,6 @@
 # Amber
 
-A spaced repetition app that turns Claude Code conversations into flashcards.
+A beautiful, opinionated spaced repetition app with AI-powered grading and FSRS scheduling. Supports manual card creation, Anki/Mochi import, and automatic card generation via CLI and Claude Code plugin.
 
 ## Project docs
 

@@ -5,11 +5,19 @@ title: Generating Cards
 
 # Generating Cards
 
-Amber creates flashcards by analyzing your Claude Code conversations.
+There are multiple ways to add cards to Amber.
 
-## Automatic generation via the plugin
+## Creating cards manually
 
-Once the Claude Code plugin is installed, flashcards are generated automatically. A stop hook fires after each Claude Code turn and starts a background timer (default: 10 minutes). When the timer fires, the plugin:
+You can create cards directly in the web app. Each card has a **front** (the question/prompt) and a **back** (the answer/explanation), both stored as plain text that may include code snippets.
+
+## Importing from other apps
+
+Amber supports importing decks from Anki (`.apkg`) and Mochi (`.mochi`). See [Importing & Exporting](/docs/importing-exporting) for details.
+
+## Automatic generation via the Claude Code plugin
+
+If you use Claude Code, the optional plugin generates flashcards automatically. A stop hook fires after each Claude Code turn and starts a background timer (default: 10 minutes). When the timer fires, the plugin:
 
 1. Reads the full conversation transcript
 2. Fetches your existing cards to avoid duplicates
@@ -30,15 +38,13 @@ Pass a JSON file of cards, or use it inline.
 
 ## What gets extracted?
 
-The card generator looks for:
+The card generator (whether via plugin or CLI) looks for:
 
 - New APIs or libraries you learned about
 - Debugging techniques and solutions
 - Architectural patterns and design decisions
 - Configuration and setup steps
 - Language features or syntax you encountered
-
-Each card has a **front** (the question/prompt) and a **back** (the answer/explanation), both stored as plain text that may include code snippets.
 
 ## Card quality
 
