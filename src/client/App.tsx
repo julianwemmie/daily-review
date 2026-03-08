@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,7 +8,6 @@ import { useHotkey } from "@/lib/useHotkey.js";
 import { useCounts, usePrefetchCards } from "@/hooks/useCards.js";
 import { ROUTES } from "@/lib/routes.js";
 import UserMenu from "@/components/UserMenu.js";
-import OnboardingModal from "@/components/OnboardingModal.js";
 import AuthView from "@/views/AuthView.js";
 import TriageView from "@/views/TriageView.js";
 import ReviewView from "@/views/ReviewView.js";
@@ -43,37 +42,25 @@ function AppLayout() {
   // Prefetch all card views on mount for instant tab switching
   usePrefetchCards();
 
-  const [onboardingOpen, setOnboardingOpen] = useState(false);
-  const [isPendingOnboarding, setIsPendingOnboarding] = useState(false);
-
+  // Auto-complete onboarding for new users (modal hidden for now)
   useEffect(() => {
     if (!session?.user?.id) return;
     fetch("/api/onboarding/status", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         if (!data.completed) {
-          setIsPendingOnboarding(true);
-          setOnboardingOpen(true);
+          fetch("/api/onboarding/complete", {
+            method: "POST",
+            credentials: "include",
+          })
+            .then(() => {
+              queryClient.invalidateQueries({ queryKey: ["cards"] });
+            })
+            .catch(() => {});
         }
       })
       .catch(() => {});
   }, [session?.user?.id]);
-
-  function handleOnboardingOpenChange(open: boolean) {
-    setOnboardingOpen(open);
-    if (!open && isPendingOnboarding) {
-      setIsPendingOnboarding(false);
-      fetch("/api/onboarding/complete", {
-        method: "POST",
-        credentials: "include",
-      })
-        .then(() => {
-          queryClient.invalidateQueries({ queryKey: ["cards"] });
-          navigate(ROUTES.triage);
-        })
-        .catch(() => {});
-    }
-  }
 
   const visibleTabs = useMemo(() => {
     return ALL_TAB_ROUTES.filter((route) => {
@@ -110,7 +97,7 @@ function AppLayout() {
             <img src="/amber_logo.png" alt="Amber logo" className="h-8 w-8 -mt-1" />
             <h1 className="text-3xl font-bold tracking-tight text-terracotta">Amber</h1>
           </div>
-          <UserMenu onHelpClick={() => setOnboardingOpen(true)} />
+          <UserMenu />
         </div>
 
         {countsError && (
@@ -149,7 +136,7 @@ function AppLayout() {
         </Routes>
       </div>
 
-      <OnboardingModal open={onboardingOpen} onOpenChange={handleOnboardingOpenChange} />
+      {/* OnboardingModal hidden for now — will re-enable later */}
     </div>
   );
 }

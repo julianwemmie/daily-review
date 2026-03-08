@@ -13,7 +13,7 @@ import {
 import ApiKeyManager from "@/components/ApiKeyManager.js";
 import { getNotificationPreference, setNotificationPreference } from "@/lib/api.js";
 
-export default function UserMenu({ onHelpClick }: { onHelpClick?: () => void }) {
+export default function UserMenu() {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
@@ -86,7 +86,7 @@ export default function UserMenu({ onHelpClick }: { onHelpClick?: () => void }) 
               </span>
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem onSelect={() => onHelpClick?.()}>
+          <DropdownMenuItem onSelect={() => window.open("https://amber.cards/docs/getting-started", "_blank")}>
             <HelpCircle className="mr-2 h-4 w-4" />
             Help
           </DropdownMenuItem>

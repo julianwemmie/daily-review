@@ -514,23 +514,6 @@ Be direct and specific. Use 2-4 sentences. If answers are strong and consistent,
     try {
       await db.setOnboardingCompleted(req.user!.id);
 
-      // Seed a welcome card so the user lands on the New tab with something to triage
-      const now = new Date();
-      const fsrsFields = newCardSchedule(now);
-      const welcomeCard: Card = {
-        id: crypto.randomUUID(),
-        user_id: req.user!.id,
-        front: "Where do you decide which generated cards to keep?",
-        back: "The New tab",
-        source_conversation: null,
-        tags: null,
-        created_at: now.toISOString(),
-        ...fsrsFields,
-        state: CardState.New,
-        status: CardStatus.Triaging,
-      };
-      await db.createCards([welcomeCard]);
-
       res.json({ completed: true });
     } catch (err) {
       console.error("POST /api/onboarding/complete error:", err);
