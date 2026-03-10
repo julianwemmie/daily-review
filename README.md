@@ -1,5 +1,7 @@
 # Amber
 
+![Amber](planning/presentation_screenshot.png)
+
 Aesthetic, opinionated flashcards with AI-powered grading and FSRS scheduling. Import from Anki or Mochi, create cards manually, or generate them automatically with the CLI and Claude Code plugin.
 
 ## CLI
