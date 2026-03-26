@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { transcribeAudio } from "@/lib/api.js";
+import { useStorage } from "@/lib/storage/context.js";
 
 export interface UseVoiceInputReturn {
   recording: boolean;
@@ -9,6 +9,7 @@ export interface UseVoiceInputReturn {
 }
 
 export function useVoiceInput(onTranscript: (text: string) => void): UseVoiceInputReturn {
+  const storage = useStorage();
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +56,7 @@ export function useVoiceInput(onTranscript: (text: string) => void): UseVoiceInp
 
         try {
           setTranscribing(true);
-          const { text } = await transcribeAudio(blob);
+          const { text } = await storage.transcribeAudio(blob);
           if (text.trim()) onTranscript(text.trim());
         } catch (err) {
           setError(err instanceof Error ? err.message : "Transcription failed");
@@ -69,7 +70,7 @@ export function useVoiceInput(onTranscript: (text: string) => void): UseVoiceInp
     } catch (err) {
       setError(err instanceof Error ? err.message : "Microphone access denied");
     }
-  }, [onTranscript]);
+  }, [onTranscript, storage]);
 
   const toggle = useCallback(() => {
     if (recording) {

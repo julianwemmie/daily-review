@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LayoutList, LayoutGrid, MoreVertical, Download, Trash2, X, Settings, Upload, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { useListCards, useDeleteCard, useUpdateCard, useBatchDeleteCards } from "@/hooks/useCards.js";
-import { exportCards } from "@/lib/api.js";
+import { useStorage } from "@/lib/storage/context.js";
 import ImportModal from "@/components/ImportModal.js";
 import BulkDeleteModal from "@/components/BulkDeleteModal.js";
 import CardStatsModal from "@/components/CardStatsModal.js";
@@ -74,6 +74,7 @@ type SortDirection = "asc" | "desc";
 type StatusFilter = "all" | CardType["status"];
 
 export default function ExploreView() {
+  const storage = useStorage();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -297,7 +298,7 @@ export default function ExploreView() {
     try {
       setExporting(true);
       setActionError(null);
-      await exportCards({ includeScheduling: exportIncludeScheduling, includeReviewHistory: exportIncludeReviewHistory });
+      await storage.exportCards({ includeScheduling: exportIncludeScheduling, includeReviewHistory: exportIncludeReviewHistory });
       setExportOpen(false);
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Failed to export cards");

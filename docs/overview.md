@@ -12,6 +12,7 @@ A beautiful, opinionated spaced repetition app with AI-powered grading and FSRS 
 ## Architecture
 
 - **Web app**: React review UI, LLM grader, Express API + Supabase Postgres, email notifications
+- **Marketing site** (`site/`): Astro-based landing page and user docs, deployed to Netlify at `amber.cards`
 - **CLI** (optional): Card upload, authentication, Claude Code plugin for automatic card generation from conversations
 
 **ReviewLog** is an append-only history of every review event, enabling stats and retention analytics.
@@ -23,6 +24,16 @@ The grader receives `front` + `back` + the user's free-form answer and produces 
 Users can toggle between AI grading (LLM evaluates the answer) and self grading (user rates themselves without LLM evaluation).
 
 The score is informational only — it helps the user gauge their answer, but does not determine the FSRS rating. The user manually selects their rating (Again / Hard / Good / Easy) after seeing the score.
+
+## Voice Input
+
+Users can answer review cards by voice. The app records audio via the Web Audio API, sends it to a server-side Whisper transcription endpoint (`POST /api/transcribe`), and fills in the answer field with the result. Requires `OPENAI_API_KEY`.
+
+## Stats & Card Analysis
+
+The home tab shows aggregate stats: active card count, current and longest review streaks, total reviews, average LLM score, and a GitHub-style contribution grid (reviews per day over the last year).
+
+Individual cards can be analyzed by an LLM (`POST /api/cards/:id/analyze`) which reviews the history of answers to detect trends — declining quality, lazy answers, genuine understanding, etc.
 
 ## Authentication
 
@@ -38,12 +49,22 @@ Re-engagement nudges for inactive users, sent via [Resend](https://resend.com/) 
 
 ## Tech
 
-- **Frontend**: React, Vite, Tailwind CSS, shadcn/ui, Motion
+- **Frontend**: React, Vite, Tailwind CSS, Radix UI, Motion
 - **Backend**: Express, Supabase (Postgres), better-auth
 - **Scheduling**: [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs)
 - **Email**: [Resend](https://resend.com/), node-cron
-- **AI**: Anthropic SDK (grading)
+- **AI**: Anthropic SDK (grading, card analysis), OpenAI Whisper (voice transcription)
 - Cards store plain text strings (which may contain code snippets); displayed with `whitespace-pre-wrap` to preserve formatting
+
+## Frontend
+
+The web client uses React Router with tab-based navigation across seven views: Home (stats dashboard), Review, Triage (new card stack), Explore (card browser), Create, Auth, and Device pairing.
+
+A **storage provider abstraction** lets the same UI code work in two modes:
+- **ApiStorageProvider** — authenticated users, delegates to `/api` endpoints
+- **MemoryStorageProvider** — unauthenticated demo mode with in-memory state and sample cards
+
+Keyboard shortcuts are available via a `useHotkey` hook (arrow keys for tab navigation, Cmd/Ctrl+Enter to submit).
 
 ## Related docs
 
@@ -51,3 +72,4 @@ Re-engagement nudges for inactive users, sent via [Resend](https://resend.com/) 
 - [Auth](auth.md)
 - [CLI](cli.md)
 - [Database schema](schema.md)
+- [Environment variables](env.md)

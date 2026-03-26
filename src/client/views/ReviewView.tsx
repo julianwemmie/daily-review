@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Kbd } from "@/components/Kbd.js";
-import { evaluateCard } from "@/lib/api.js";
+import LoginPromptModal from "@/components/LoginPromptModal.js";
+import { useStorage, useIsDemo } from "@/lib/storage/context.js";
 import { Rating } from "@/lib/types.js";
 import { useDueCards, useReviewCard } from "@/hooks/useCards.js";
 import { useHotkey } from "@/lib/useHotkey.js";
@@ -34,18 +35,20 @@ interface Evaluation {
 type GradeMode = "self" | "ai";
 
 export default function ReviewView() {
+  const isDemo = useIsDemo();
   const { data: dueData, isLoading: loading, error: queryError, refetch } = useDueCards();
   const cards = dueData?.cards ?? [];
   const nextDue = dueData?.next_due ?? null;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answer, setAnswer] = useState("");
   const [gradeMode, setGradeMode] = useState<GradeMode>(
-    () => (localStorage.getItem("gradeMode") as GradeMode) || "self"
+    () => isDemo ? "self" : (localStorage.getItem("gradeMode") as GradeMode) || "self"
   );
   const [evaluating, setEvaluating] = useState(false);
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [selfGraded, setSelfGraded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
 
   // Clamp currentIndex when the cards array shrinks (e.g., after query refetch)
   useEffect(() => {
@@ -54,6 +57,7 @@ export default function ReviewView() {
     }
   }, [cards.length]);
 
+  const storage = useStorage();
   const reviewMutation = useReviewCard();
   const submitting = reviewMutation.isPending;
 
@@ -78,7 +82,7 @@ export default function ReviewView() {
     try {
       setEvaluating(true);
       setError(null);
-      const result = await evaluateCard(card.id, answer);
+      const result = await storage.evaluateCard(card.id, answer);
       setEvaluation({
         score: result.score,
         feedback: result.feedback,
@@ -189,11 +193,17 @@ export default function ReviewView() {
             role="switch"
             aria-checked={gradeMode === "ai"}
             className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={() => setGradeMode((m) => {
-              const next = m === "self" ? "ai" : "self";
-              localStorage.setItem("gradeMode", next);
-              return next;
-            })}
+            onClick={() => {
+              if (isDemo && gradeMode === "self") {
+                setLoginPromptOpen(true);
+                return;
+              }
+              setGradeMode((m) => {
+                const next = m === "self" ? "ai" : "self";
+                localStorage.setItem("gradeMode", next);
+                return next;
+              });
+            }}
           >
             <span
               className={`pointer-events-none block h-4 w-4 rounded-full bg-foreground shadow-sm transition-transform ${
@@ -296,6 +306,8 @@ export default function ReviewView() {
           )}
         </CardFooter>
       </Card>
+
+      <LoginPromptModal open={loginPromptOpen} onOpenChange={setLoginPromptOpen} />
     </div>
   );
 }

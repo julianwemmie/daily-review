@@ -58,7 +58,7 @@ Requires `claude` CLI or `ANTHROPIC_API_KEY`.
 
 ### Tech Stack
 
-- React 19, Vite, Tailwind CSS, shadcn/ui
+- React 19, Vite, Tailwind CSS, Radix UI
 - Express 5, TypeScript
 - Supabase (Postgres), `pg`
 - ts-fsrs (spaced repetition scheduling)
@@ -67,10 +67,10 @@ Requires `claude` CLI or `ANTHROPIC_API_KEY`.
 
 ### Getting Started
 
-1. Install dependencies: `npm install`
-2. Copy `.env.example` to `.env` and fill in the values
+1. Install dependencies: `bun install`
+2. Copy `.env.example` to `.env` and fill in the values (see [docs/env.md](docs/env.md))
 3. Start Supabase: `supabase start && supabase migration up`
-4. Run the dev server: `npm run dev`
+4. Run the dev server: `bun run dev`
 
 ### Docs
 

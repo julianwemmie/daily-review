@@ -114,3 +114,4 @@ These are defined in `src/shared/types.ts` and stored as `TEXT` in Postgres:
 - [api.md](api.md) — API endpoints
 - [cli.md](cli.md) — CLI usage
 - [auth.md](auth.md) — authentication flow
+- [env.md](env.md) — environment variables

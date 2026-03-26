@@ -10,7 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Kbd } from "@/components/Kbd.js";
 import { useTriageCards, useInvalidateCards, useBatchAcceptCards, useBatchDeleteCards } from "@/hooks/useCards.js";
-import { acceptCard, deleteCard, updateCard } from "@/lib/api.js";
+import { useStorage } from "@/lib/storage/context.js";
 import { useHotkey } from "@/lib/useHotkey.js";
 
 const STACK_SIZE = 3;
@@ -29,6 +29,7 @@ const springTransition = {
 };
 
 export default function TriageView() {
+  const storage = useStorage();
   const { data: cards = [], isLoading: loading, error: queryError, refetch } = useTriageCards();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [actionLoading, setActionLoading] = useState(false);
@@ -88,8 +89,8 @@ export default function TriageView() {
     const patch: { front?: string; back?: string } = {};
     if (editedFront !== null) patch.front = editedFront;
     if (editedBack !== null) patch.back = editedBack;
-    await updateCard(cardId, patch);
-  }, [hasEdits, editedFront, editedBack]);
+    await storage.updateCard(cardId, patch);
+  }, [hasEdits, editedFront, editedBack, storage]);
 
   const handleAccept = useCallback(async () => {
     const card = visibleCards[currentIndex];
@@ -99,7 +100,7 @@ export default function TriageView() {
       setActionError(null);
       if (hasEdits) await saveEdits(card.id);
       removeCard(card.id);
-      await acceptCard(card.id);
+      await storage.acceptCard(card.id);
       invalidate();
     } catch (err) {
       restoreCard(card.id);
@@ -116,7 +117,7 @@ export default function TriageView() {
       setActionLoading(true);
       setActionError(null);
       removeCard(card.id);
-      await deleteCard(card.id);
+      await storage.deleteCard(card.id);
       invalidate();
     } catch (err) {
       restoreCard(card.id);

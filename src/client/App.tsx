@@ -7,6 +7,7 @@ import { useSession } from "@/lib/auth-client.js";
 import { useHotkey } from "@/lib/useHotkey.js";
 import { useCounts, usePrefetchCards } from "@/hooks/useCards.js";
 import { ROUTES } from "@/lib/routes.js";
+import { StorageProviderRoot } from "@/lib/storage/context.js";
 import UserMenu from "@/components/UserMenu.js";
 import AuthView from "@/views/AuthView.js";
 import TriageView from "@/views/TriageView.js";
@@ -142,7 +143,7 @@ function AppLayout() {
 }
 
 function AuthGate() {
-  const { data: session, isPending } = useSession();
+  const { isPending } = useSession();
 
   if (isPending) {
     return (
@@ -152,22 +153,21 @@ function AuthGate() {
     );
   }
 
-  if (!session) {
-    return <AuthView />;
-  }
-
   return <AppLayout />;
 }
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path={ROUTES.device} element={<DeviceView />} />
-          <Route path="*" element={<AuthGate />} />
-        </Routes>
-      </BrowserRouter>
+      <StorageProviderRoot>
+        <BrowserRouter>
+          <Routes>
+            <Route path={ROUTES.device} element={<DeviceView />} />
+            <Route path={ROUTES.login} element={<AuthView />} />
+            <Route path="*" element={<AuthGate />} />
+          </Routes>
+        </BrowserRouter>
+      </StorageProviderRoot>
     </QueryClientProvider>
   );
 }

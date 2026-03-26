@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { LogOut, KeyRound, HelpCircle, Bell } from "lucide-react";
+import { LogOut, LogIn, KeyRound, HelpCircle, Bell } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { signOut, useSession } from "@/lib/auth-client.js";
 import { Button } from "@/components/ui/button.js";
@@ -11,21 +12,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.js";
 import ApiKeyManager from "@/components/ApiKeyManager.js";
-import { getNotificationPreference, setNotificationPreference } from "@/lib/api.js";
+import { useStorage } from "@/lib/storage/context.js";
+import { ROUTES } from "@/lib/routes.js";
 
 export default function UserMenu() {
   const { data: session } = useSession();
+  const storage = useStorage();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [notificationsLoaded, setNotificationsLoaded] = useState(false);
 
+  const isDemo = !session;
   const userEmail = session?.user?.email ?? "";
-  const initial = (session?.user?.name?.[0] ?? userEmail[0] ?? "?").toUpperCase();
+  const initial = isDemo ? "?" : (session?.user?.name?.[0] ?? userEmail[0] ?? "?").toUpperCase();
 
   useEffect(() => {
     if (!session?.user?.id) return;
-    getNotificationPreference()
+    storage.getNotificationPreference()
       .then((enabled) => {
         setNotificationsEnabled(enabled);
         setNotificationsLoaded(true);
@@ -34,17 +39,31 @@ export default function UserMenu() {
         // Silently fail — default to true
         setNotificationsLoaded(true);
       });
-  }, [session?.user?.id]);
+  }, [session?.user?.id, storage]);
 
   async function handleToggleNotifications() {
     const newValue = !notificationsEnabled;
     setNotificationsEnabled(newValue);
     try {
-      await setNotificationPreference(newValue);
+      await storage.setNotificationPreference(newValue);
     } catch {
       // Revert on failure
       setNotificationsEnabled(!newValue);
     }
+  }
+
+  if (isDemo) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => navigate(ROUTES.login)}
+        className="gap-1.5"
+      >
+        <LogIn className="h-4 w-4" />
+        Sign in
+      </Button>
+    );
   }
 
   return (
