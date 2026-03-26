@@ -5,4 +5,5 @@ export const ROUTES = {
   explore: "/explore",
   create: "/create",
   device: "/device",
+  login: "/login",
 } as const;

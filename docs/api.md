@@ -18,6 +18,7 @@ The one exception is `GET /api/unsubscribe`, which is unauthenticated (token-bas
 | `GET` | `/api/cards/counts` | Badge counts. Returns `{ new: number, due: number }` | -- |
 | `PATCH` | `/api/cards/:id` | Update a card's content or status | Body: `{ front?, back?, tags?, status? }` |
 | `DELETE` | `/api/cards/:id` | Delete a card | -- |
+| `GET` | `/api/cards/export` | Export all cards as JSON download | Query: `?includeScheduling=true&includeReviewHistory=true` |
 
 ### Card list views (`GET /api/cards`)
 
@@ -44,6 +45,26 @@ The `view` query param switches behavior:
 | `POST` | `/api/cards/:id/review` | Submit a review and reschedule the card | Body: `{ rating, answer?, llm_score?, llm_feedback? }` |
 
 `rating` is one of: `Again`, `Hard`, `Good`, `Easy`.
+
+---
+
+## Stats & Analysis
+
+| Method | Path | Description | Input |
+|--------|------|-------------|-------|
+| `GET` | `/api/stats` | Aggregate stats (active cards, streaks, total reviews, contribution grid) | -- |
+| `GET` | `/api/cards/:id/review-logs` | Review history for a single card | -- |
+| `POST` | `/api/cards/:id/analyze` | AI analysis of review quality and trends over time. Rate limited (5/min per user). Requires review history. | -- |
+
+---
+
+## Transcription
+
+| Method | Path | Description | Input |
+|--------|------|-------------|-------|
+| `POST` | `/api/transcribe` | Speech-to-text via Whisper. Requires `OPENAI_API_KEY`. | Raw audio body with `Content-Type` header (e.g. `audio/webm`) |
+
+Returns `{ text: string }`.
 
 ---
 
@@ -83,3 +104,4 @@ Handled by [better-auth](https://www.better-auth.com/), not by the Express route
 - [CLI reference](cli.md)
 - [Database schema](schema.md)
 - [Authentication](auth.md)
+- [Environment variables](env.md)

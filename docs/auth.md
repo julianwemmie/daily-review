@@ -63,3 +63,4 @@ If none are found, the CLI prints login instructions and exits.
 - [API routes](api.md)
 - [CLI usage](cli.md)
 - [Database schema](schema.md)
+- [Environment variables](env.md)

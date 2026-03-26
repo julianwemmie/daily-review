@@ -1,22 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import {
-  fetchCounts,
-  fetchTriageCards,
-  fetchDueCardsView,
-  fetchListCards,
-  acceptCard,
-  deleteCard,
-  batchAcceptCards,
-  batchDeleteCards,
-  batchCreateCards,
-  updateCard,
-  createCard,
-  reviewCard,
-  fetchStats,
-  fetchCardReviewLogs,
-  type DueCardsResponse,
-} from "@/lib/api.js";
+import { useStorage } from "@/lib/storage/context.js";
+import type { DueCardsResponse } from "@/lib/api.js";
 import { type Card, type CardStatus, type Rating, type UserStats, type ReviewLog } from "@/lib/types.js";
 
 // ---- Query key factories ----
@@ -35,45 +20,51 @@ export const cardKeys = {
 // ---- Query hooks ----
 
 export function useTriageCards() {
+  const storage = useStorage();
   return useQuery<Card[]>({
     queryKey: cardKeys.triage(),
-    queryFn: fetchTriageCards,
+    queryFn: () => storage.fetchTriageCards(),
   });
 }
 
 export function useDueCards() {
+  const storage = useStorage();
   return useQuery<DueCardsResponse>({
     queryKey: cardKeys.due(),
-    queryFn: fetchDueCardsView,
+    queryFn: () => storage.fetchDueCards(),
   });
 }
 
 export function useListCards(filters?: { status?: CardStatus; q?: string }) {
+  const storage = useStorage();
   return useQuery<Card[]>({
     queryKey: cardKeys.list(filters),
-    queryFn: () => fetchListCards(filters),
+    queryFn: () => storage.fetchListCards(filters),
   });
 }
 
 export function useCounts() {
+  const storage = useStorage();
   return useQuery<{ new: number; due: number }>({
     queryKey: cardKeys.counts(),
-    queryFn: fetchCounts,
+    queryFn: () => storage.fetchCounts(),
   });
 }
 
 export function useStats() {
+  const storage = useStorage();
   return useQuery<UserStats>({
     queryKey: cardKeys.stats(),
-    queryFn: fetchStats,
+    queryFn: () => storage.fetchStats(),
     staleTime: 60_000,
   });
 }
 
 export function useCardReviewLogs(cardId: string | null) {
+  const storage = useStorage();
   return useQuery<ReviewLog[]>({
     queryKey: cardKeys.reviewLogs(cardId!),
-    queryFn: () => fetchCardReviewLogs(cardId!),
+    queryFn: () => storage.fetchCardReviewLogs(cardId!),
     enabled: !!cardId,
   });
 }
@@ -82,25 +73,26 @@ export function useCardReviewLogs(cardId: string | null) {
 
 export function usePrefetchCards() {
   const queryClient = useQueryClient();
+  const storage = useStorage();
 
   useEffect(() => {
     queryClient.prefetchQuery({
       queryKey: cardKeys.triage(),
-      queryFn: fetchTriageCards,
+      queryFn: () => storage.fetchTriageCards(),
     });
     queryClient.prefetchQuery({
       queryKey: cardKeys.due(),
-      queryFn: fetchDueCardsView,
+      queryFn: () => storage.fetchDueCards(),
     });
     queryClient.prefetchQuery({
       queryKey: cardKeys.list(),
-      queryFn: () => fetchListCards(),
+      queryFn: () => storage.fetchListCards(),
     });
     queryClient.prefetchQuery({
       queryKey: cardKeys.counts(),
-      queryFn: fetchCounts,
+      queryFn: () => storage.fetchCounts(),
     });
-  }, [queryClient]);
+  }, [queryClient, storage]);
 }
 
 // ---- Invalidation helper ----
@@ -115,17 +107,19 @@ export function useInvalidateCards() {
 // ---- Mutation hooks ----
 
 export function useAcceptCard() {
+  const storage = useStorage();
   const invalidate = useInvalidateCards();
   return useMutation({
-    mutationFn: (id: string) => acceptCard(id),
+    mutationFn: (id: string) => storage.acceptCard(id),
     onSuccess: invalidate,
   });
 }
 
 export function useDeleteCard() {
+  const storage = useStorage();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => deleteCard(id),
+    mutationFn: (id: string) => storage.deleteCard(id),
     onMutate: async (id) => {
       // Cancel any in-flight fetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: cardKeys.all });
@@ -153,15 +147,17 @@ export function useDeleteCard() {
 }
 
 export function useCreateCard() {
+  const storage = useStorage();
   const invalidate = useInvalidateCards();
   return useMutation({
     mutationFn: (data: { front: string; back: string; tags?: string[] }) =>
-      createCard(data),
+      storage.createCard(data),
     onSuccess: invalidate,
   });
 }
 
 export function useUpdateCard() {
+  const storage = useStorage();
   const invalidate = useInvalidateCards();
   return useMutation({
     mutationFn: ({
@@ -170,12 +166,13 @@ export function useUpdateCard() {
     }: {
       id: string;
       data: { front?: string; back?: string; tags?: string[] | null; status?: CardStatus };
-    }) => updateCard(id, data),
+    }) => storage.updateCard(id, data),
     onSuccess: invalidate,
   });
 }
 
 export function useReviewCard() {
+  const storage = useStorage();
   const invalidate = useInvalidateCards();
   return useMutation({
     mutationFn: ({
@@ -190,32 +187,35 @@ export function useReviewCard() {
       answer?: string;
       llmScore?: number;
       llmFeedback?: string;
-    }) => reviewCard(id, rating, answer, llmScore, llmFeedback),
+    }) => storage.reviewCard(id, rating, answer, llmScore, llmFeedback),
     onSuccess: invalidate,
   });
 }
 
 export function useBatchAcceptCards() {
+  const storage = useStorage();
   const invalidate = useInvalidateCards();
   return useMutation({
-    mutationFn: (ids: string[]) => batchAcceptCards(ids),
+    mutationFn: (ids: string[]) => storage.batchAcceptCards(ids),
     onSuccess: invalidate,
   });
 }
 
 export function useBatchCreateCards() {
+  const storage = useStorage();
   const invalidate = useInvalidateCards();
   return useMutation({
     mutationFn: (cards: { front: string; back: string; tags?: string[] }[]) =>
-      batchCreateCards(cards),
+      storage.batchCreateCards(cards),
     onSuccess: invalidate,
   });
 }
 
 export function useBatchDeleteCards() {
+  const storage = useStorage();
   const invalidate = useInvalidateCards();
   return useMutation({
-    mutationFn: (ids: string[]) => batchDeleteCards(ids),
+    mutationFn: (ids: string[]) => storage.batchDeleteCards(ids),
     onSuccess: invalidate,
   });
 }

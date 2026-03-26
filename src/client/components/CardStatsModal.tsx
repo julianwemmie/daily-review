@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2 } from "lucide-react";
 import { useCardReviewLogs } from "@/hooks/useCards.js";
-import { analyzeCard } from "@/lib/api.js";
+import { useStorage, useIsDemo } from "@/lib/storage/context.js";
+import LoginPromptModal from "@/components/LoginPromptModal.js";
 import type { Card } from "@/lib/types.js";
 
 interface Props {
@@ -38,24 +39,31 @@ function formatScore(score: number | null): string {
 }
 
 export default function CardStatsModal({ card, open, onOpenChange }: Props) {
+  const storage = useStorage();
+  const isDemo = useIsDemo();
   const { data: logs = [], isLoading: logsLoading } = useCardReviewLogs(open ? card?.id ?? null : null);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
 
   const handleAnalyze = useCallback(async () => {
     if (!card) return;
+    if (isDemo) {
+      setLoginPromptOpen(true);
+      return;
+    }
     setAnalyzing(true);
     setAnalyzeError(null);
     try {
-      const result = await analyzeCard(card.id);
+      const result = await storage.analyzeCard(card.id);
       setAnalysis(result.analysis);
     } catch (err) {
       setAnalyzeError(err instanceof Error ? err.message : "Analysis failed");
     } finally {
       setAnalyzing(false);
     }
-  }, [card]);
+  }, [card, storage, isDemo]);
 
   function handleOpenChange(open: boolean) {
     if (!open) {
@@ -70,6 +78,7 @@ export default function CardStatsModal({ card, open, onOpenChange }: Props) {
   const totalLapses = logs.filter((l) => l.rating === "Again").length;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
@@ -169,6 +178,9 @@ export default function CardStatsModal({ card, open, onOpenChange }: Props) {
         </div>
       </DialogContent>
     </Dialog>
+
+    <LoginPromptModal open={loginPromptOpen} onOpenChange={setLoginPromptOpen} />
+    </>
   );
 }
 
